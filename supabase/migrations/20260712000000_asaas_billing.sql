@@ -48,6 +48,10 @@ alter table payment_webhook_events enable row level security;
 -- webhook, nunca por um client autenticado comum) escreve/lê aqui.
 
 -- events_with_open_slots (migração 000004) precisa passar a incluir o preço.
+-- Postgres não permite mudar o tipo de retorno via CREATE OR REPLACE
+-- (erro 42P13) — precisa dropar a função antes de recriá-la.
+drop function if exists events_with_open_slots();
+
 create or replace function events_with_open_slots()
 returns table (
   id uuid,
