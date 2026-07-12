@@ -67,6 +67,24 @@ só por leitura de código. **Não testado ao vivo**: chat entre dois usuários
 confirmados (mecanismo usa os mesmos RPCs `security definer` já validados em
 `events_with_open_slots`, e não usa upsert — risco residual considerado baixo).
 
+## Testado ponta a ponta contra Asaas sandbox
+Assinatura de plano (cria customer + subscription, link de pagamento,
+confirmação via `POST /v3/sandbox/payment/{id}/confirm`, webhook atualiza
+`subscriptions.status` para `active`) e cobrança de evento pago (cria
+payment avulso, mesmo fluxo de confirmação, webhook marca
+`event_registrations.payment_status = paid`) — ambos validados de ponta a
+ponta com um túnel cloudflared temporário apontando o webhook para o
+localhost. **Para produção**: registrar o webhook de novo (a URL do túnel
+não existe mais) apontando para o domínio real, via
+`POST https://api.asaas.com/v3/webhooks` com a API key de produção — ver
+payload usado em `docs/asaas-webhook-setup` (não versionado; refazer com
+os campos de `src/app/api/webhooks/asaas/route.ts`: `authToken` igual ao
+`ASAAS_WEBHOOK_TOKEN` de produção, `events` = PAYMENT_CONFIRMED,
+PAYMENT_RECEIVED, PAYMENT_OVERDUE, PAYMENT_DELETED, PAYMENT_REFUNDED).
+Bug encontrado e corrigido nesse teste: a action de assinatura/inscrição
+exigia CPF do formulário mesmo quando `billing_profiles` já tinha o
+customer — quebrava a segunda compra de qualquer usuário.
+
 ### Lição sobre RLS + upload de arquivo (upsert)
 `{ upsert: true }` no upload vira `INSERT ... ON CONFLICT (name, bucket_id)
 DO UPDATE` no Postgres. Isso exige (a) uma policy de UPDATE em
