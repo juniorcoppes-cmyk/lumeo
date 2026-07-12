@@ -97,11 +97,28 @@ sessão inteira de depuração — ver migrações `..._storage_update.sql` e
 `..._storage_select_own.sql`. Se qualquer bucket novo usar `upsert: true`,
 lembrar de criar as três policies (insert/select/update) desde o início.
 
+## Postura de compliance (decisão do produto, não só técnica)
+Tratamos o Lumeo como sujeito às regras de "conteúdo adulto" da Lei
+15.211/2025 (ECA Digital) **por garantia**, mesmo sem confirmação jurídica
+definitiva — decisão consciente de errar para o lado mais restritivo em vez
+de assumir que a plataforma está fora do escopo da lei. Na prática, hoje isso
+significa: documento/vídeo de verificação são apagados do Storage assim que
+aprovados (ver abaixo), nunca reutilizados para outra finalidade além da
+verificação em si. Ainda não implementado e digno de revisão se a postura
+mudar: verificação "a cada acesso" (a lei sugere isso para conteúdo adulto;
+o Lumeo verifica uma vez, na aprovação — mudar isso é uma decisão de UX
+grande, não fazer sem alinhar antes).
+
 ## Pontos sensíveis
 - `verifications.document_url` / `video_url` guardam paths no bucket privado
   `verifications` (RLS: insert/select/update do próprio usuário na própria
-  pasta; select completo só para `users.is_admin`). Falta política de
-  retenção/exclusão automática (LGPD).
+  pasta; select completo e delete só para `users.is_admin`). **Apagados do
+  Storage automaticamente quando a verificação é aprovada** (dentro da mesma
+  `approveVerification`, ver `src/app/admin/verificacoes/actions.ts`) —
+  colunas viram `null`, `purged_at` registra quando. Reprovações continuam
+  retidas (usuário ainda vai reenviar); não há limpeza automática para
+  reprovações abandonadas (usuário nunca reenvia) — considerar se isso virar
+  um problema de volume.
 - Toda escrita "de admin" (aprovar verificação, criar evento, confirmar
   inscrição, promover usuário) depende de `users.is_admin = true` verificado
   via função `is_admin()` (security definer) nas policies — ver
@@ -135,7 +152,9 @@ lembrar de criar as três policies (insert/select/update) desde o início.
    (sandbox). Nenhum processador brasileiro aceita o nicho "por escrito";
    Asaas foi a escolha pragmática, ver pesquisa no histórico do chat.
 2. Registro de `lumeo.com.br` e busca de marca no INPI.
-3. Regra de tolerância para falha de pagamento recorrente — ainda não
-   implementada (webhook marca `overdue` mas não há prazo de carência antes
-   de suspender acesso).
-4. Prazo de retenção/exclusão dos arquivos de verificação.
+3. ~~Regra de tolerância para falha de pagamento recorrente~~ — 2 dias de
+   carência (`overdue_since` + `effectiveSubscriptionStatus` em
+   `src/lib/subscription.ts`; ver `src/app/api/webhooks/asaas/route.ts`).
+4. ~~Prazo de retenção/exclusão dos arquivos de verificação~~ — descarte
+   automático na aprovação (ver "Postura de compliance" acima). Reprovações
+   sem reenvio ainda não têm limpeza automática.
