@@ -71,10 +71,13 @@ export default async function ChatListPage({
           const other = otherUsers?.find((u) => u.id === otherId);
           const event = events?.find((e) => e.id === c.event_id);
           return (
-            <li key={c.id}>
-              <Link href={`/chat/${c.id}`} className="rounded-lg border p-3 block hover:bg-neutral-50">
-                <span className="font-medium">{other?.name}</span>
-                <span className="text-sm text-neutral-600"> · {event?.title}</span>
+            <li key={c.id} className="rounded-lg border p-3">
+              <Link href={`/perfil/${otherId}`} className="font-medium underline">
+                {other?.name}
+              </Link>
+              <span className="text-sm text-neutral-600"> · {event?.title} · </span>
+              <Link href={`/chat/${c.id}`} className="text-sm underline">
+                Abrir conversa
               </Link>
             </li>
           );
@@ -94,11 +97,13 @@ export default async function ChatListPage({
                   <p className="text-sm text-neutral-500">{event?.title}</p>
                   <ul className="mt-2 flex flex-col gap-2">
                     {attendees.map((a: { id: string; name: string; verification_badge_id: string | null }) => (
-                      <li key={a.id}>
-                        <form action={startConversation} className="flex items-center gap-2">
+                      <li key={a.id} className="flex items-center gap-2">
+                        <Link href={`/perfil/${a.id}`} className="text-sm underline">
+                          {a.name}
+                        </Link>
+                        <form action={startConversation}>
                           <input type="hidden" name="event_id" value={event?.id} />
                           <input type="hidden" name="other_user_id" value={a.id} />
-                          <span className="text-sm">{a.name}</span>
                           <button type="submit" className="rounded border px-2 py-1 text-sm">
                             Conversar
                           </button>
