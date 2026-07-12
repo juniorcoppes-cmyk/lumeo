@@ -24,7 +24,13 @@ export default async function ChatListPage({
   const otherUserIds = (conversations ?? []).map((c) =>
     c.user_a_id === user.id ? c.user_b_id : c.user_a_id,
   );
-  const eventIds = [...new Set((conversations ?? []).map((c) => c.event_id))];
+  const eventIds = [
+    ...new Set(
+      (conversations ?? [])
+        .map((c) => c.event_id)
+        .filter((id): id is string => id !== null),
+    ),
+  ];
 
   const [{ data: otherUsers }, { data: events }] = await Promise.all([
     otherUserIds.length
@@ -61,7 +67,7 @@ export default async function ChatListPage({
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-2xl font-semibold">Conversas</h1>
       <p className="mt-2 text-neutral-600">
-        Disponível apenas com pessoas confirmadas no mesmo evento.
+        Suas conversas com outros usuários verificados.
       </p>
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
@@ -75,8 +81,10 @@ export default async function ChatListPage({
               <Link href={`/perfil/${otherId}`} className="font-medium underline">
                 {other?.name}
               </Link>
-              <span className="text-sm text-neutral-600"> · {event?.title} · </span>
-              <Link href={`/chat/${c.id}`} className="text-sm underline">
+              {event && (
+                <span className="text-sm text-neutral-600"> · {event.title}</span>
+              )}
+              <Link href={`/chat/${c.id}`} className="ml-2 text-sm underline">
                 Abrir conversa
               </Link>
             </li>

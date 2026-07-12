@@ -63,9 +63,25 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
   "Corpo" é visível a qualquer usuário verificado; "rosto" exige um pedido
   de acesso (`photo_access_requests`) que o dono aprova/nega em `/perfil`.
   `/perfil/[id]` mostra o álbum de outro usuário (corpo sempre, rosto só se
-  aprovado); linkado a partir de `/chat`. Path no storage:
+  aprovado); linkado a partir de `/chat` e de `/comunidade`. Path no storage:
   `{user_id}/{rosto|corpo}/{arquivo}` — o segundo segmento do path é usado
   nas policies de storage para diferenciar a categoria.
+- Comunidade (`/comunidade`, pedido do fundador em 2026-07-12): lista todo
+  usuário verificado da plataforma via RPC `browse_verified_users()`
+  (security definer), excluindo quem ativou `discreet_mode` (campo que já
+  existia, sem uso, até esta feature) e o próprio usuário. Permite iniciar
+  conversa com qualquer verificado, não só com quem está confirmado no
+  mesmo evento — `conversations.event_id` agora aceita `null` para esse
+  caso ("conversa geral"), com índice único parcial
+  (`conversations_general_unique`) garantindo uma única conversa geral por
+  par de usuários. RPC `start_conversation_general` cria/retorna essa
+  conversa; `/chat` já lista as duas modalidades (mostra o nome do evento
+  só quando existe). `/perfil/[id]` passou a usar a RPC
+  `get_verified_profile` (em vez de select direto em `users`) para
+  funcionar com qualquer verificado, não só com quem já tinha conversa em
+  comum — e-mail nunca é exposto por nenhuma dessas RPCs. `discreet_mode`
+  só tira alguém da listagem de descoberta; não bloqueia acesso a
+  `/perfil/[id]` de quem já tem o link (ex.: via conversa existente).
 
 ## Testado ponta a ponta contra um projeto Supabase real
 Cadastro → verificação (documento/vídeo) → aprovação admin (selo gerado) →

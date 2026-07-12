@@ -37,11 +37,10 @@ export default async function OutroPerfilPage({
     );
   }
 
-  const { data: target } = await supabase
-    .from("users")
-    .select("name, profile_type, verification_badge_id")
-    .eq("id", id)
-    .maybeSingle();
+  const { data: targetRows } = await supabase.rpc("get_verified_profile", {
+    p_user_id: id,
+  });
+  const target = targetRows?.[0];
 
   if (!target) {
     return (

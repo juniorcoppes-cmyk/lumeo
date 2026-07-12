@@ -25,6 +25,9 @@ export default async function LoggedLayout({
           <Link href="/eventos" className="underline">
             Eventos
           </Link>
+          <Link href="/comunidade" className="underline">
+            Comunidade
+          </Link>
           <Link href="/chat" className="underline">
             Chat
           </Link>
