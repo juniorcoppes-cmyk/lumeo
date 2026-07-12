@@ -18,6 +18,14 @@ export default function HomePage() {
           Entrar
         </Link>
       </div>
+      <div className="flex gap-4 text-xs text-neutral-500">
+        <Link href="/termos" className="underline">
+          Termos de Uso
+        </Link>
+        <Link href="/privacidade" className="underline">
+          Privacidade
+        </Link>
+      </div>
     </main>
   );
 }

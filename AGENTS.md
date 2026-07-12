@@ -126,16 +126,19 @@ grande, não fazer sem alinhar antes).
   pasta; select completo e delete só para `users.is_admin`). **Apagados do
   Storage automaticamente quando a verificação é aprovada** (dentro da mesma
   `approveVerification`, ver `src/app/admin/verificacoes/actions.ts`) —
-  colunas viram `null`, `purged_at` registra quando. Reprovações continuam
-  retidas (usuário ainda vai reenviar); não há limpeza automática para
-  reprovações abandonadas (usuário nunca reenvia) — considerar se isso virar
-  um problema de volume.
+  colunas viram `null`, `purged_at` registra quando. Reprovações recentes
+  continuam retidas (usuário ainda pode reenviar); reprovações abandonadas há
+  mais de 30 dias são purgadas pelo cron `/api/cron/purge-verifications` (ver
+  pendência 4 abaixo).
 - Toda escrita "de admin" (aprovar verificação, criar evento, confirmar
   inscrição, promover usuário) depende de `users.is_admin = true` verificado
   via função `is_admin()` (security definer) nas policies — ver
-  `supabase/migrations/20260711000005_admin_policies.sql`. Não há ainda UI
-  para o primeiro admin se promover; isso precisa ser feito manualmente no
-  banco (`update users set is_admin = true where email = '...'`).
+  `supabase/migrations/20260711000005_admin_policies.sql`. Não há UI para o
+  primeiro admin se promover (a UI de `/admin/usuarios` já exige ser admin
+  para acessar) — usar `npm run promote-admin -- email@exemplo.com`
+  (`scripts/promote-admin.mjs`, usa a service role key de `.env.local` para
+  fazer `update users set is_admin = true`). Script, não UI web, de propósito:
+  evita expor um caminho de escalação de privilégio no app implantado.
 - `events_with_open_slots`, `confirmed_attendees_for_event` e
   `start_conversation` são `security definer` — qualquer alteração nelas deve
   manter o retorno restrito ao estritamente necessário (contagens agregadas
@@ -180,12 +183,27 @@ grande, não fazer sem alinhar antes).
 
 ## Pendências (seção 8 da especificação)
 1. ~~Processador de pagamento brasileiro~~ — Asaas escolhido e integrado
-   (sandbox). Nenhum processador brasileiro aceita o nicho "por escrito";
-   Asaas foi a escolha pragmática, ver pesquisa no histórico do chat.
+   (sandbox + produção). Pesquisa feita (resumo, já que o histórico do chat
+   não é uma fonte durável): Stripe proíbe explicitamente conteúdo
+   adulto/exige due diligence extra para "namoro online"; Mercado Pago,
+   PagSeguro e Iugu proíbem "conteúdo adulto" nos termos, mas há relatos de
+   plataformas do nicho (ex. CRS, referência de mercado da spec) usando
+   PagSeguro na prática; SyncPay se anuncia como especialista em nichos de
+   alto risco mas tem reclamações de "propaganda enganosa" no Reclame Aqui —
+   não totalmente confiável sem mais due diligence. Nenhum processador BR
+   aceita esse nicho "por escrito"; Asaas foi a escolha pragmática (declarar
+   a atividade de forma genérica, aceitar o risco de bloqueio se descoberto).
 2. Registro de `lumeo.com.br` e busca de marca no INPI.
 3. ~~Regra de tolerância para falha de pagamento recorrente~~ — 2 dias de
    carência (`overdue_since` + `effectiveSubscriptionStatus` em
    `src/lib/subscription.ts`; ver `src/app/api/webhooks/asaas/route.ts`).
 4. ~~Prazo de retenção/exclusão dos arquivos de verificação~~ — descarte
-   automático na aprovação (ver "Postura de compliance" acima). Reprovações
-   sem reenvio ainda não têm limpeza automática.
+   automático na aprovação (ver "Postura de compliance" acima) e, agora,
+   reprovações abandonadas: `GET /api/cron/purge-verifications`
+   (`src/app/api/cron/purge-verifications/route.ts`), agendado diariamente
+   às 6h via Vercel Cron (`vercel.json`), apaga documento/vídeo de
+   verificações reprovadas há mais de 30 dias sem reenvio (checa se a linha
+   reprovada ainda é a mais recente do usuário antes de mexer no Storage,
+   já que o path é fixo por usuário e pode ter sido sobrescrito por um
+   reenvio). Protegido por `CRON_SECRET` (`.env.example`) — Vercel injeta
+   esse token automaticamente no header `Authorization` das chamadas de cron.

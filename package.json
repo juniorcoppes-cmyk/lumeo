@@ -6,9 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "promote-admin": "node scripts/promote-admin.mjs"
   },
   "dependencies": {
+    "@next/env": "16.2.10",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.110.2",
     "next": "16.2.10",

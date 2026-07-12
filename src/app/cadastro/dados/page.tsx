@@ -39,6 +39,20 @@ export default async function CadastroDadosPage({
           <option value="individual">Individual</option>
           <option value="casal">Casal</option>
         </select>
+        <label className="flex items-start gap-2 text-sm text-neutral-600">
+          <input type="checkbox" name="accepted_terms" required className="mt-1" />
+          <span>
+            Tenho 18 anos ou mais e li e aceito os{" "}
+            <a href="/termos" target="_blank" className="underline">
+              Termos de Uso
+            </a>{" "}
+            e a{" "}
+            <a href="/privacidade" target="_blank" className="underline">
+              Política de Privacidade
+            </a>
+            .
+          </span>
+        </label>
         <button type="submit" className="rounded bg-black px-3 py-2 text-white">
           Continuar
         </button>
