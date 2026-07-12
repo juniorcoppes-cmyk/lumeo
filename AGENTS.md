@@ -72,11 +72,37 @@ Cadastro → verificação (documento/vídeo) → aprovação admin (selo gerado
 criação de evento (admin) → inscrição → confirmação (admin) → assinatura de
 plano → geração e aceite de link de convite → upload de fotos (rosto/corpo)
 em `/perfil`. Tudo validado no navegador, não só por leitura de código.
-**Não testado ao vivo** (aceito como risco residual, coberto por revisão de
-código): chat entre dois usuários confirmados; o fluxo cruzado de pedido/
-aprovação de acesso ao álbum de rosto entre dois usuários reais (precisa de
-um segundo usuário verificado para testar de verdade — só validei upload e
-os casos de borda de `/perfil/[id]` com um usuário só).
+**Atualização (2026-07-12):** chat e acesso ao álbum de rosto/corpo entre
+dois usuários reais foram testados ao vivo (2 contas de teste seedadas via
+service role, confirmadas no mesmo evento, sessões reais via anon key — não
+service role, então RLS valendo de verdade). Chat: mensagem enviada por um
+usuário e lida/respondida pelo outro, funcionou ponta a ponta.
+
+**Dois bugs encontrados e corrigidos** na visualização cross-user de fotos
+(`createSignedUrl` retornava "Object not found" mesmo com selo/aprovação
+em ordem):
+1. As duas policies de `storage.objects` ("select verified corpo" e
+   "select rosto approved") aparentemente divergiam do que estava no
+   arquivo de migração (aplicação sempre foi manual, via SQL Editor, nunca
+   por CLI) — recriadas do zero em
+   `20260712000004_fix_profile_photos_storage_policies.sql`, o que sozinho
+   já corrigiu "rosto".
+2. "Corpo" continuou falhando mesmo depois disso — causa raiz: a policy
+   precisa checar o selo do DONO (outro usuário) em `users`, o que dependia
+   da policy "users select conversation partner" (que por sua vez consulta
+   `conversations`) — um terceiro nível de indireção de RLS dentro de uma
+   policy de storage que não resolve de forma confiável. "Rosto" não sofria
+   disso porque só precisa ver a própria linha do solicitante em
+   `photo_access_requests`. Corrigido em
+   `20260712000005_fix_corpo_policy_recursion.sql` com uma função
+   `is_verified(uuid)` security definer (mesmo padrão de `is_admin()`),
+   evitando depender do RLS de `users` dentro da policy de storage.
+
+Ambos confirmados funcionando ao vivo após a correção (fotos renderizando
+de fato em `/perfil/[id]` com sessão real de outro usuário).
+
+Achado à parte, sem relação: **não existe botão de logout na UI** — só
+descobri o gap ao precisar trocar de usuário de teste no navegador.
 
 ## Testado ponta a ponta contra Asaas sandbox
 Assinatura de plano (cria customer + subscription, link de pagamento,
@@ -139,11 +165,15 @@ grande, não fazer sem alinhar antes).
   (`scripts/promote-admin.mjs`, usa a service role key de `.env.local` para
   fazer `update users set is_admin = true`). Script, não UI web, de propósito:
   evita expor um caminho de escalação de privilégio no app implantado.
-- `events_with_open_slots`, `confirmed_attendees_for_event` e
-  `start_conversation` são `security definer` — qualquer alteração nelas deve
-  manter o retorno restrito ao estritamente necessário (contagens agregadas
-  ou participantes já confirmados), nunca expor linhas arbitrárias de
-  `event_registrations`.
+- `events_with_open_slots`, `confirmed_attendees_for_event`,
+  `start_conversation` e `is_verified` são `security definer` — qualquer
+  alteração nelas deve manter o retorno restrito ao estritamente necessário
+  (contagens agregadas, participantes já confirmados, ou um booleano de
+  selo), nunca expor linhas arbitrárias de `event_registrations`/`users`.
+  `is_verified(uuid)` existe especificamente para policies de
+  `storage.objects` não precisarem depender do RLS de `users` para checar o
+  selo de OUTRO usuário — ver "Testado ponta a ponta" acima (bug de
+  recursão de RLS no álbum de fotos).
 - Inscrição em evento exige `users.verification_badge_id` preenchido (RLS em
   `event_registrations insert own`, ver `..._require_verification_to_register.sql`).
   Usuário não verificado vê mensagem explicando o motivo em `/eventos/:id`
