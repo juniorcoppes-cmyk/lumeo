@@ -9,7 +9,7 @@ export async function approveVerification(formData: FormData) {
 
   const { data: verification } = await supabase
     .from("verifications")
-    .select("user_id")
+    .select("user_id, document_url, video_url")
     .eq("id", verificationId)
     .single();
 
@@ -22,9 +22,24 @@ export async function approveVerification(formData: FormData) {
     .update({ verification_badge_id: badgeId })
     .eq("id", verification.user_id);
 
+  // LGPD/minimização: o documento/vídeo só serve até a decisão de aprovação.
+  // Descartamos o arquivo aqui mesmo — nenhum outro lugar do sistema lê de volta.
+  const pathsToRemove = [verification.document_url, verification.video_url].filter(
+    (path): path is string => !!path,
+  );
+  if (pathsToRemove.length > 0) {
+    await supabase.storage.from("verifications").remove(pathsToRemove);
+  }
+
   await supabase
     .from("verifications")
-    .update({ status: "approved", reviewed_at: new Date().toISOString() })
+    .update({
+      status: "approved",
+      reviewed_at: new Date().toISOString(),
+      document_url: null,
+      video_url: null,
+      purged_at: new Date().toISOString(),
+    })
     .eq("id", verificationId);
 
   revalidatePath("/admin/verificacoes");
