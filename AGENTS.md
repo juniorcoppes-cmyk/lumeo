@@ -147,6 +147,26 @@ grande, não fazer sem alinhar antes).
   juridicamente se o Lumeo se enquadra; validar com advogado antes do
   lançamento público, isso pode exigir mudar o fluxo de verificação.
 
+## Produção
+- Deploy: [lumeo-alpha.vercel.app](https://lumeo-alpha.vercel.app) (Vercel,
+  conectado a `github.com/juniorcoppes-cmyk/lumeo`, branch `master`, deploy
+  automático a cada push).
+- Webhook do Asaas de produção já registrado apontando para
+  `https://lumeo-alpha.vercel.app/api/webhooks/asaas` (nome "Lumeo -
+  Pagamentos" no painel do Asaas), mesmos 5 eventos do sandbox.
+- **Nunca testado com pagamento real** — só verificado que o deploy sobe sem
+  erro e as rotas renderizam. Antes de aceitar o primeiro pagamento de
+  verdade, validar o fluxo completo (talvez com um valor simbólico).
+- Armadilha real encontrada no primeiro deploy: variáveis de ambiente somem
+  se a página da Vercel for recarregada/trocada de projeto no meio do
+  preenchimento — sempre confirmar as 6 variáveis existem de fato (não só
+  "parece que salvei") antes de rodar o deploy. Mudar env vars não rebuilda
+  sozinho — precisa de um redeploy manual depois.
+- Erro visto: `MIDDLEWARE_INVOCATION_FAILED` / "Your project's URL and Key
+  are required to create a Supabase client" — sintoma direto de
+  `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` ausentes no
+  ambiente de Production no momento do build (não é erro de código).
+
 ## Pendências (seção 8 da especificação)
 1. ~~Processador de pagamento brasileiro~~ — Asaas escolhido e integrado
    (sandbox). Nenhum processador brasileiro aceita o nicho "por escrito";
