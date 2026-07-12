@@ -58,9 +58,10 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
   manter o retorno restrito ao estritamente necessário (contagens agregadas
   ou participantes já confirmados), nunca expor linhas arbitrárias de
   `event_registrations`.
-- Cadastro em evento não exige verificação aprovada antes de se inscrever
-  (`event_registrations` não checa `verifications.status`) — avaliar se isso
-  deve virar uma constraint/policy antes de ir a produção.
+- Inscrição em evento exige `users.verification_badge_id` preenchido (RLS em
+  `event_registrations insert own`, ver `..._require_verification_to_register.sql`).
+  Usuário não verificado vê mensagem explicando o motivo em `/eventos/:id`
+  em vez do botão de inscrição.
 
 ## Pendências (seção 8 da especificação)
 1. Processador de pagamento brasileiro (assinatura + eventos) — ainda não escolhido.

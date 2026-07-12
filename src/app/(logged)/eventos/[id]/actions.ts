@@ -13,12 +13,16 @@ export async function inscrever(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  await supabase.from("event_registrations").insert({
+  const { error } = await supabase.from("event_registrations").insert({
     event_id: eventId,
     user_id: user.id,
     status: "pending",
     payment_status: "pending",
   });
+
+  if (error) {
+    redirect(`/eventos/${eventId}?error=${encodeURIComponent(error.message)}`);
+  }
 
   revalidatePath(`/eventos/${eventId}`);
 }
