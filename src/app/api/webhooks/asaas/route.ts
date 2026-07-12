@@ -42,12 +42,20 @@ export async function POST(request: NextRequest) {
     if (PAID_EVENTS.has(payload.event)) {
       await supabase
         .from("subscriptions")
-        .update({ status: "active", renewed_at: new Date().toISOString() })
+        .update({ status: "active", renewed_at: new Date().toISOString(), overdue_since: null })
         .eq("asaas_subscription_id", payment.subscription);
     } else if (OVERDUE_EVENTS.has(payload.event)) {
+      // Só grava overdue_since se ainda não estava vencida — não resetar a
+      // contagem de carência a cada nova notificação do mesmo vencimento.
+      const { data: current } = await supabase
+        .from("subscriptions")
+        .select("overdue_since")
+        .eq("asaas_subscription_id", payment.subscription)
+        .maybeSingle();
+
       await supabase
         .from("subscriptions")
-        .update({ status: "overdue" })
+        .update({ status: "overdue", overdue_since: current?.overdue_since ?? new Date().toISOString() })
         .eq("asaas_subscription_id", payment.subscription);
     } else if (CANCELLED_EVENTS.has(payload.event)) {
       await supabase

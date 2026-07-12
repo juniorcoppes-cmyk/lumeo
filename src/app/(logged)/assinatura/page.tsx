@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getSubscriptionFirstPaymentUrl } from "@/lib/asaas";
+import { effectiveSubscriptionStatus } from "@/lib/subscription";
 import { choosePlan } from "./actions";
 
 const PLANS = [
@@ -22,9 +23,13 @@ export default async function AssinaturaPage({
 
   const { data: subscription } = await supabase
     .from("subscriptions")
-    .select("plan, status, asaas_subscription_id")
+    .select("plan, status, asaas_subscription_id, overdue_since")
     .eq("user_id", user.id)
     .maybeSingle();
+
+  const displayStatus = subscription
+    ? effectiveSubscriptionStatus(subscription.status, subscription.overdue_since)
+    : null;
 
   const { data: billing } = await supabase
     .from("billing_profiles")
@@ -45,10 +50,23 @@ export default async function AssinaturaPage({
 
       {subscription ? (
         <p className="mt-2 text-neutral-600">
-          Plano atual: <strong>{subscription.plan}</strong> ({subscription.status})
+          Plano atual: <strong>{subscription.plan}</strong> ({displayStatus})
         </p>
       ) : (
         <p className="mt-2 text-neutral-600">Nenhum plano escolhido ainda.</p>
+      )}
+
+      {displayStatus === "overdue" && (
+        <p className="mt-2 text-sm text-amber-600">
+          Pagamento em atraso — você tem 2 dias de carência a partir do
+          vencimento antes do acesso ser suspenso.
+        </p>
+      )}
+      {displayStatus === "suspended" && (
+        <p className="mt-2 text-sm text-red-600">
+          Assinatura suspensa por falta de pagamento. Regularize para
+          continuar.
+        </p>
       )}
 
       {paymentUrl && (
