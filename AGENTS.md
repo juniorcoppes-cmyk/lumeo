@@ -42,6 +42,14 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
   usuário está confirmado, permite iniciar conversa com outros confirmados
   (via RPC `confirmed_attendees_for_event` + `start_conversation`);
   `/chat/:id` lista e envia mensagens reais.
+- Assinatura: `/assinatura` grava a escolha de plano em `subscriptions` com
+  status `pending_payment` — sem cobrança real (depende da pendência 1).
+- Indicar evento: `/eventos/:id` permite indicar por selo (usuário já
+  verificado) ou gerar link de convite (`event_invites` + `invite_code`);
+  `/convite/[code]` é a página pública de destino (usa `get_invite_preview`
+  e `accept_invite`, ambas security definer); `/inicio` lista próximos
+  eventos e indicações recebidas. `login` aceita `?next=` para retomar o
+  convite após autenticar.
 
 ## Pontos sensíveis
 - `verifications.document_url` / `video_url` guardam paths no bucket privado
