@@ -34,20 +34,33 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
   (agrega `event_registrations` sem expandir o RLS existente) e inscrição
   (`/eventos/:id` cria registro `pending`, sem processador de pagamento).
 - Perfil real (nome, selo, plano) e toggle de modo discreto persistido.
-- Painel `/admin/*` ainda são placeholders sem lógica — falta implementar a
-  fila de aprovação, criação/edição de eventos e gestão de usuários.
-- Chat (`/chat`, `/chat/:id`) ainda é placeholder — falta criar `conversations`
-  ao confirmar dois usuários no mesmo evento e a UI de mensagens.
+- Admin: `/admin/verificacoes` aprova (gera `verification_badge_id`) ou
+  reprova (exige motivo) via URL assinada do Storage; `/admin/eventos` cria
+  eventos e confirma/cancela inscrições; `/admin/usuarios` lista usuários e
+  promove/remove admin.
+- Chat: `/chat` lista conversas existentes e, para cada evento em que o
+  usuário está confirmado, permite iniciar conversa com outros confirmados
+  (via RPC `confirmed_attendees_for_event` + `start_conversation`);
+  `/chat/:id` lista e envia mensagens reais.
 
 ## Pontos sensíveis
 - `verifications.document_url` / `video_url` guardam paths no bucket privado
   `verifications` (RLS: insert só do próprio usuário; select só para
   `users.is_admin`). Falta política de retenção/exclusão automática (LGPD).
-- "Chat só existe entre confirmados no mesmo evento" ainda não tem a criação
-  automática de `conversations` implementada.
-- `events_with_open_slots` é `security definer` — qualquer alteração nela deve
-  manter o retorno restrito a contagens agregadas, nunca linhas individuais de
+- Toda escrita "de admin" (aprovar verificação, criar evento, confirmar
+  inscrição, promover usuário) depende de `users.is_admin = true` verificado
+  via função `is_admin()` (security definer) nas policies — ver
+  `supabase/migrations/20260711000005_admin_policies.sql`. Não há ainda UI
+  para o primeiro admin se promover; isso precisa ser feito manualmente no
+  banco (`update users set is_admin = true where email = '...'`).
+- `events_with_open_slots`, `confirmed_attendees_for_event` e
+  `start_conversation` são `security definer` — qualquer alteração nelas deve
+  manter o retorno restrito ao estritamente necessário (contagens agregadas
+  ou participantes já confirmados), nunca expor linhas arbitrárias de
   `event_registrations`.
+- Cadastro em evento não exige verificação aprovada antes de se inscrever
+  (`event_registrations` não checa `verifications.status`) — avaliar se isso
+  deve virar uma constraint/policy antes de ir a produção.
 
 ## Pendências (seção 8 da especificação)
 1. Processador de pagamento brasileiro (assinatura + eventos) — ainda não escolhido.
