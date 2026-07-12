@@ -8,6 +8,7 @@ export async function createEvent(formData: FormData) {
   const eventDate = formData.get("event_date") as string;
   const location = formData.get("location") as string;
   const capacity = Number(formData.get("capacity"));
+  const price = Number(formData.get("price"));
 
   const supabase = await createClient();
   await supabase.from("events").insert({
@@ -15,6 +16,7 @@ export async function createEvent(formData: FormData) {
     event_date: new Date(eventDate).toISOString(),
     location,
     capacity,
+    price,
   });
 
   revalidatePath("/admin/eventos");

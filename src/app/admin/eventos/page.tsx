@@ -7,7 +7,7 @@ export default async function AdminEventosPage() {
   const { data: events } = await supabase
     .from("events")
     .select(
-      "id, title, event_date, location, capacity, event_registrations(id, status, users(name, email))",
+      "id, title, event_date, location, capacity, price, event_registrations(id, status, users(name, email))",
     )
     .order("event_date", { ascending: true });
 
@@ -28,6 +28,15 @@ export default async function AdminEventosPage() {
           required
           className="rounded border px-3 py-2"
         />
+        <input
+          type="number"
+          name="price"
+          placeholder="Preço (R$)"
+          min={0}
+          step="0.01"
+          required
+          className="rounded border px-3 py-2"
+        />
         <button type="submit" className="self-start rounded bg-black px-4 py-2 text-white">
           Criar
         </button>
@@ -39,7 +48,7 @@ export default async function AdminEventosPage() {
             <h3 className="text-lg font-medium">{event.title}</h3>
             <p className="text-sm text-neutral-600">
               {new Date(event.event_date).toLocaleString("pt-BR")} · {event.location} ·
-              {" "}capacidade {event.capacity}
+              {" "}capacidade {event.capacity} · R$ {Number(event.price).toFixed(2)}
             </p>
 
             <ul className="mt-3 flex flex-col gap-2">

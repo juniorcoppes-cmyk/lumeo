@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getSubscriptionFirstPaymentUrl } from "@/lib/asaas";
 import { choosePlan } from "./actions";
 
 const PLANS = [
@@ -7,7 +8,12 @@ const PLANS = [
   { id: "plus", name: "Plus", price: "R$ 59,90" },
 ];
 
-export default async function AssinaturaPage() {
+export default async function AssinaturaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -16,13 +22,26 @@ export default async function AssinaturaPage() {
 
   const { data: subscription } = await supabase
     .from("subscriptions")
-    .select("plan, status")
+    .select("plan, status, asaas_subscription_id")
     .eq("user_id", user.id)
     .maybeSingle();
+
+  const { data: billing } = await supabase
+    .from("billing_profiles")
+    .select("cpf_cnpj")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const paymentUrl =
+    subscription?.status === "pending_payment" && subscription.asaas_subscription_id
+      ? await getSubscriptionFirstPaymentUrl(subscription.asaas_subscription_id).catch(() => null)
+      : null;
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-2xl font-semibold">Assinatura</h1>
+
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
       {subscription ? (
         <p className="mt-2 text-neutral-600">
@@ -32,10 +51,11 @@ export default async function AssinaturaPage() {
         <p className="mt-2 text-neutral-600">Nenhum plano escolhido ainda.</p>
       )}
 
-      {subscription?.status === "pending_payment" && (
-        <p className="mt-2 text-sm text-amber-600">
-          Cobrança recorrente ainda não integrada — o plano fica reservado até
-          o processador de pagamento ser definido.
+      {paymentUrl && (
+        <p className="mt-2 text-sm">
+          <a href={paymentUrl} target="_blank" rel="noreferrer" className="underline">
+            Finalizar pagamento
+          </a>
         </p>
       )}
 
@@ -45,8 +65,17 @@ export default async function AssinaturaPage() {
             <input type="hidden" name="plan" value={plan.id} />
             <h2 className="text-xl font-medium">{plan.name}</h2>
             <p className="mt-2 text-neutral-600">{plan.price} / mês</p>
+            {!billing?.cpf_cnpj && (
+              <input
+                type="text"
+                name="cpf_cnpj"
+                placeholder="CPF"
+                required
+                className="mt-3 w-full rounded border px-3 py-2 text-sm"
+              />
+            )}
             <button type="submit" className="mt-4 rounded bg-black px-4 py-2 text-white">
-              {subscription?.plan === plan.id ? "Plano atual" : "Escolher"}
+              {subscription?.plan === plan.id ? "Trocar/atualizar" : "Escolher"}
             </button>
           </form>
         ))}

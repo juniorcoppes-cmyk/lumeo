@@ -42,8 +42,16 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
   usuário está confirmado, permite iniciar conversa com outros confirmados
   (via RPC `confirmed_attendees_for_event` + `start_conversation`);
   `/chat/:id` lista e envia mensagens reais.
-- Assinatura: `/assinatura` grava a escolha de plano em `subscriptions` com
-  status `pending_payment` — sem cobrança real (depende da pendência 1).
+- Assinatura e pagamento (Asaas): `/assinatura` cria/reaproveita um customer
+  no Asaas (`billing_profiles`, tabela separada de `users` por causa das
+  policies de leitura ampla — ver "Pontos sensíveis") e uma subscription real;
+  `/eventos/:id` cobra o preço do evento (campo `events.price`, definido pelo
+  admin) via cobrança avulsa. Webhook em `src/app/api/webhooks/asaas/route.ts`
+  (valida header `asaas-access-token`, idempotente via `payment_webhook_events`)
+  atualiza `subscriptions.status`/`event_registrations.payment_status` quando
+  o Asaas confirma/vence/cancela um pagamento. Preços de plano estão
+  hardcoded em `PLAN_PRICES` (`assinatura/actions.ts`) e duplicados no
+  array `PLANS` da página — mudar um exige lembrar do outro.
 - Indicar evento: `/eventos/:id` permite indicar por selo (usuário já
   verificado) ou gerar link de convite (`event_invites` + `invite_code`);
   `/convite/[code]` é a página pública de destino (usa `get_invite_preview`
@@ -92,8 +100,24 @@ lembrar de criar as três policies (insert/select/update) desde o início.
   Usuário não verificado vê mensagem explicando o motivo em `/eventos/:id`
   em vez do botão de inscrição.
 
+- `billing_profiles` (cpf_cnpj, asaas_customer_id) é separada de `users` de
+  propósito — RLS ali só permite o próprio dono ver, nunca admin/badge/
+  conversa. `src/lib/supabase/service.ts` (service_role, bypassa RLS) só deve
+  ser usado no webhook do Asaas, nunca em código que atende requisição de
+  usuário comum.
+- Antes de integrar de fato: ver a pesquisa sobre Lei 15.211/2025 ("ECA
+  Digital", em vigor desde 17/03/2026) discutida no chat — exige verificação
+  de idade não-autodeclarada para "conteúdo adulto" e restringe o uso dos
+  dados de verificação só a essa finalidade. Não está confirmado
+  juridicamente se o Lumeo se enquadra; validar com advogado antes do
+  lançamento público, isso pode exigir mudar o fluxo de verificação.
+
 ## Pendências (seção 8 da especificação)
-1. Processador de pagamento brasileiro (assinatura + eventos) — ainda não escolhido.
+1. ~~Processador de pagamento brasileiro~~ — Asaas escolhido e integrado
+   (sandbox). Nenhum processador brasileiro aceita o nicho "por escrito";
+   Asaas foi a escolha pragmática, ver pesquisa no histórico do chat.
 2. Registro de `lumeo.com.br` e busca de marca no INPI.
-3. Regra de tolerância para falha de pagamento recorrente.
+3. Regra de tolerância para falha de pagamento recorrente — ainda não
+   implementada (webhook marca `overdue` mas não há prazo de carência antes
+   de suspender acesso).
 4. Prazo de retenção/exclusão dos arquivos de verificação.

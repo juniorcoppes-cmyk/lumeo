@@ -20,7 +20,7 @@ export default async function EventoDetalhePage({
 
   const { data: event } = await supabase
     .from("events")
-    .select("id, title, event_date, location, capacity")
+    .select("id, title, event_date, location, capacity, price")
     .eq("id", id)
     .single();
 
@@ -38,9 +38,15 @@ export default async function EventoDetalhePage({
     .eq("id", user.id)
     .single();
 
+  const { data: billing } = await supabase
+    .from("billing_profiles")
+    .select("cpf_cnpj")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
   const { data: registration } = await supabase
     .from("event_registrations")
-    .select("status, payment_status")
+    .select("status, payment_status, payment_url")
     .eq("event_id", id)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -56,19 +62,39 @@ export default async function EventoDetalhePage({
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-2xl font-semibold">{event.title}</h1>
       <p className="mt-2 text-neutral-600">
-        {new Date(event.event_date).toLocaleString("pt-BR")} · {event.location}
+        {new Date(event.event_date).toLocaleString("pt-BR")} · {event.location} ·{" "}
+        {Number(event.price) > 0 ? `R$ ${Number(event.price).toFixed(2)}` : "Gratuito"}
       </p>
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
       {registration ? (
-        <p className="mt-6 text-sm text-neutral-600">
-          Sua inscrição está: <strong>{registration.status}</strong>
-        </p>
+        <div className="mt-6 text-sm text-neutral-600">
+          <p>
+            Sua inscrição está: <strong>{registration.status}</strong>
+            {registration.payment_status !== "not_required" && (
+              <> · pagamento: <strong>{registration.payment_status}</strong></>
+            )}
+          </p>
+          {registration.payment_url && registration.payment_status === "pending" && (
+            <a href={registration.payment_url} target="_blank" rel="noreferrer" className="underline">
+              Finalizar pagamento
+            </a>
+          )}
+        </div>
       ) : profile?.verification_badge_id ? (
-        <form action={inscrever} className="mt-6">
+        <form action={inscrever} className="mt-6 flex flex-col gap-3">
           <input type="hidden" name="event_id" value={event.id} />
-          <button type="submit" className="rounded bg-black px-4 py-2 text-white">
+          {Number(event.price) > 0 && !billing?.cpf_cnpj && (
+            <input
+              type="text"
+              name="cpf_cnpj"
+              placeholder="CPF"
+              required
+              className="w-full max-w-xs rounded border px-3 py-2 text-sm"
+            />
+          )}
+          <button type="submit" className="self-start rounded bg-black px-4 py-2 text-white">
             Confirmar vaga
           </button>
         </form>

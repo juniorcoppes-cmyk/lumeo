@@ -16,6 +16,7 @@ export default async function EventosPage() {
           event_date: string;
           location: string;
           capacity: number;
+          price: number;
           confirmed_count: number;
         }) => {
           const vagasRestantes = event.capacity - Number(event.confirmed_count);
@@ -25,7 +26,8 @@ export default async function EventosPage() {
                 {event.title}
               </Link>
               <p className="text-sm text-neutral-600">
-                {new Date(event.event_date).toLocaleString("pt-BR")} · {event.location}
+                {new Date(event.event_date).toLocaleString("pt-BR")} · {event.location} ·{" "}
+                {Number(event.price) > 0 ? `R$ ${Number(event.price).toFixed(2)}` : "Gratuito"}
               </p>
               <p className="text-sm text-neutral-600">
                 {vagasRestantes > 0 ? `${vagasRestantes} vagas restantes` : "Esgotado"}
