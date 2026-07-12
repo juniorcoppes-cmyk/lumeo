@@ -4,7 +4,7 @@ create extension if not exists "pgcrypto";
 
 -- USERS -----------------------------------------------------------------
 create table users (
-  id uuid primary key default gen_random_uuid() references auth.users (id) on delete cascade,
+  id uuid primary key references auth.users (id) on delete cascade,
   name text not null,
   email text not null unique,
   profile_type text not null check (profile_type in ('individual', 'casal')),

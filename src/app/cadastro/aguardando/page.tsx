@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -28,9 +29,12 @@ export default async function CadastroAguardandoPage() {
           <p className="text-sm text-red-600">
             Verificação reprovada: {verification.rejection_reason}
           </p>
-          <p className="mt-2 text-sm text-neutral-600">
-            Envie novamente o documento e o vídeo.
-          </p>
+          <Link
+            href="/cadastro/documento"
+            className="mt-2 inline-block text-sm underline text-neutral-600"
+          >
+            Enviar novamente o documento e o vídeo
+          </Link>
         </div>
       ) : (
         <p className="mt-2 text-sm text-neutral-600">

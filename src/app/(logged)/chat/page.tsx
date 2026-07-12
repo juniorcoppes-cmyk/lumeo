@@ -40,13 +40,20 @@ export default async function ChatListPage({
     .select("event_id, events(id, title)")
     .eq("status", "confirmed");
 
+  const existingPairs = new Set(
+    (conversations ?? []).map((c) => `${c.event_id}:${c.user_a_id === user.id ? c.user_b_id : c.user_a_id}`),
+  );
+
   const attendeesByEvent = await Promise.all(
     (myRegistrations ?? []).map(async (reg) => {
       const { data: attendees } = await supabase.rpc("confirmed_attendees_for_event", {
         p_event_id: reg.event_id,
       });
       const event = Array.isArray(reg.events) ? reg.events[0] : reg.events;
-      return { event, attendees: attendees ?? [] };
+      const newAttendees = (attendees ?? []).filter(
+        (a: { id: string }) => !existingPairs.has(`${reg.event_id}:${a.id}`),
+      );
+      return { event, attendees: newAttendees };
     }),
   );
 
