@@ -51,10 +51,31 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
   eventos e indicações recebidas. `login` aceita `?next=` para retomar o
   convite após autenticar.
 
+## Testado ponta a ponta contra um projeto Supabase real
+Cadastro → verificação (documento/vídeo) → aprovação admin (selo gerado) →
+criação de evento (admin) → inscrição → confirmação (admin) → assinatura de
+plano → geração e aceite de link de convite. Tudo validado no navegador, não
+só por leitura de código. **Não testado ao vivo**: chat entre dois usuários
+confirmados (mecanismo usa os mesmos RPCs `security definer` já validados em
+`events_with_open_slots`, e não usa upsert — risco residual considerado baixo).
+
+### Lição sobre RLS + upload de arquivo (upsert)
+`{ upsert: true }` no upload vira `INSERT ... ON CONFLICT (name, bucket_id)
+DO UPDATE` no Postgres. Isso exige (a) uma policy de UPDATE em
+`storage.objects` — não só INSERT — e (b) uma policy de SELECT visível ao
+próprio usuário, mesmo que a linha ainda não exista: o Postgres precisa
+conseguir checar se há conflito, e sem nenhum SELECT permitido a checagem
+falha com "new row violates row-level security policy" (mensagem idêntica à
+de falha de INSERT, o que torna o diagnóstico enganoso). Isso custou uma
+sessão inteira de depuração — ver migrações `..._storage_update.sql` e
+`..._storage_select_own.sql`. Se qualquer bucket novo usar `upsert: true`,
+lembrar de criar as três policies (insert/select/update) desde o início.
+
 ## Pontos sensíveis
 - `verifications.document_url` / `video_url` guardam paths no bucket privado
-  `verifications` (RLS: insert só do próprio usuário; select só para
-  `users.is_admin`). Falta política de retenção/exclusão automática (LGPD).
+  `verifications` (RLS: insert/select/update do próprio usuário na própria
+  pasta; select completo só para `users.is_admin`). Falta política de
+  retenção/exclusão automática (LGPD).
 - Toda escrita "de admin" (aprovar verificação, criar evento, confirmar
   inscrição, promover usuário) depende de `users.is_admin = true` verificado
   via função `is_admin()` (security definer) nas policies — ver
