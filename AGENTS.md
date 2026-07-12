@@ -58,14 +58,25 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
   e `accept_invite`, ambas security definer); `/inicio` lista próximos
   eventos e indicações recebidas. `login` aceita `?next=` para retomar o
   convite após autenticar.
+- Álbum de fotos: `/perfil` gerencia as próprias fotos em duas categorias
+  (`rosto`/`corpo`, tabela `profile_photos`, bucket `profile-photos`).
+  "Corpo" é visível a qualquer usuário verificado; "rosto" exige um pedido
+  de acesso (`photo_access_requests`) que o dono aprova/nega em `/perfil`.
+  `/perfil/[id]` mostra o álbum de outro usuário (corpo sempre, rosto só se
+  aprovado); linkado a partir de `/chat`. Path no storage:
+  `{user_id}/{rosto|corpo}/{arquivo}` — o segundo segmento do path é usado
+  nas policies de storage para diferenciar a categoria.
 
 ## Testado ponta a ponta contra um projeto Supabase real
 Cadastro → verificação (documento/vídeo) → aprovação admin (selo gerado) →
 criação de evento (admin) → inscrição → confirmação (admin) → assinatura de
-plano → geração e aceite de link de convite. Tudo validado no navegador, não
-só por leitura de código. **Não testado ao vivo**: chat entre dois usuários
-confirmados (mecanismo usa os mesmos RPCs `security definer` já validados em
-`events_with_open_slots`, e não usa upsert — risco residual considerado baixo).
+plano → geração e aceite de link de convite → upload de fotos (rosto/corpo)
+em `/perfil`. Tudo validado no navegador, não só por leitura de código.
+**Não testado ao vivo** (aceito como risco residual, coberto por revisão de
+código): chat entre dois usuários confirmados; o fluxo cruzado de pedido/
+aprovação de acesso ao álbum de rosto entre dois usuários reais (precisa de
+um segundo usuário verificado para testar de verdade — só validei upload e
+os casos de borda de `/perfil/[id]` com um usuário só).
 
 ## Testado ponta a ponta contra Asaas sandbox
 Assinatura de plano (cria customer + subscription, link de pagamento,
