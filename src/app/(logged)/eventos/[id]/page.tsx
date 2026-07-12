@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { inscrever } from "./actions";
+import { convidarPorSelo, gerarLinkConvite, inscrever } from "./actions";
 
 export default async function EventoDetalhePage({
   params,
@@ -45,6 +45,13 @@ export default async function EventoDetalhePage({
     .eq("user_id", user.id)
     .maybeSingle();
 
+  const { data: myInvites } = await supabase
+    .from("event_invites")
+    .select("id, invite_code, status, invitee_id")
+    .eq("event_id", id)
+    .eq("inviter_id", user.id)
+    .order("created_at", { ascending: false });
+
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-2xl font-semibold">{event.title}</h1>
@@ -71,6 +78,42 @@ export default async function EventoDetalhePage({
           necessário antes de se inscrever em um evento.
         </p>
       )}
+
+      <div className="mt-10 border-t pt-6">
+        <h2 className="text-lg font-medium">Indicar este evento</h2>
+
+        <form action={convidarPorSelo} className="mt-3 flex items-center gap-2">
+          <input type="hidden" name="event_id" value={event.id} />
+          <input
+            type="text"
+            name="badge_id"
+            placeholder="Selo de quem você quer indicar"
+            required
+            className="rounded border px-3 py-2 text-sm"
+          />
+          <button type="submit" className="rounded border px-3 py-2 text-sm">
+            Indicar
+          </button>
+        </form>
+
+        <form action={gerarLinkConvite} className="mt-3">
+          <input type="hidden" name="event_id" value={event.id} />
+          <button type="submit" className="rounded border px-3 py-2 text-sm">
+            Gerar link de convite
+          </button>
+        </form>
+
+        {myInvites && myInvites.length > 0 && (
+          <ul className="mt-4 flex flex-col gap-1 text-sm text-neutral-600">
+            {myInvites.map((invite) => (
+              <li key={invite.id}>
+                {invite.invitee_id ? "Indicado por selo" : "Link"}: /convite/{invite.invite_code} —{" "}
+                {invite.status}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </main>
   );
 }

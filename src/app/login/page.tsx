@@ -3,15 +3,16 @@ import { login } from "./actions";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, next } = await searchParams;
 
   return (
     <main className="mx-auto max-w-sm px-6 py-16">
       <h1 className="text-2xl font-semibold">Entrar</h1>
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       <form action={login} className="mt-6 flex flex-col gap-4">
+        {next && <input type="hidden" name="next" value={next} />}
         <input
           type="email"
           name="email"
