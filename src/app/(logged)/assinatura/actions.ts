@@ -20,7 +20,13 @@ export async function choosePlan(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  if (!cpfCnpj) {
+  const { data: billing } = await supabase
+    .from("billing_profiles")
+    .select("asaas_customer_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!billing?.asaas_customer_id && !cpfCnpj) {
     redirect(`/assinatura?error=${encodeURIComponent("Informe seu CPF para continuar")}`);
   }
 
@@ -30,12 +36,6 @@ export async function choosePlan(formData: FormData) {
       .select("name, email")
       .eq("id", user.id)
       .single();
-
-    const { data: billing } = await supabase
-      .from("billing_profiles")
-      .select("asaas_customer_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
 
     let asaasCustomerId = billing?.asaas_customer_id as string | undefined;
 
