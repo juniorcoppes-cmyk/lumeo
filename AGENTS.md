@@ -18,17 +18,36 @@ especificação completa (visão de produto, sitemap, fluxos, modelo de dados).
 
 ## Estrutura de rotas (`src/app`)
 Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
-`/login`), fluxo de cadastro (`/cadastro/*`), área logada (`/inicio`,
-`/eventos`, `/chat`, `/perfil`, `/assinatura`) e admin (`/admin/*`). Todas as
-páginas hoje são placeholders — implementação real é trabalho futuro.
+`/login`), fluxo de cadastro (`/cadastro/*`), área logada sob o route group
+`(logged)` (`/inicio`, `/eventos`, `/chat`, `/perfil`, `/assinatura`) e admin
+(`/admin/*`). `(logged)/layout.tsx` e `admin/layout.tsx` redirecionam para
+`/login` (ou `/inicio`, se não-admin) quando não há sessão válida.
+
+## O que já está funcional (via Supabase real, precisa de projeto configurado)
+- Cadastro (`/cadastro/dados` → signUp) e login (`/login` → signInWithPassword).
+- Upload de documento/vídeo de verificação (`/cadastro/documento`,
+  `/cadastro/video`) para o bucket privado `verifications`, criando a linha em
+  `verifications` com status `pending`.
+- Indicação de padrinho por selo (`/cadastro/padrinho`) e tela de status real
+  (`/cadastro/aguardando`, lê `verifications.status`/`rejection_reason`).
+- Listagem de eventos com vagas restantes via RPC `events_with_open_slots`
+  (agrega `event_registrations` sem expandir o RLS existente) e inscrição
+  (`/eventos/:id` cria registro `pending`, sem processador de pagamento).
+- Perfil real (nome, selo, plano) e toggle de modo discreto persistido.
+- Painel `/admin/*` ainda são placeholders sem lógica — falta implementar a
+  fila de aprovação, criação/edição de eventos e gestão de usuários.
+- Chat (`/chat`, `/chat/:id`) ainda é placeholder — falta criar `conversations`
+  ao confirmar dois usuários no mesmo evento e a UI de mensagens.
 
 ## Pontos sensíveis
-- `verifications.document_url` / `video_url` guardam dados sensíveis (LGPD).
-  Devem ficar em bucket Supabase Storage separado com RLS restrita a papel de
-  aprovação — ainda não configurado (política de storage.objects pendente).
-- Regras de negócio como "chat só existe entre confirmados no mesmo evento" e
-  "reprovação exige motivo" estão parcialmente no schema (constraints) mas
-  precisam de validação também na camada de aplicação.
+- `verifications.document_url` / `video_url` guardam paths no bucket privado
+  `verifications` (RLS: insert só do próprio usuário; select só para
+  `users.is_admin`). Falta política de retenção/exclusão automática (LGPD).
+- "Chat só existe entre confirmados no mesmo evento" ainda não tem a criação
+  automática de `conversations` implementada.
+- `events_with_open_slots` é `security definer` — qualquer alteração nela deve
+  manter o retorno restrito a contagens agregadas, nunca linhas individuais de
+  `event_registrations`.
 
 ## Pendências (seção 8 da especificação)
 1. Processador de pagamento brasileiro (assinatura + eventos) — ainda não escolhido.
