@@ -1,3 +1,4 @@
+import { EXPERIENCE_LEVEL_LABELS, EXPERIENCE_LEVELS } from "@/lib/experience-level";
 import { signUp } from "./actions";
 
 export default async function CadastroDadosPage({
@@ -38,6 +39,21 @@ export default async function CadastroDadosPage({
         <select name="profile_type" required className="rounded border px-3 py-2">
           <option value="individual">Individual</option>
           <option value="casal">Casal</option>
+        </select>
+        <select
+          name="experience_level"
+          required
+          defaultValue=""
+          className="rounded border px-3 py-2"
+        >
+          <option value="" disabled>
+            Sua experiência no meio liberal
+          </option>
+          {EXPERIENCE_LEVELS.map((level) => (
+            <option key={level} value={level}>
+              {EXPERIENCE_LEVEL_LABELS[level]}
+            </option>
+          ))}
         </select>
         <label className="flex items-start gap-2 text-sm text-neutral-600">
           <input type="checkbox" name="accepted_terms" required className="mt-1" />

@@ -1,9 +1,13 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { EXPERIENCE_LEVEL_LABELS, EXPERIENCE_LEVELS } from "@/lib/experience-level";
+import { LocationShareButton } from "./LocationShareButton";
 import {
+  clearLocation,
   deletePhoto,
   respondPhotoRequest,
   toggleDiscreetMode,
+  updateExperienceLevel,
   uploadPhoto,
 } from "./actions";
 
@@ -21,7 +25,9 @@ export default async function PerfilPage({
 
   const { data: profile } = await supabase
     .from("users")
-    .select("name, email, profile_type, verification_badge_id, discreet_mode")
+    .select(
+      "name, email, profile_type, verification_badge_id, discreet_mode, experience_level, location_updated_at",
+    )
     .eq("id", user.id)
     .single();
 
@@ -98,6 +104,53 @@ export default async function PerfilPage({
           Salvar
         </button>
       </form>
+
+      <form action={updateExperienceLevel} className="mt-4 flex items-center gap-2">
+        <label htmlFor="experience_level" className="text-sm text-neutral-500">
+          Experiência no meio liberal
+        </label>
+        <select
+          id="experience_level"
+          name="experience_level"
+          defaultValue={profile?.experience_level ?? ""}
+          className="rounded border px-2 py-1 text-sm"
+        >
+          <option value="" disabled>
+            Selecione
+          </option>
+          {EXPERIENCE_LEVELS.map((level) => (
+            <option key={level} value={level}>
+              {EXPERIENCE_LEVEL_LABELS[level]}
+            </option>
+          ))}
+        </select>
+        <button type="submit" className="rounded border px-3 py-1 text-sm">
+          Salvar
+        </button>
+      </form>
+
+      <div className="mt-4 flex items-center gap-3">
+        <span className="text-sm text-neutral-500">
+          {profile?.location_updated_at
+            ? `Localização compartilhada (atualizada em ${new Date(
+                profile.location_updated_at,
+              ).toLocaleDateString("pt-BR")})`
+            : "Localização não compartilhada"}
+        </span>
+        <LocationShareButton />
+        {profile?.location_updated_at && (
+          <form action={clearLocation}>
+            <button type="submit" className="text-xs text-red-600 underline">
+              Remover
+            </button>
+          </form>
+        )}
+      </div>
+      <p className="mt-1 text-xs text-neutral-500">
+        Usada só para mostrar uma faixa de distância aproximada na
+        Comunidade (ex.: &quot;5–25 km&quot;) — nunca a distância exata nem
+        sua localização precisa.
+      </p>
 
       {pendingRequests && pendingRequests.length > 0 && (
         <section className="mt-10 border-t pt-6">

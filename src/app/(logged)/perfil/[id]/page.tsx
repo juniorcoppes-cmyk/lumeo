@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { ExperienceBadge } from "@/components/ExperienceBadge";
 import { requestPhotoAccess } from "./actions";
 
 export default async function OutroPerfilPage({
@@ -98,7 +99,10 @@ export default async function OutroPerfilPage({
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-2xl font-semibold">{target.name}</h1>
-      <p className="mt-2 text-sm text-neutral-600">{target.profile_type}</p>
+      <div className="mt-2 flex items-center gap-2 text-sm text-neutral-600">
+        <span>{target.profile_type}</span>
+        <ExperienceBadge level={target.experience_level} />
+      </div>
 
       <section className="mt-8">
         <h2 className="text-lg font-medium">Fotos — Corpo</h2>

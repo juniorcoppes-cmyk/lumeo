@@ -21,6 +21,67 @@ export async function toggleDiscreetMode(formData: FormData) {
   revalidatePath("/perfil");
 }
 
+export async function updateExperienceLevel(formData: FormData) {
+  const experienceLevel = formData.get("experience_level") as string;
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  await supabase
+    .from("users")
+    .update({ experience_level: experienceLevel })
+    .eq("id", user.id);
+
+  revalidatePath("/perfil");
+}
+
+export async function updateLocation(latitude: number, longitude: number) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  // Arredonda pra ~1.1km de ruído — nunca guardamos a coordenada exata do
+  // navegador, só o suficiente pra calcular faixas de distância grosseiras.
+  const roundedLat = Math.round(latitude * 100) / 100;
+  const roundedLng = Math.round(longitude * 100) / 100;
+
+  await supabase
+    .from("users")
+    .update({
+      latitude: roundedLat,
+      longitude: roundedLng,
+      location_updated_at: new Date().toISOString(),
+    })
+    .eq("id", user.id);
+
+  revalidatePath("/perfil");
+  revalidatePath("/comunidade");
+}
+
+export async function clearLocation(formData: FormData) {
+  void formData;
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  await supabase
+    .from("users")
+    .update({ latitude: null, longitude: null, location_updated_at: null })
+    .eq("id", user.id);
+
+  revalidatePath("/perfil");
+  revalidatePath("/comunidade");
+}
+
 export async function uploadPhoto(formData: FormData) {
   const category = formData.get("category") as string;
   const file = formData.get("photo") as File;

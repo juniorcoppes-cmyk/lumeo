@@ -82,6 +82,47 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
   comum — e-mail nunca é exposto por nenhuma dessas RPCs. `discreet_mode`
   só tira alguém da listagem de descoberta; não bloqueia acesso a
   `/perfil/[id]` de quem já tem o link (ex.: via conversa existente).
+- Linha do tempo (`/linha-do-tempo`, pedido do fundador em 2026-07-12):
+  posts de texto do próprio usuário + posts automáticos via trigger —
+  `on_profile_photo_created` (nova foto no álbum) e
+  `on_registration_confirmed` (`event_registrations.status` vira
+  `confirmed`) inserem em `timeline_posts` como `security definer`, então
+  disparam independente de quem fez a alteração (app ou admin). `discreet_mode`
+  também some da linha do tempo dos outros (mesma regra da Comunidade),
+  exceto a própria — sempre visível para o próprio usuário. Leitura
+  centralizada na RPC `get_timeline()` (nenhuma policy de select em
+  `timeline_posts`, de propósito — evita reproduzir a classe de bug de RLS
+  aninhada do álbum de fotos): calcula `can_view_photo` ali mesmo (`corpo`
+  sempre true, `rosto` true se for o próprio dono OU se houver
+  `photo_access_requests` aprovado; **bug encontrado e corrigido em teste
+  ao vivo**: a primeira versão não cobria "é o próprio dono", fazendo a
+  pessoa ver a própria foto de rosto como bloqueada — corrigido em
+  `20260712000008_fix_own_rosto_timeline_visibility.sql`). Página só busca
+  signed URL quando `can_view_photo` é true; senão mostra um card com
+  ícone/aviso e link para `/perfil/[id]` pedir acesso.
+- Selo de experiência (`users.experience_level`, pedido do fundador em
+  2026-07-12): `iniciante`/`iniciado`/`experiente`, preenchido no cadastro
+  (`/cadastro/dados`) e editável em `/perfil`. Exposto por
+  `browse_verified_users`, `get_verified_profile` e `get_timeline` (nunca
+  via select direto em `users`), renderizado pelo componente
+  `ExperienceBadge` (`src/components/ExperienceBadge.tsx`) em Comunidade,
+  `/perfil/[id]` e linha do tempo.
+- Geolocalização (`users.latitude`/`longitude`/`location_updated_at`,
+  pedido do fundador em 2026-07-12): **decisão consciente de segurança**
+  (discutida no chat) — nunca guardar/expor coordenada exata nem distância
+  precisa entre dois usuários, só faixas arredondadas ("menos de 5 km",
+  "5–25 km", "25–100 km", "mais de 100 km"), calculadas dentro de
+  `browse_verified_users(p_max_distance_km)` via fórmula de haversine.
+  Coordenada em si já é arredondada em 2 casas decimais (~1.1km de ruído)
+  no momento da escrita (`updateLocation`,
+  `src/app/(logged)/perfil/actions.ts`), defesa adicional caso o banco vaze.
+  Compartilhamento é opt-in via botão em `/perfil`
+  (`LocationShareButton.tsx`, único client component do projeto até agora —
+  usa `navigator.geolocation`, precisa de permissão do navegador) e pode ser
+  removido a qualquer momento. Comunidade tem um filtro opcional de raio
+  (`?max_distance_km=5|25|100`); quem não compartilhou localização (própria
+  ou do outro) aparece sem faixa de distância e fica de fora se um filtro
+  de raio for aplicado (não dá pra confirmar que está dentro).
 
 ## Testado ponta a ponta contra um projeto Supabase real
 Cadastro → verificação (documento/vídeo) → aprovação admin (selo gerado) →
