@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { parseBirthDateInput } from "@/lib/profile-options";
 
 export async function toggleDiscreetMode(formData: FormData) {
   const discreetMode = formData.get("discreet_mode") === "on";
@@ -53,7 +54,7 @@ export async function updateProfileDetails(formData: FormData) {
     .single();
 
   const bio = (formData.get("bio") as string)?.trim() || null;
-  const birthDate = (formData.get("birth_date") as string) || null;
+  const birthDate = parseBirthDateInput(formData.get("birth_date") as string);
   const gender = (formData.get("gender") as string) || null;
   const sexualOrientation = (formData.get("sexual_orientation") as string) || null;
   const lookingFor = formData.getAll("looking_for") as string[];
@@ -67,7 +68,7 @@ export async function updateProfileDetails(formData: FormData) {
   };
 
   if (profile?.profile_type === "casal") {
-    update.partner_birth_date = (formData.get("partner_birth_date") as string) || null;
+    update.partner_birth_date = parseBirthDateInput(formData.get("partner_birth_date") as string);
     update.partner_gender = (formData.get("partner_gender") as string) || null;
     update.partner_sexual_orientation =
       (formData.get("partner_sexual_orientation") as string) || null;

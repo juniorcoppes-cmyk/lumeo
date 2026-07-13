@@ -1,4 +1,5 @@
 import { EXPERIENCE_LEVEL_LABELS, EXPERIENCE_LEVELS } from "@/lib/experience-level";
+import { PasswordInput } from "@/components/PasswordInput";
 import { signUp } from "./actions";
 
 export default async function CadastroDadosPage({
@@ -28,8 +29,7 @@ export default async function CadastroDadosPage({
           required
           className="rounded border px-3 py-2"
         />
-        <input
-          type="password"
+        <PasswordInput
           name="password"
           placeholder="Senha"
           required

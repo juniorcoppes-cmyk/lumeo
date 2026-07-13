@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/lib/auth-actions";
+import { PinLockGate } from "@/components/PinLockGate";
 
 export default async function AdminLayout({
   children,
@@ -24,9 +25,9 @@ export default async function AdminLayout({
   if (!profile?.is_admin) redirect("/inicio");
 
   return (
-    <>
-      <nav className="flex items-center justify-between px-6 py-2 text-sm">
-        <div className="flex gap-4 font-medium">
+    <PinLockGate>
+      <nav className="flex items-center justify-between gap-2 px-3 py-2 text-sm sm:px-6">
+        <div className="flex gap-4 overflow-x-auto whitespace-nowrap font-medium">
           <Link href="/inicio" className="underline">
             Início
           </Link>
@@ -40,13 +41,13 @@ export default async function AdminLayout({
             Usuários
           </Link>
         </div>
-        <form action={signOut}>
+        <form action={signOut} className="shrink-0">
           <button type="submit" className="text-neutral-500 underline">
             Sair
           </button>
         </form>
       </nav>
       {children}
-    </>
+    </PinLockGate>
   );
 }

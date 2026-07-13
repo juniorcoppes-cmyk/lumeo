@@ -83,6 +83,31 @@ export default async function InicioPage() {
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-2xl font-semibold">Início</h1>
 
+      <details className="mt-4 rounded-lg border p-4">
+        <summary className="cursor-pointer text-sm font-medium underline">
+          Comece por aqui
+        </summary>
+        <div className="mt-3 flex flex-col gap-3 text-sm text-neutral-700">
+          <p className="font-medium text-neutral-900">
+            Lumeo é sobre conexão, não pressa.
+          </p>
+          <p>
+            Você já sentiu que, nas baladas liberais ou apps de
+            relacionamento comuns, o contato social de verdade fica em
+            segundo plano? Que toda aproximação já vem com a expectativa —
+            ou o receio — de que o objetivo seja uma interação íntima
+            imediata?
+          </p>
+          <p>
+            Foi pensando nessa lacuna que o Lumeo existe: um espaço de
+            curadoria social pro meio liberal, pensado pra conhecer gente,
+            ter boas conversas e se divertir sem a pressão de que algo mais
+            precise acontecer. Se a sintonia rolar, ótimo — mas o encontro
+            já vale pela companhia.
+          </p>
+        </div>
+      </details>
+
       <section className="mt-8">
         <h2 className="text-lg font-medium">Próximos eventos</h2>
         <ul className="mt-3 flex flex-col gap-2">

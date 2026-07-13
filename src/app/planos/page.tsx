@@ -1,7 +1,4 @@
-const PLANS = [
-  { id: "essencial", name: "Essencial", price: "R$ 34,90" },
-  { id: "plus", name: "Plus", price: "R$ 59,90" },
-];
+import { PLANS } from "@/lib/plans";
 
 export default function PlanosPage() {
   return (
@@ -12,6 +9,14 @@ export default function PlanosPage() {
           <div key={plan.id} className="rounded-lg border p-6">
             <h2 className="text-xl font-medium">{plan.name}</h2>
             <p className="mt-2 text-neutral-600">{plan.price} / mês</p>
+            <ul className="mt-4 flex flex-col gap-2 text-sm text-neutral-600">
+              {plan.features.map((feature) => (
+                <li key={feature} className="flex gap-2">
+                  <span aria-hidden>·</span>
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         ))}
       </div>

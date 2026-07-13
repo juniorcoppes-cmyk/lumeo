@@ -305,6 +305,56 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
   INSERT não tem como propagar o texto do `raise exception`, diferente das
   RPCs `start_conversation*`, que propagam normalmente via `error.message`).
   Ver `20260713000001_admin_full_bypass_and_trial_period.sql`.
+- UX mobile e conveniências (pedido do fundador em 2026-07-13):
+  - Mostrar/ocultar senha: `PasswordInput` (`src/components/PasswordInput.tsx`,
+    client component) usado em login, cadastro e redefinição de senha.
+  - Data de nascimento: trocado `<input type="date">` (obriga rolar ano a
+    ano no celular) por texto livre "DD/MM/AAAA" com teclado numérico —
+    `parseBirthDateInput`/`formatBirthDateForInput` em
+    `src/lib/profile-options.ts` convertem pra/do formato `date` do Postgres.
+  - Nav (`(logged)/layout.tsx` e `admin/layout.tsx`): virou scroll
+    horizontal (`overflow-x-auto whitespace-nowrap`) em vez de quebrar/
+    estourar em telas estreitas.
+  - Planos: `src/lib/plans.ts` centraliza nome/preço/features (antes
+    duplicado entre `/planos` e `/assinatura`, risco já documentado —
+    continua sendo um array separado de `PLAN_PRICES` em
+    `assinatura/actions.ts`, que é o valor cobrado de verdade no Asaas).
+    Essencial = acesso completo ao app; Plus = descontos em eventos + lista
+    VIP quando lota (**só descrito na página por enquanto** — o desconto de
+    fato no preço do evento e a lista VIP de espera ainda não têm mecânica
+    implementada, é um próximo passo se o fundador confirmar que quer isso
+    de verdade).
+  - PWA instalável + PIN de acesso rápido: `public/manifest.json` +
+    `public/icon-192.png`/`icon-512.png`/`apple-touch-icon.png` (gerados de
+    um SVG com `sharp`, só a letra "L" em fundo preto, script descartado
+    depois de rodar) + metadata em `src/app/layout.tsx` (`manifest`,
+    `icons`, `appleWebApp`). O "ícone na tela inicial" em si é o navegador
+    quem oferece (Chrome Android mostra prompt de instalar; iOS Safari via
+    "Adicionar à Tela de Início" no menu de compartilhar) — não tem como
+    instalar sozinho sem o usuário confirmar, é limitação de toda PWA, não
+    só do Lumeo. **PIN de 4 dígitos, decisão explícita do fundador**: é um
+    cadeado de privacidade local (evita abrir o app sem querer se alguém
+    pegar o celular destrancado), não autenticação de verdade — fica só em
+    `localStorage` (hash SHA-256, nunca em texto puro, nunca no servidor),
+    só ativa quando `display-mode: standalone` (instalado, não no navegador
+    normal) e só se o usuário configurou um em `/perfil` (`PinSettings.tsx`).
+    `PinLockGate.tsx` envolve `(logged)/layout.tsx` e `admin/layout.tsx` —
+    sem PIN configurado ou fora do modo standalone, não faz nada. Esquecer o
+    PIN não tem recuperação (é local); a saída é fechar/reabrir o app
+    normalmente pelo navegador com login de verdade, ou fica sempre visível
+    o link do site além do ícone.
+  - Texto de posicionamento "Comece por aqui" no topo de `/inicio` (pedido
+    do fundador em 2026-07-13): explica a proposta do Lumeo — social sem a
+    pressão de que interação íntima precise acontecer, diferenciando de
+    baladas liberais/apps de relacionamento comuns. Adaptado do texto que o
+    fundador já usa pra divulgar o evento presencial mensal ("Secret 285
+    Lounge"), removendo os detalhes específicos do espaço físico (não tem
+    área de interação íntima etc.) pra falar da plataforma como um todo, já
+    que o app hospeda vários eventos e a comunidade inteira, não só aquele
+    encontro. Fica dentro de um `<details>` fechado por padrão (decisão do
+    fundador: fixo/sempre visível ficaria repetitivo pra quem já usa o app
+    com frequência) — sem JS, mesmo padrão já usado no formulário de editar
+    evento em `/admin/eventos`.
 
 ## Correção de segurança crítica (2026-07-12)
 Durante a implementação do status de leitura de mensagens, percebi que

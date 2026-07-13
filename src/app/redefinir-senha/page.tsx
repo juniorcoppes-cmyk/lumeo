@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { PasswordInput } from "@/components/PasswordInput";
 import { updatePassword } from "./actions";
 
 export default async function RedefinirSenhaPage({
@@ -28,16 +29,14 @@ export default async function RedefinirSenhaPage({
       </p>
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       <form action={updatePassword} className="mt-6 flex flex-col gap-4">
-        <input
-          type="password"
+        <PasswordInput
           name="password"
           placeholder="Nova senha"
           required
           minLength={6}
           className="rounded border px-3 py-2"
         />
-        <input
-          type="password"
+        <PasswordInput
           name="password_confirmation"
           placeholder="Confirmar nova senha"
           required

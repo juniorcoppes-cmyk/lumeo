@@ -1,13 +1,9 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getSubscriptionFirstPaymentUrl } from "@/lib/asaas";
+import { PLANS } from "@/lib/plans";
 import { effectiveSubscriptionStatus } from "@/lib/subscription";
 import { choosePlan } from "./actions";
-
-const PLANS = [
-  { id: "essencial", name: "Essencial", price: "R$ 34,90" },
-  { id: "plus", name: "Plus", price: "R$ 59,90" },
-];
 
 export default async function AssinaturaPage({
   searchParams,
@@ -83,6 +79,14 @@ export default async function AssinaturaPage({
             <input type="hidden" name="plan" value={plan.id} />
             <h2 className="text-xl font-medium">{plan.name}</h2>
             <p className="mt-2 text-neutral-600">{plan.price} / mês</p>
+            <ul className="mt-3 flex flex-col gap-1 text-sm text-neutral-600">
+              {plan.features.map((feature) => (
+                <li key={feature} className="flex gap-2">
+                  <span aria-hidden>·</span>
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
             {!billing?.cpf_cnpj && (
               <input
                 type="text"

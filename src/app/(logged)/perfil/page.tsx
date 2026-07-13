@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { EXPERIENCE_LEVEL_LABELS, EXPERIENCE_LEVELS } from "@/lib/experience-level";
 import {
+  formatBirthDateForInput,
   GENDER_LABELS,
   GENDER_OPTIONS,
   LOOKING_FOR_LABELS,
@@ -10,6 +11,7 @@ import {
   ORIENTATION_OPTIONS,
 } from "@/lib/profile-options";
 import { PhotoGallery } from "@/components/PhotoGallery";
+import { PinSettings } from "@/components/PinSettings";
 import { LocationShareButton } from "./LocationShareButton";
 import {
   clearLocation,
@@ -183,6 +185,8 @@ export default async function PerfilPage({
         </button>
       </form>
 
+      <PinSettings />
+
       <form action={updateExperienceLevel} className="mt-4 flex items-center gap-2">
         <label htmlFor="experience_level" className="text-sm text-neutral-500">
           Experiência no meio liberal
@@ -246,9 +250,12 @@ export default async function PerfilPage({
           <label className="flex flex-col gap-1">
             {profile?.profile_type === "casal" ? "Data de nascimento (1)" : "Data de nascimento"}
             <input
-              type="date"
+              type="text"
+              inputMode="numeric"
               name="birth_date"
-              defaultValue={profile?.birth_date ?? ""}
+              placeholder="DD/MM/AAAA"
+              pattern="\d{2}/\d{2}/\d{4}"
+              defaultValue={formatBirthDateForInput(profile?.birth_date)}
               className="rounded border px-3 py-2"
             />
           </label>
@@ -290,9 +297,12 @@ export default async function PerfilPage({
               <label className="flex flex-col gap-1">
                 Data de nascimento (2)
                 <input
-                  type="date"
+                  type="text"
+                  inputMode="numeric"
                   name="partner_birth_date"
-                  defaultValue={profile?.partner_birth_date ?? ""}
+                  placeholder="DD/MM/AAAA"
+                  pattern="\d{2}/\d{2}/\d{4}"
+                  defaultValue={formatBirthDateForInput(profile?.partner_birth_date)}
                   className="rounded border px-3 py-2"
                 />
               </label>

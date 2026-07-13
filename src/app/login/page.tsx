@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PasswordInput } from "@/components/PasswordInput";
 import { login } from "./actions";
 
 export default async function LoginPage({
@@ -21,13 +22,7 @@ export default async function LoginPage({
           required
           className="rounded border px-3 py-2"
         />
-        <input
-          type="password"
-          name="password"
-          placeholder="Senha"
-          required
-          className="rounded border px-3 py-2"
-        />
+        <PasswordInput name="password" placeholder="Senha" required className="rounded border px-3 py-2" />
         <button type="submit" className="rounded bg-black px-3 py-2 text-white">
           Entrar
         </button>

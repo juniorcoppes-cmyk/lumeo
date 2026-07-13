@@ -49,6 +49,25 @@ export const RATING_TAG_LABELS: Record<RatingTag, string> = {
   interessante: "Interessante",
 };
 
+// Formulário usa texto livre "DD/MM/AAAA" em vez do seletor nativo de data
+// (o wheel picker do celular obriga a rolar ano a ano até a década de
+// nascimento — digitar é bem mais rápido). Convertido pra "AAAA-MM-DD"
+// (formato da coluna `date` do Postgres) antes de salvar.
+export function parseBirthDateInput(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const match = value.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!match) return null;
+  const [, day, month, year] = match;
+  return `${year}-${month}-${day}`;
+}
+
+export function formatBirthDateForInput(isoDate: string | null | undefined): string {
+  if (!isoDate) return "";
+  const [year, month, day] = isoDate.split("-");
+  if (!year || !month || !day) return "";
+  return `${day}/${month}/${year}`;
+}
+
 export function calculateAge(birthDate: string | null | undefined): number | null {
   if (!birthDate) return null;
   const birth = new Date(birthDate);
