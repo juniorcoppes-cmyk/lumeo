@@ -68,6 +68,14 @@ export default async function OutroPerfilPage({
     );
   }
 
+  const avatarUrl = target.avatar_path
+    ? (
+        await supabase.storage
+          .from("profile-photos")
+          .createSignedUrl(target.avatar_path, 300)
+      ).data?.signedUrl
+    : undefined;
+
   const { data: corpoPhotos } = await supabase
     .from("profile_photos")
     .select("id, storage_path")
@@ -172,7 +180,21 @@ export default async function OutroPerfilPage({
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-2xl font-semibold">{target.name}</h1>
+      <div className="flex items-center gap-4">
+        {avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={avatarUrl}
+            alt=""
+            className="h-16 w-16 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-100 text-xs text-neutral-500">
+            Sem foto
+          </div>
+        )}
+        <h1 className="text-2xl font-semibold">{target.name}</h1>
+      </div>
       <div className="mt-2 flex items-center gap-2 text-sm text-neutral-600">
         <span>{target.profile_type}</span>
         <ExperienceBadge level={target.experience_level} />

@@ -176,7 +176,23 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
   único fluxo de chat que não exige `is_verified` dos dois lados). Conta
   real ainda precisa ser criada pelo cadastro normal e marcada com
   `node scripts/mark-support-account.mjs <email>` — sem isso, `contact_admin`
-  falha com "Canal de suporte não configurado".
+  falha com "Canal de suporte não configurado". **Feito em 2026-07-12**:
+  conta real criada diretamente via service role (cadastro normal esbarrou
+  em "email rate limit exceeded" do serviço de e-mail padrão do Supabase —
+  ver pendências), e-mail `admloumeo@gmail.com`, `is_support_channel = true`,
+  `discreet_mode = true` (não aparece em Comunidade/linha do tempo).
+- Foto de perfil (`users.avatar_path`, pedido do fundador em 2026-07-12):
+  uma foto única e canônica por usuário — diferente do álbum (corpo/rosto),
+  substituída (não acumulada) a cada upload, `upsert: true` num nome fixo
+  (`{user_id}/avatar/foto.{ext}`; se a extensão mudar entre uploads, o
+  arquivo antigo é apagado manualmente na action antes do novo upload, já
+  que o upsert não pega nomes diferentes). Mesma regra de visibilidade do
+  "corpo": qualquer usuário verificado vê, em qualquer lugar que já mostra
+  identidade (Comunidade, `/perfil/[id]`, linha do tempo) — policy de
+  storage nova escrita direto com `is_verified()` (não a subquery aninhada
+  em `users` que causou o bug de recursão do "corpo" original). Exposta
+  pelas mesmas 3 RPCs que já carregam nome/selo de outros usuários
+  (`browse_verified_users`, `get_verified_profile`, `get_timeline`).
 
 ## Correção de segurança crítica (2026-07-12)
 Durante a implementação do status de leitura de mensagens, percebi que
@@ -347,6 +363,13 @@ grande, não fazer sem alinhar antes).
   are required to create a Supabase client" — sintoma direto de
   `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` ausentes no
   ambiente de Production no momento do build (não é erro de código).
+- **Envio de e-mail de cadastro está no serviço padrão do Supabase**, que
+  tem um limite de envios por hora bem baixo (pensado só para
+  desenvolvimento) — erro visto ao vivo: "email rate limit exceeded" ao
+  tentar cadastrar a conta ADM pelo fluxo normal (contornado criando a
+  conta direto via service role, sem depender do envio de e-mail). Antes de
+  aceitar volume real de cadastro, configurar um provedor de SMTP próprio
+  nas configurações de Auth do Supabase.
 
 ## Pendências (seção 8 da especificação)
 1. ~~Processador de pagamento brasileiro~~ — Asaas escolhido e integrado

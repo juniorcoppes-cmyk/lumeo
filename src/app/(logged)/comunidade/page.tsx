@@ -39,6 +39,16 @@ export default async function ComunidadePage({
     p_max_distance_km: max_distance_km ? Number(max_distance_km) : null,
   });
 
+  const peopleWithAvatars = await Promise.all(
+    (people ?? []).map(async (p: { id: string; avatar_path: string | null }) => {
+      if (!p.avatar_path) return { ...p, avatarUrl: undefined };
+      const { data } = await supabase.storage
+        .from("profile-photos")
+        .createSignedUrl(p.avatar_path, 300);
+      return { ...p, avatarUrl: data?.signedUrl };
+    }),
+  );
+
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-2xl font-semibold">Comunidade</h1>
@@ -79,7 +89,7 @@ export default async function ComunidadePage({
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
       <ul className="mt-6 flex flex-col gap-2">
-        {(people ?? []).map(
+        {peopleWithAvatars.map(
           (p: {
             id: string;
             name: string;
@@ -87,8 +97,21 @@ export default async function ComunidadePage({
             verification_badge_id: string;
             experience_level: string | null;
             distance_bucket: string | null;
+            avatarUrl?: string;
           }) => (
             <li key={p.id} className="flex items-center gap-3 rounded-lg border p-3">
+              {p.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={p.avatarUrl}
+                  alt=""
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-100 text-[10px] text-neutral-500">
+                  Sem foto
+                </div>
+              )}
               <Link href={`/perfil/${p.id}`} className="font-medium underline">
                 {p.name}
               </Link>
@@ -106,7 +129,7 @@ export default async function ComunidadePage({
             </li>
           ),
         )}
-        {(people ?? []).length === 0 && (
+        {peopleWithAvatars.length === 0 && (
           <p className="text-neutral-600">Nenhum outro usuário verificado ainda.</p>
         )}
       </ul>

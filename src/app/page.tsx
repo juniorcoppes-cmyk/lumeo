@@ -14,6 +14,9 @@ export default function HomePage() {
         <Link href="/planos" className="underline">
           Planos
         </Link>
+        <Link href="/cadastro/dados" className="underline">
+          Criar conta
+        </Link>
         <Link href="/login" className="underline">
           Entrar
         </Link>

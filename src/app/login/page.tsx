@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { login } from "./actions";
 
 export default async function LoginPage({
@@ -31,6 +32,12 @@ export default async function LoginPage({
           Entrar
         </button>
       </form>
+      <p className="mt-4 text-sm text-neutral-600">
+        Ainda não tem conta?{" "}
+        <Link href="/cadastro/dados" className="underline">
+          Criar conta
+        </Link>
+      </p>
     </main>
   );
 }

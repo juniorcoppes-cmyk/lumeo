@@ -14,8 +14,10 @@ import { LocationShareButton } from "./LocationShareButton";
 import {
   clearLocation,
   deletePhoto,
+  removeAvatar,
   respondPhotoRequest,
   toggleDiscreetMode,
+  updateAvatar,
   updateExperienceLevel,
   updateProfileDetails,
   uploadPhoto,
@@ -36,10 +38,18 @@ export default async function PerfilPage({
   const { data: profile } = await supabase
     .from("users")
     .select(
-      "name, email, profile_type, verification_badge_id, discreet_mode, experience_level, location_updated_at, bio, birth_date, gender, sexual_orientation, looking_for, partner_birth_date, partner_gender, partner_sexual_orientation",
+      "name, email, profile_type, verification_badge_id, discreet_mode, experience_level, location_updated_at, bio, birth_date, gender, sexual_orientation, looking_for, partner_birth_date, partner_gender, partner_sexual_orientation, avatar_path",
     )
     .eq("id", user.id)
     .single();
+
+  const avatarUrl = profile?.avatar_path
+    ? (
+        await supabase.storage
+          .from("profile-photos")
+          .createSignedUrl(profile.avatar_path, 300)
+      ).data?.signedUrl
+    : undefined;
 
   const { data: subscription } = await supabase
     .from("subscriptions")
@@ -100,6 +110,40 @@ export default async function PerfilPage({
       <h1 className="text-2xl font-semibold">Perfil</h1>
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+
+      <div className="mt-4 flex items-center gap-4">
+        {avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={avatarUrl}
+            alt=""
+            className="h-20 w-20 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-100 text-xs text-neutral-500">
+            Sem foto
+          </div>
+        )}
+        <div className="flex flex-col gap-2">
+          <form action={updateAvatar} className="flex items-center gap-2">
+            <input type="file" name="avatar" accept="image/*" required className="text-sm" />
+            <button type="submit" className="rounded border px-3 py-1 text-sm">
+              {avatarUrl ? "Trocar" : "Adicionar"}
+            </button>
+          </form>
+          {avatarUrl && (
+            <form action={removeAvatar}>
+              <button type="submit" className="text-xs text-red-600 underline">
+                Remover foto de perfil
+              </button>
+            </form>
+          )}
+          <p className="text-xs text-neutral-500">
+            Visível para qualquer usuário verificado, na Comunidade, na linha
+            do tempo e no seu perfil.
+          </p>
+        </div>
+      </div>
 
       <dl className="mt-6 flex flex-col gap-2 text-sm">
         <div>

@@ -122,6 +122,69 @@ export async function clearLocation(formData: FormData) {
   revalidatePath("/comunidade");
 }
 
+export async function updateAvatar(formData: FormData) {
+  const file = formData.get("avatar") as File;
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: profile } = await supabase
+    .from("users")
+    .select("avatar_path")
+    .eq("id", user.id)
+    .single();
+
+  const ext = file.name.split(".").pop() || "jpg";
+  const path = `${user.id}/avatar/foto.${ext}`;
+
+  // Se a extensão mudou, o upsert não substitui o arquivo antigo (nome
+  // diferente) — precisa apagar antes, senão fica órfão no storage.
+  if (profile?.avatar_path && profile.avatar_path !== path) {
+    await supabase.storage.from("profile-photos").remove([profile.avatar_path]);
+  }
+
+  const { error: uploadError } = await supabase.storage
+    .from("profile-photos")
+    .upload(path, file, { upsert: true });
+
+  if (uploadError) {
+    redirect(`/perfil?error=${encodeURIComponent(uploadError.message)}`);
+  }
+
+  await supabase.from("users").update({ avatar_path: path }).eq("id", user.id);
+
+  revalidatePath("/perfil");
+  revalidatePath("/comunidade");
+}
+
+export async function removeAvatar(formData: FormData) {
+  void formData;
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: profile } = await supabase
+    .from("users")
+    .select("avatar_path")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.avatar_path) {
+    await supabase.storage.from("profile-photos").remove([profile.avatar_path]);
+  }
+
+  await supabase.from("users").update({ avatar_path: null }).eq("id", user.id);
+
+  revalidatePath("/perfil");
+  revalidatePath("/comunidade");
+}
+
 export async function uploadPhoto(formData: FormData) {
   const category = formData.get("category") as string;
   const file = formData.get("photo") as File;

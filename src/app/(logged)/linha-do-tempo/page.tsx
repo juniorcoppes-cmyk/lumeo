@@ -9,6 +9,7 @@ type TimelineRow = {
   user_id: string;
   author_name: string;
   author_experience_level: string | null;
+  author_avatar_path: string | null;
   type: "text" | "photo_corpo" | "photo_rosto" | "event_confirmed";
   content: string | null;
   created_at: string;
@@ -50,13 +51,21 @@ export default async function LinhaDoTempoPage() {
 
   const withUrls = await Promise.all(
     rows.map(async (post) => {
+      const avatarUrl = post.author_avatar_path
+        ? (
+            await supabase.storage
+              .from("profile-photos")
+              .createSignedUrl(post.author_avatar_path, 300)
+          ).data?.signedUrl
+        : undefined;
+
       if (post.photo_storage_path && post.can_view_photo) {
         const { data } = await supabase.storage
           .from("profile-photos")
           .createSignedUrl(post.photo_storage_path, 300);
-        return { ...post, photoUrl: data?.signedUrl };
+        return { ...post, photoUrl: data?.signedUrl, avatarUrl };
       }
-      return { ...post, photoUrl: undefined };
+      return { ...post, photoUrl: undefined, avatarUrl };
     }),
   );
 
@@ -88,6 +97,18 @@ export default async function LinhaDoTempoPage() {
           <li key={post.id} className="rounded-lg border p-4">
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2">
+                {post.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={post.avatarUrl}
+                    alt=""
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-[9px] text-neutral-500">
+                    —
+                  </div>
+                )}
                 <Link href={`/perfil/${post.user_id}`} className="font-medium underline">
                   {post.author_name}
                 </Link>
