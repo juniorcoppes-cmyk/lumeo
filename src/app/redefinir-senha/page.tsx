@@ -1,0 +1,53 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { updatePassword } from "./actions";
+
+export default async function RedefinirSenhaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect(
+      "/recuperar-senha?error=Sessão de recuperação expirada. Solicite um novo link.",
+    );
+  }
+
+  return (
+    <main className="mx-auto max-w-sm px-6 py-16">
+      <h1 className="text-2xl font-semibold">Nova senha</h1>
+      <p className="mt-2 text-sm text-neutral-600">
+        Escolha uma nova senha para sua conta.
+      </p>
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      <form action={updatePassword} className="mt-6 flex flex-col gap-4">
+        <input
+          type="password"
+          name="password"
+          placeholder="Nova senha"
+          required
+          minLength={6}
+          className="rounded border px-3 py-2"
+        />
+        <input
+          type="password"
+          name="password_confirmation"
+          placeholder="Confirmar nova senha"
+          required
+          minLength={6}
+          className="rounded border px-3 py-2"
+        />
+        <button type="submit" className="rounded bg-black px-3 py-2 text-white">
+          Salvar nova senha
+        </button>
+      </form>
+    </main>
+  );
+}

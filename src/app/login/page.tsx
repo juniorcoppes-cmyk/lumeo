@@ -33,6 +33,11 @@ export default async function LoginPage({
         </button>
       </form>
       <p className="mt-4 text-sm text-neutral-600">
+        <Link href="/recuperar-senha" className="underline">
+          Esqueci minha senha
+        </Link>
+      </p>
+      <p className="mt-2 text-sm text-neutral-600">
         Ainda não tem conta?{" "}
         <Link href="/cadastro/dados" className="underline">
           Criar conta

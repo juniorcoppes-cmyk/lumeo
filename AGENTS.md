@@ -193,6 +193,23 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
   em `users` que causou o bug de recursão do "corpo" original). Exposta
   pelas mesmas 3 RPCs que já carregam nome/selo de outros usuários
   (`browse_verified_users`, `get_verified_profile`, `get_timeline`).
+- Recuperação de senha (pedido do fundador em 2026-07-13): `/login` tem link
+  "Esqueci minha senha" → `/recuperar-senha` (pede e-mail, chama
+  `resetPasswordForEmail`; mensagem de sucesso é sempre a mesma, exista ou
+  não a conta, pra não permitir enumeração — Supabase já não erra nesse caso
+  por padrão). `/auth/confirm/route.ts` recebe `token_hash`+`type` (não
+  `code`/PKCE) e chama `verifyOtp`, estabelecendo uma sessão de recuperação
+  antes de redirecionar pra `/redefinir-senha` (guard: sem sessão, volta pra
+  `/recuperar-senha` com aviso de link expirado). **Passo manual pendente no
+  painel do Supabase**: o template de e-mail "Reset Password" (Authentication
+  → Email Templates) ainda usa o `{{ .ConfirmationURL }}` padrão, que passa
+  pelo endpoint hospedado do Supabase em vez de ir direto pro nosso
+  `/auth/confirm` — precisa trocar o link do template para
+  `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/redefinir-senha`
+  antes do fluxo funcionar ponta a ponta com e-mail real (só o `resetPasswordForEmail`
+  em si foi testado ao vivo, sem erro; o clique no e-mail e a troca de senha
+  não, por depender desse ajuste no painel). Mesma ressalva do rate limit de
+  e-mail padrão do Supabase (ver "Produção") se aplica aqui.
 
 ## Correção de segurança crítica (2026-07-12)
 Durante a implementação do status de leitura de mensagens, percebi que
