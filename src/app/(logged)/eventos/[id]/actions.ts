@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createPayment, findOrCreateCustomer } from "@/lib/asaas";
+import { effectiveSubscriptionStatus } from "@/lib/subscription";
 
 export async function inscrever(formData: FormData) {
   const eventId = formData.get("event_id") as string;
@@ -30,7 +31,7 @@ export async function inscrever(formData: FormData) {
   try {
     const { data: event } = await supabase
       .from("events")
-      .select("title, price")
+      .select("title, price, plus_price")
       .eq("id", eventId)
       .single();
 
@@ -39,6 +40,21 @@ export async function inscrever(formData: FormData) {
       .select("name, email")
       .eq("id", user.id)
       .single();
+
+    const { data: subscription } = await supabase
+      .from("subscriptions")
+      .select("plan, status, overdue_since")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const isPlusActive =
+      subscription?.plan === "plus" &&
+      ["active", "overdue"].includes(
+        effectiveSubscriptionStatus(subscription.status, subscription.overdue_since),
+      );
+
+    const chargedPrice =
+      isPlusActive && event!.plus_price !== null ? Number(event!.plus_price) : Number(event!.price);
 
     let asaasCustomerId = billing?.asaas_customer_id as string | undefined;
 
@@ -59,11 +75,11 @@ export async function inscrever(formData: FormData) {
     let asaasPaymentId: string | null = null;
     let paymentUrl: string | null = null;
 
-    if (Number(event!.price) > 0) {
+    if (chargedPrice > 0) {
       const payment = await createPayment({
         customer: asaasCustomerId,
         billingType: "UNDEFINED",
-        value: Number(event!.price),
+        value: chargedPrice,
         dueDate: new Date().toISOString().slice(0, 10),
         description: `Lumeo — inscrição em ${event!.title}`,
         externalReference: `${eventId}:${user.id}`,

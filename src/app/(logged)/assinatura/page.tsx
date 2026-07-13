@@ -27,6 +27,29 @@ export default async function AssinaturaPage({
     ? effectiveSubscriptionStatus(subscription.status, subscription.overdue_since)
     : null;
 
+  const { data: profile } = await supabase
+    .from("users")
+    .select("is_admin, is_support_channel")
+    .eq("id", user.id)
+    .single();
+
+  const { data: approvedVerification } = await supabase
+    .from("verifications")
+    .select("reviewed_at")
+    .eq("user_id", user.id)
+    .eq("status", "approved")
+    .order("reviewed_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const trialDaysLeft = approvedVerification?.reviewed_at
+    ? Math.ceil(
+        7 -
+          (Date.now() - new Date(approvedVerification.reviewed_at).getTime()) /
+            (24 * 60 * 60 * 1000),
+      )
+    : null;
+
   const { data: billing } = await supabase
     .from("billing_profiles")
     .select("cpf_cnpj")
@@ -44,9 +67,27 @@ export default async function AssinaturaPage({
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
-      {subscription ? (
+      {profile?.is_admin || profile?.is_support_channel ? (
+        <p className="mt-2 text-neutral-600">
+          Conta administrativa — acesso completo, sem necessidade de assinatura.
+        </p>
+      ) : subscription ? (
         <p className="mt-2 text-neutral-600">
           Plano atual: <strong>{subscription.plan}</strong> ({displayStatus})
+        </p>
+      ) : trialDaysLeft !== null && trialDaysLeft > 0 ? (
+        <p className="mt-2 text-neutral-600">
+          Você está no período de teste gratuito —{" "}
+          <strong>
+            {trialDaysLeft} {trialDaysLeft === 1 ? "dia restante" : "dias restantes"}
+          </strong>{" "}
+          com acesso completo. Depois disso, contato direto com outros
+          perfis exige um plano ativo.
+        </p>
+      ) : trialDaysLeft !== null ? (
+        <p className="mt-2 text-sm text-amber-600">
+          Seu período de teste gratuito acabou. Assine um plano para
+          continuar entrando em contato com outros perfis.
         </p>
       ) : (
         <p className="mt-2 text-neutral-600">Nenhum plano escolhido ainda.</p>
@@ -74,33 +115,44 @@ export default async function AssinaturaPage({
       )}
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {PLANS.map((plan) => (
-          <form key={plan.id} action={choosePlan} className="rounded-lg border p-6">
-            <input type="hidden" name="plan" value={plan.id} />
-            <h2 className="text-xl font-medium">{plan.name}</h2>
-            <p className="mt-2 text-neutral-600">{plan.price} / mês</p>
-            <ul className="mt-3 flex flex-col gap-1 text-sm text-neutral-600">
-              {plan.features.map((feature) => (
-                <li key={feature} className="flex gap-2">
-                  <span aria-hidden>·</span>
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-            {!billing?.cpf_cnpj && (
-              <input
-                type="text"
-                name="cpf_cnpj"
-                placeholder="CPF"
-                required
-                className="mt-3 w-full rounded border px-3 py-2 text-sm"
-              />
-            )}
-            <button type="submit" className="mt-4 rounded bg-black px-4 py-2 text-white">
-              {subscription?.plan === plan.id ? "Trocar/atualizar" : "Escolher"}
-            </button>
-          </form>
-        ))}
+        {PLANS.map((plan) => {
+          const isCurrentActivePlan = subscription?.plan === plan.id && displayStatus === "active";
+          return (
+            <form key={plan.id} action={choosePlan} className="rounded-lg border p-6">
+              <input type="hidden" name="plan" value={plan.id} />
+              <h2 className="text-xl font-medium">{plan.name}</h2>
+              <p className="mt-2 text-neutral-600">{plan.price} / mês</p>
+              <ul className="mt-3 flex flex-col gap-1 text-sm text-neutral-600">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex gap-2">
+                    <span aria-hidden>·</span>
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              {isCurrentActivePlan ? (
+                <p className="mt-4 rounded border px-4 py-2 text-center text-sm text-neutral-500">
+                  Seu plano atual
+                </p>
+              ) : (
+                <>
+                  {!billing?.cpf_cnpj && (
+                    <input
+                      type="text"
+                      name="cpf_cnpj"
+                      placeholder="CPF"
+                      required
+                      className="mt-3 w-full rounded border px-3 py-2 text-sm"
+                    />
+                  )}
+                  <button type="submit" className="mt-4 rounded bg-black px-4 py-2 text-white">
+                    {subscription ? `Trocar para ${plan.name}` : "Escolher"}
+                  </button>
+                </>
+              )}
+            </form>
+          );
+        })}
       </div>
     </main>
   );

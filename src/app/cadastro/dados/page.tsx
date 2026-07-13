@@ -5,9 +5,9 @@ import { signUp } from "./actions";
 export default async function CadastroDadosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; invite?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, invite } = await searchParams;
 
   return (
     <main className="mx-auto max-w-sm px-6 py-16">
@@ -15,6 +15,7 @@ export default async function CadastroDadosPage({
       <p className="mt-2 text-sm text-neutral-600">Etapa 1 de 4</p>
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       <form action={signUp} className="mt-6 flex flex-col gap-4">
+        {invite && <input type="hidden" name="invite_code" value={invite} />}
         <input
           type="text"
           name="name"

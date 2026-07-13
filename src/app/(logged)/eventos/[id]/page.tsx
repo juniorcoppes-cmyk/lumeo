@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ExperienceBadge } from "@/components/ExperienceBadge";
+import { CopyLinkButton } from "@/components/CopyLinkButton";
 import { createClient } from "@/lib/supabase/server";
+import { effectiveSubscriptionStatus } from "@/lib/subscription";
 import { convidarPorSelo, gerarLinkConvite, inscrever } from "./actions";
 
 export default async function EventoDetalhePage({
@@ -23,7 +25,7 @@ export default async function EventoDetalhePage({
   const { data: event } = await supabase
     .from("events")
     .select(
-      "id, title, event_date, location, capacity, price, description, photo_story_path, photo_landscape_path",
+      "id, title, event_date, location, capacity, price, plus_price, description, photo_story_path, photo_landscape_path",
     )
     .eq("id", id)
     .single();
@@ -64,6 +66,26 @@ export default async function EventoDetalhePage({
     .eq("user_id", user.id)
     .maybeSingle();
 
+  const { count: confirmedCount } = await supabase
+    .from("event_registrations")
+    .select("id", { count: "exact", head: true })
+    .eq("event_id", id)
+    .eq("status", "confirmed");
+
+  const isFull = (confirmedCount ?? 0) >= event.capacity;
+
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("plan, status, overdue_since")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const isPlusActive =
+    subscription?.plan === "plus" &&
+    ["active", "overdue"].includes(
+      effectiveSubscriptionStatus(subscription.status, subscription.overdue_since),
+    );
+
   const { data: myInvites } = await supabase
     .from("event_invites")
     .select("id, invite_code, status, invitee_id")
@@ -103,6 +125,20 @@ export default async function EventoDetalhePage({
         {new Date(event.event_date).toLocaleString("pt-BR")} · {event.location} ·{" "}
         {Number(event.price) > 0 ? `R$ ${Number(event.price).toFixed(2)}` : "Gratuito"}
       </p>
+      {event.plus_price !== null && (
+        <p className={`text-sm ${isPlusActive ? "font-medium text-neutral-900" : "text-neutral-500"}`}>
+          Preço especial pra assinantes Plus: R$ {Number(event.plus_price).toFixed(2)}
+          {!isPlusActive && (
+            <>
+              {" "}
+              ·{" "}
+              <Link href="/assinatura" className="underline">
+                Assine o Plus
+              </Link>
+            </>
+          )}
+        </p>
+      )}
       {event.description && <p className="mt-2 text-neutral-700">{event.description}</p>}
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
@@ -123,6 +159,14 @@ export default async function EventoDetalhePage({
         </div>
       ) : profile?.verification_badge_id ? (
         <form action={inscrever} className="mt-6 flex flex-col gap-3">
+          {isFull && (
+            <p className="text-sm text-amber-600">
+              Evento lotado —{" "}
+              {isPlusActive
+                ? "como assinante Plus, sua inscrição entra na lista de prioridade: se abrir uma vaga, você é chamado primeiro."
+                : "sua inscrição entra na lista de espera. Assinantes Plus têm prioridade quando abre uma vaga."}
+            </p>
+          )}
           <input type="hidden" name="event_id" value={event.id} />
           {Number(event.price) > 0 && !billing?.cpf_cnpj && (
             <input
@@ -134,7 +178,7 @@ export default async function EventoDetalhePage({
             />
           )}
           <button type="submit" className="self-start rounded bg-black px-4 py-2 text-white">
-            Confirmar vaga
+            {isFull ? "Entrar na lista de espera" : "Confirmar vaga"}
           </button>
         </form>
       ) : (
@@ -192,11 +236,16 @@ export default async function EventoDetalhePage({
         </form>
 
         {myInvites && myInvites.length > 0 && (
-          <ul className="mt-4 flex flex-col gap-1 text-sm text-neutral-600">
+          <ul className="mt-4 flex flex-col gap-2 text-sm text-neutral-600">
             {myInvites.map((invite) => (
-              <li key={invite.id}>
-                {invite.invitee_id ? "Indicado por selo" : "Link"}: /convite/{invite.invite_code} —{" "}
-                {invite.status}
+              <li key={invite.id} className="flex items-center gap-2">
+                <span>
+                  {invite.invitee_id ? "Indicado por selo" : "Link"}: /convite/{invite.invite_code} —{" "}
+                  {invite.status}
+                </span>
+                {!invite.invitee_id && (
+                  <CopyLinkButton path={`/convite/${invite.invite_code}`} />
+                )}
               </li>
             ))}
           </ul>

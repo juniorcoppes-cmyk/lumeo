@@ -61,7 +61,7 @@ export default async function ConvitePage({
           <Link href={`/login?next=${encodeURIComponent(`/convite/${code}`)}`} className="underline">
             Entrar
           </Link>
-          <Link href="/cadastro" className="underline">
+          <Link href={`/cadastro/dados?invite=${code}`} className="underline">
             Cadastre-se
           </Link>
         </div>

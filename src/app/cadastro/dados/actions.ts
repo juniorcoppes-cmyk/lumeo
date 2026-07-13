@@ -9,13 +9,19 @@ export async function signUp(formData: FormData) {
   const password = formData.get("password") as string;
   const profileType = formData.get("profile_type") as string;
   const experienceLevel = formData.get("experience_level") as string;
+  const inviteCode = (formData.get("invite_code") as string) || undefined;
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: { name, profile_type: profileType, experience_level: experienceLevel },
+      data: {
+        name,
+        profile_type: profileType,
+        experience_level: experienceLevel,
+        invite_code: inviteCode,
+      },
     },
   });
 

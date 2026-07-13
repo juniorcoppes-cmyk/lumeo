@@ -27,6 +27,8 @@ export async function createEvent(formData: FormData) {
   const capacity = Number(formData.get("capacity"));
   const price = Number(formData.get("price"));
   const description = (formData.get("description") as string)?.trim() || null;
+  const plusPriceRaw = formData.get("plus_price") as string;
+  const plusPrice = plusPriceRaw?.trim() ? Number(plusPriceRaw) : null;
   const storyPhoto = formData.get("story_photo") as File | null;
   const landscapePhoto = formData.get("landscape_photo") as File | null;
 
@@ -40,6 +42,7 @@ export async function createEvent(formData: FormData) {
       capacity,
       price,
       description,
+      plus_price: plusPrice,
     })
     .select("id")
     .single();
@@ -102,6 +105,8 @@ export async function updateEvent(formData: FormData) {
   const capacity = Number(formData.get("capacity"));
   const price = Number(formData.get("price"));
   const description = (formData.get("description") as string)?.trim() || null;
+  const plusPriceRaw = formData.get("plus_price") as string;
+  const plusPrice = plusPriceRaw?.trim() ? Number(plusPriceRaw) : null;
 
   const supabase = await createClient();
   await supabase
@@ -113,6 +118,7 @@ export async function updateEvent(formData: FormData) {
       capacity,
       price,
       description,
+      plus_price: plusPrice,
     })
     .eq("id", eventId);
 

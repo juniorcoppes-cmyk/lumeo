@@ -355,6 +355,60 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
     fundador: fixo/sempre visível ficaria repetitivo pra quem já usa o app
     com frequência) — sem JS, mesmo padrão já usado no formulário de editar
     evento em `/admin/eventos`.
+- Desconto Plus e "lista VIP" (pedido do fundador em 2026-07-13, terceira
+  rodada): **decisão explícita** — desconto não é um percentual fixo
+  global, é por evento (`events.plus_price`, opcional, definido pelo admin
+  ao criar/editar em `/admin/eventos`; página `/planos` continua sem citar
+  valor, só "descontos especiais", de propósito). `inscrever()`
+  (`eventos/[id]/actions.ts`) cobra `plus_price` em vez de `price` quando o
+  usuário tem assinatura Plus `active` ou `overdue` dentro da carência
+  (mesma `effectiveSubscriptionStatus` de `src/lib/subscription.ts`).
+  "Lista VIP" **também é decisão explícita**: não é uma fila automática
+  separada — o app já funciona com o admin confirmando manualmente cada
+  inscrição (não existe auto-confirmação por capacidade), então "furar
+  fila" significa mostrar o plano de cada inscrito e ordenar Plus primeiro
+  entre os pendentes em `/admin/eventos` (nova policy `subscriptions select
+  admin`, não existia leitura de assinatura alheia até agora). Em
+  `/eventos/[id]`, quando `confirmed_count >= capacity`, o botão vira
+  "Entrar na lista de espera" com uma mensagem diferente pra Plus
+  (prioridade) vs quem não é. Nenhuma automação de promoção da fila —
+  continua sendo o admin quem decide quem confirma quando abre vaga, só que
+  agora vendo quem é Plus primeiro na lista. Ver
+  `20260713000002_plus_discount_and_vip_waitlist.sql`.
+- Quarta rodada (2026-07-13): link de admin sumido, convite sem retorno pro
+  evento, e troca de plano quebrada:
+  - **Bug real encontrado**: `(logged)/layout.tsx` nunca teve link pra
+    `/admin/*` — só `admin/layout.tsx` tem esse nav, então quem loga e cai
+    em `/inicio` (todo mundo, inclusive admin) não tinha como chegar em
+    `/admin/eventos` sem digitar a URL. Isso explica os pedidos de "botão
+    pra criar/editar/excluir evento" — os botões já existiam desde a
+    rodada anterior, só não tinha como navegar até eles. Corrigido: link
+    "Admin" condicional (`profile.is_admin`) no nav de `(logged)/layout.tsx`.
+  - Link de convite: `CopyLinkButton.tsx` (client, `navigator.clipboard`)
+    adicionado ao lado de cada link gerado em `/eventos/[id]`. Pra quem
+    ainda não tem conta: "Cadastre-se" no convite agora passa
+    `?invite={code}` pra `/cadastro/dados`, que guarda em
+    `users.pending_invite_code` (via metadata do `signUp()`, mesmo padrão
+    de `experience_level`/`referred_by` em `handle_new_user()`). Verificação
+    aprova só depois de dias, então não dá pra redirecionar na hora — o
+    hook fica em `(logged)/layout.tsx`: primeira página logada que a pessoa
+    abrir depois de aprovada (login normal, sem precisar do link de novo)
+    já redireciona pra `/convite/{code}` e limpa o campo (só dispara uma
+    vez). Ver `20260713000003_invite_redirect_and_asaas_cleanup.sql`.
+  - Teste grátis: não é um botão de "ativar" (já é automático desde a
+    terceira rodada, a partir da aprovação da verificação) — o que faltava
+    era visibilidade. `/assinatura` agora mostra quantos dias restam do
+    teste (ou que acabou) quando não há assinatura ainda.
+  - **Bug real encontrado e corrigido**: `choosePlan()` sempre criava uma
+    assinatura NOVA no Asaas sem cancelar a antiga — reproduzido com o
+    Asaas sandbox de verdade (script descartável): trocar de plano deixava
+    duas assinaturas `ACTIVE` ao mesmo tempo pro mesmo cliente, cobrando as
+    duas. Corrigido chamando `cancelSubscription()` (novo em `lib/asaas.ts`,
+    `DELETE /subscriptions/{id}`) antes de criar a nova, sempre que já
+    existe `asaas_subscription_id`. De quebra, o botão "Trocar/atualizar"
+    aparecia no card do plano que a pessoa JÁ tinha (não no outro, que é o
+    que faria sentido clicar pra trocar) — trocado por um selo "Seu plano
+    atual" (sem botão) no plano vigente e "Trocar para {nome}" nos outros.
 
 ## Correção de segurança crítica (2026-07-12)
 Durante a implementação do status de leitura de mensagens, percebi que

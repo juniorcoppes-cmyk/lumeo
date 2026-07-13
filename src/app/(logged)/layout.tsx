@@ -16,6 +16,21 @@ export default async function LoggedLayout({
 
   if (!user) redirect("/login");
 
+  const { data: profile } = await supabase
+    .from("users")
+    .select("is_admin, verification_badge_id, pending_invite_code")
+    .eq("id", user.id)
+    .single();
+
+  // Convite pendente de antes da verificação: assim que aprovado, a
+  // primeira página logada que a pessoa abrir (login normal, sem precisar
+  // do link original de novo) já leva direto pro evento indicado.
+  if (profile?.pending_invite_code && profile.verification_badge_id) {
+    const code = profile.pending_invite_code;
+    await supabase.from("users").update({ pending_invite_code: null }).eq("id", user.id);
+    redirect(`/convite/${code}`);
+  }
+
   return (
     <PinLockGate>
       <nav className="flex items-center justify-between gap-2 px-3 py-2 text-sm sm:px-6">
@@ -38,6 +53,11 @@ export default async function LoggedLayout({
           <Link href="/assinatura" className="underline">
             Assinatura
           </Link>
+          {profile?.is_admin && (
+            <Link href="/admin/eventos" className="underline">
+              Admin
+            </Link>
+          )}
         </div>
         <form action={signOut} className="shrink-0">
           <button type="submit" className="text-neutral-500 underline">

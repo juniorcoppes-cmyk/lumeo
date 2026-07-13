@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { effectiveSubscriptionStatus } from "@/lib/subscription";
 import {
   createEvent,
   deleteEvent,
@@ -6,6 +7,14 @@ import {
   updateEventPhotos,
   updateRegistrationStatus,
 } from "./actions";
+
+function isPlusActive(
+  subscription: { plan: string; status: string; overdue_since: string | null } | null | undefined,
+) {
+  if (!subscription || subscription.plan !== "plus") return false;
+  const status = effectiveSubscriptionStatus(subscription.status, subscription.overdue_since);
+  return status === "active" || status === "overdue";
+}
 
 function toDatetimeLocal(iso: string) {
   const d = new Date(iso);
@@ -19,7 +28,7 @@ export default async function AdminEventosPage() {
   const { data: events } = await supabase
     .from("events")
     .select(
-      "id, title, event_date, location, capacity, price, description, photo_story_path, photo_landscape_path, event_registrations(id, status, users(name, email))",
+      "id, title, event_date, location, capacity, price, plus_price, description, photo_story_path, photo_landscape_path, event_registrations(id, status, users(name, email, subscriptions(plan, status, overdue_since)))",
     )
     .order("event_date", { ascending: true });
 
@@ -49,6 +58,17 @@ export default async function AdminEventosPage() {
           required
           className="rounded border px-3 py-2"
         />
+        <label className="flex flex-col gap-1 text-sm text-neutral-600">
+          Preço especial pra assinantes Plus (opcional)
+          <input
+            type="number"
+            name="plus_price"
+            placeholder="Deixe em branco pra não ter desconto nesse evento"
+            min={0}
+            step="0.01"
+            className="rounded border px-3 py-2"
+          />
+        </label>
         <textarea
           name="description"
           placeholder="Descrição do evento"
@@ -123,6 +143,18 @@ export default async function AdminEventosPage() {
                   required
                   className="rounded border px-3 py-2"
                 />
+                <label className="flex flex-col gap-1 text-neutral-600">
+                  Preço especial pra assinantes Plus (opcional)
+                  <input
+                    type="number"
+                    name="plus_price"
+                    defaultValue={event.plus_price !== null ? Number(event.plus_price) : ""}
+                    placeholder="Deixe em branco pra não ter desconto nesse evento"
+                    min={0}
+                    step="0.01"
+                    className="rounded border px-3 py-2"
+                  />
+                </label>
                 <textarea
                   name="description"
                   defaultValue={event.description ?? ""}
@@ -138,6 +170,9 @@ export default async function AdminEventosPage() {
             <p className="mt-2 text-sm text-neutral-600">
               {new Date(event.event_date).toLocaleString("pt-BR")} · {event.location} ·
               {" "}capacidade {event.capacity} · R$ {Number(event.price).toFixed(2)}
+              {event.plus_price !== null && (
+                <> · Plus: R$ {Number(event.plus_price).toFixed(2)}</>
+              )}
             </p>
             {event.description && (
               <p className="mt-1 text-sm text-neutral-600">{event.description}</p>
@@ -159,12 +194,37 @@ export default async function AdminEventosPage() {
             </form>
 
             <ul className="mt-3 flex flex-col gap-2">
-              {event.event_registrations?.map((reg) => {
+              {[...(event.event_registrations ?? [])]
+                .sort((a, b) => {
+                  const userA = Array.isArray(a.users) ? a.users[0] : a.users;
+                  const userB = Array.isArray(b.users) ? b.users[0] : b.users;
+                  const subA = Array.isArray(userA?.subscriptions)
+                    ? userA.subscriptions[0]
+                    : userA?.subscriptions;
+                  const subB = Array.isArray(userB?.subscriptions)
+                    ? userB.subscriptions[0]
+                    : userB?.subscriptions;
+                  // Pendentes primeiro (é quem precisa de decisão do admin);
+                  // dentro dos pendentes, Plus fura fila.
+                  if (a.status === "pending" && b.status !== "pending") return -1;
+                  if (b.status === "pending" && a.status !== "pending") return 1;
+                  return Number(isPlusActive(subB)) - Number(isPlusActive(subA));
+                })
+                .map((reg) => {
                 const user = Array.isArray(reg.users) ? reg.users[0] : reg.users;
+                const subscription = Array.isArray(user?.subscriptions)
+                  ? user.subscriptions[0]
+                  : user?.subscriptions;
+                const plus = isPlusActive(subscription);
                 return (
                   <li key={reg.id} className="flex items-center justify-between text-sm">
                     <span>
                       {user?.name} ({user?.email}) — {reg.status}
+                      {plus && (
+                        <span className="ml-2 rounded-full border px-2 py-0.5 text-xs">
+                          Plus — prioridade
+                        </span>
+                      )}
                     </span>
                     <div className="flex gap-2">
                       <form action={updateRegistrationStatus}>

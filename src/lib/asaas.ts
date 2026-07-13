@@ -59,6 +59,10 @@ export async function createSubscription(params: {
   });
 }
 
+export async function cancelSubscription(subscriptionId: string): Promise<void> {
+  await asaasFetch(`/subscriptions/${subscriptionId}`, { method: "DELETE" });
+}
+
 export async function getSubscriptionFirstPaymentUrl(subscriptionId: string): Promise<string | null> {
   const result = await asaasFetch<{ data: { invoiceUrl: string }[] }>(
     `/subscriptions/${subscriptionId}/payments`,

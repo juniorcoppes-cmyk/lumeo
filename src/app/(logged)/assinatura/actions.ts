@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createSubscription, findOrCreateCustomer } from "@/lib/asaas";
+import { cancelSubscription, createSubscription, findOrCreateCustomer } from "@/lib/asaas";
 
 const PLAN_PRICES: Record<string, number> = {
   essencial: 34.9,
@@ -30,7 +30,23 @@ export async function choosePlan(formData: FormData) {
     redirect(`/assinatura?error=${encodeURIComponent("Informe seu CPF para continuar")}`);
   }
 
+  const { data: existingSubscription } = await supabase
+    .from("subscriptions")
+    .select("plan, asaas_subscription_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
   try {
+    // Trocar de plano (ou tentar de novo) sem cancelar a assinatura antiga
+    // no Asaas deixava as duas ativas ao mesmo tempo, cobrando as duas —
+    // bug encontrado ao reproduzir o relato do fundador. Cancela a antiga
+    // antes de criar a nova.
+    if (existingSubscription?.asaas_subscription_id) {
+      await cancelSubscription(existingSubscription.asaas_subscription_id).catch(() => {
+        // já cancelada/inexistente no Asaas não deve travar a troca de plano.
+      });
+    }
+
     const { data: profile } = await supabase
       .from("users")
       .select("name, email")
