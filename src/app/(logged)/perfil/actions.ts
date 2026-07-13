@@ -38,6 +38,46 @@ export async function updateExperienceLevel(formData: FormData) {
   revalidatePath("/perfil");
 }
 
+export async function updateProfileDetails(formData: FormData) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: profile } = await supabase
+    .from("users")
+    .select("profile_type")
+    .eq("id", user.id)
+    .single();
+
+  const bio = (formData.get("bio") as string)?.trim() || null;
+  const birthDate = (formData.get("birth_date") as string) || null;
+  const gender = (formData.get("gender") as string) || null;
+  const sexualOrientation = (formData.get("sexual_orientation") as string) || null;
+  const lookingFor = formData.getAll("looking_for") as string[];
+
+  const update: Record<string, unknown> = {
+    bio,
+    birth_date: birthDate,
+    gender,
+    sexual_orientation: sexualOrientation,
+    looking_for: lookingFor.length > 0 ? lookingFor : null,
+  };
+
+  if (profile?.profile_type === "casal") {
+    update.partner_birth_date = (formData.get("partner_birth_date") as string) || null;
+    update.partner_gender = (formData.get("partner_gender") as string) || null;
+    update.partner_sexual_orientation =
+      (formData.get("partner_sexual_orientation") as string) || null;
+  }
+
+  await supabase.from("users").update(update).eq("id", user.id);
+
+  revalidatePath("/perfil");
+}
+
 export async function updateLocation(latitude: number, longitude: number) {
   const supabase = await createClient();
 

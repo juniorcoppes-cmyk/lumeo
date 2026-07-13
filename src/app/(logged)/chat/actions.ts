@@ -19,3 +19,14 @@ export async function startConversation(formData: FormData) {
 
   redirect(`/chat/${conversationId}`);
 }
+
+export async function contactSupport() {
+  const supabase = await createClient();
+  const { data: conversationId, error } = await supabase.rpc("contact_admin");
+
+  if (error || !conversationId) {
+    redirect(`/chat?error=${encodeURIComponent(error?.message ?? "Não foi possível contatar o suporte")}`);
+  }
+
+  redirect(`/chat/${conversationId}`);
+}

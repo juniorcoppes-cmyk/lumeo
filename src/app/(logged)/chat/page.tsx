@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { startConversation } from "./actions";
+import { contactSupport, startConversation } from "./actions";
 
 export default async function ChatListPage({
   searchParams,
@@ -70,6 +70,12 @@ export default async function ChatListPage({
         Suas conversas com outros usuários verificados.
       </p>
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+
+      <form action={contactSupport} className="mt-4">
+        <button type="submit" className="rounded border px-3 py-1.5 text-sm">
+          Falar com o suporte (ADM)
+        </button>
+      </form>
 
       <ul className="mt-6 flex flex-col gap-2">
         {conversations?.map((c) => {

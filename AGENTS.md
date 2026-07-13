@@ -123,6 +123,86 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
   (`?max_distance_km=5|25|100`); quem não compartilhou localização (própria
   ou do outro) aparece sem faixa de distância e fica de fora se um filtro
   de raio for aplicado (não dá pra confirmar que está dentro).
+- Detalhes de perfil (`bio`, `birth_date`, `gender`, `sexual_orientation`,
+  `looking_for`, e os equivalentes `partner_*` para perfil casal — pedido do
+  fundador em 2026-07-12): editáveis em `/perfil`, não exigidos no
+  cadastro. Perfil casal é uma única conta (não duas), por isso guarda os
+  dados dos dois parceiros em colunas paralelas (`partner_birth_date` etc.)
+  em vez de duas linhas. Idade é sempre calculada a partir de `birth_date`
+  (`calculateAge`, `src/lib/profile-options.ts`), nunca armazenada.
+  `get_verified_profile` expõe tudo pro `/perfil/[id]`.
+- Conexões entre perfis (`user_connections`, pedido do fundador em
+  2026-07-12): "amigos sociais/íntimos/virtuais" — mesmo padrão de
+  pedido/aprovação de `photo_access_requests`, reaproveitado de propósito.
+  **Decisão de privacidade**: a conexão aprovada só aparece pros dois
+  envolvidos (nunca publicamente), verificado em `/perfil/[id]`.
+- Avaliações entre perfis (`profile_ratings`, pedido do fundador em
+  2026-07-12): só quem tem conexão aprovada com o dono do perfil pode
+  avaliar (checado na própria RLS de insert, via `user_connections`), com
+  1+ das 5 tags (bonito/bom papo/gostoso/sensual/interessante). Perfil
+  casal recebe avaliação **separada** pro homem e pra mulher
+  (`target_role`), testado e confirmado que não se misturam. **Decisão de
+  privacidade**: resultado é contagem agregada pública no perfil (ex.:
+  "Gostoso: 5"), nunca expõe quem avaliou — por isso `profile_ratings` não
+  tem policy de select geral, só "select own" (pra mostrar "sua avaliação"
+  editável); a leitura agregada é só via RPC
+  `get_profile_rating_counts(uuid, text)`.
+- Login simultâneo de casal em aparelhos diferentes (pedido do fundador em
+  2026-07-12): **já funciona sem nenhuma mudança de código** — Supabase Auth
+  não invalida sessões anteriores ao logar de novo com o mesmo e-mail/senha.
+  Confirmado via script (2 clients simultâneos, ambos continuam válidos).
+- Fotos em tela cheia + comentários (`PhotoGallery`,
+  `src/components/PhotoGallery.tsx`, pedido do fundador em 2026-07-12):
+  clicar numa miniatura abre um lightbox com a foto grande e os
+  comentários. Reaproveitado em `/perfil` (álbum próprio, com botão de
+  remover foto) e `/perfil/[id]` (álbum de outro). **Achado durante a
+  implementação**: passar uma função de renderização (render-prop) de um
+  Server Component pra esse Client Component quebra ("functions cannot be
+  passed directly to Client Components") — corrigido passando a própria
+  server action (`deletePhotoAction`) como prop em vez de uma função que
+  retorna JSX. `photo_comments`: quem já pode ver a foto (mesma regra do
+  álbum) pode comentar; dono da foto apaga qualquer comentário nela, autor
+  apaga o próprio — RLS direto na tabela (nested `exists` em
+  `profile_photos`/`photo_access_requests`, mesmo padrão comprovado em
+  `profile_ratings`, não o de storage.objects que já deu problema antes).
+- Status de leitura de mensagens (`messages.read_at`, pedido do fundador em
+  2026-07-12): mensagem enviada aparece em negrito pro remetente até o
+  destinatário abrir `/chat/[id]` (que marca como lida ao carregar);
+  timestamp (`sent_at`) exibido em toda mensagem, enviada ou recebida.
+- Canal direto com a administração (`contact_admin()`, `users.
+  is_support_channel`, pedido do fundador em 2026-07-12): botão "Falar com
+  o suporte (ADM)" em `/chat`, disponível mesmo pra quem ainda não foi
+  verificado (de propósito — ex.: dúvida sobre verificação reprovada; é o
+  único fluxo de chat que não exige `is_verified` dos dois lados). Conta
+  real ainda precisa ser criada pelo cadastro normal e marcada com
+  `node scripts/mark-support-account.mjs <email>` — sem isso, `contact_admin`
+  falha com "Canal de suporte não configurado".
+
+## Correção de segurança crítica (2026-07-12)
+Durante a implementação do status de leitura de mensagens, percebi que
+`create policy "users update own" on users for update using (auth.uid() =
+id)` — sem `with check` — só restringe QUAL LINHA pode ser atualizada, não
+QUAIS COLUNAS. **Confirmado ao vivo**: um usuário comum conseguia, via
+chamada direta à API (contornando toda a UI), rodar
+`update users set is_admin = true where id = auth.uid()` — auto-promoção a
+admin — e o mesmo para `verification_badge_id` — auto-emissão de selo de
+verificação sem nenhuma aprovação real. Revertido manualmente antes da
+correção. Auditoria rápida achou o mesmo padrão com impacto real em mais 3
+lugares: `subscriptions` (dava pra se auto-ativar um plano pago sem pagar),
+`profile_ratings` e `user_connections` (dava pra redirecionar uma linha já
+existente pra um alvo diferente do validado no insert). Corrigido via
+triggers `before update` (`protect_sensitive_user_columns`,
+`protect_subscription_status`, `protect_rating_target`,
+`protect_connection_pair`, `protect_message_content` — ver
+`20260712000014_fix_self_promotion_vulnerability.sql` e
+`20260712000015_message_read_status.sql`), não via RLS declarativo (que
+teria o mesmo risco de subquery autorreferente já visto no bug de storage
+do álbum de fotos). Todos os triggers liberam admin de verdade e
+service_role (scripts, webhook, cron) — só bloqueiam usuário comum.
+**Vale reler `for update`/`for insert` de qualquer tabela nova a partir de
+agora perguntando "quais colunas essa policy deixa mudar, e isso devia ser
+permitido?"** — não é óbvio à primeira vista, e não tem constraint do
+Postgres que avise sozinho.
 
 ## Testado ponta a ponta contra um projeto Supabase real
 Cadastro → verificação (documento/vídeo) → aprovação admin (selo gerado) →

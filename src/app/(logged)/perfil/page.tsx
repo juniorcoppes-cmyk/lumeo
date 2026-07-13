@@ -1,6 +1,15 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { EXPERIENCE_LEVEL_LABELS, EXPERIENCE_LEVELS } from "@/lib/experience-level";
+import {
+  GENDER_LABELS,
+  GENDER_OPTIONS,
+  LOOKING_FOR_LABELS,
+  LOOKING_FOR_OPTIONS,
+  ORIENTATION_LABELS,
+  ORIENTATION_OPTIONS,
+} from "@/lib/profile-options";
+import { PhotoGallery } from "@/components/PhotoGallery";
 import { LocationShareButton } from "./LocationShareButton";
 import {
   clearLocation,
@@ -8,6 +17,7 @@ import {
   respondPhotoRequest,
   toggleDiscreetMode,
   updateExperienceLevel,
+  updateProfileDetails,
   uploadPhoto,
 } from "./actions";
 
@@ -26,7 +36,7 @@ export default async function PerfilPage({
   const { data: profile } = await supabase
     .from("users")
     .select(
-      "name, email, profile_type, verification_badge_id, discreet_mode, experience_level, location_updated_at",
+      "name, email, profile_type, verification_badge_id, discreet_mode, experience_level, location_updated_at, bio, birth_date, gender, sexual_orientation, looking_for, partner_birth_date, partner_gender, partner_sexual_orientation",
     )
     .eq("id", user.id)
     .single();
@@ -54,6 +64,30 @@ export default async function PerfilPage({
 
   const rostoPhotos = photosWithUrls.filter((p) => p.category === "rosto");
   const corpoPhotos = photosWithUrls.filter((p) => p.category === "corpo");
+
+  const photoIds = photosWithUrls.map((p) => p.id);
+  const { data: comments } = photoIds.length
+    ? await supabase
+        .from("photo_comments")
+        .select("id, photo_id, author_id, content, created_at, users!author_id(name)")
+        .in("photo_id", photoIds)
+        .order("created_at", { ascending: true })
+    : { data: [] };
+
+  const commentsByPhoto: Record<
+    string,
+    { id: string; author_id: string; author_name: string; content: string; created_at: string }[]
+  > = {};
+  for (const c of comments ?? []) {
+    const author = Array.isArray(c.users) ? c.users[0] : c.users;
+    (commentsByPhoto[c.photo_id] ??= []).push({
+      id: c.id,
+      author_id: c.author_id,
+      author_name: author?.name ?? "",
+      content: c.content,
+      created_at: c.created_at,
+    });
+  }
 
   const { data: pendingRequests } = await supabase
     .from("photo_access_requests")
@@ -152,6 +186,130 @@ export default async function PerfilPage({
         sua localização precisa.
       </p>
 
+      <section className="mt-10 border-t pt-6">
+        <h2 className="text-lg font-medium">Detalhes do perfil</h2>
+        <form action={updateProfileDetails} className="mt-3 flex flex-col gap-3 text-sm">
+          <label className="flex flex-col gap-1">
+            Descrição
+            <textarea
+              name="bio"
+              rows={3}
+              defaultValue={profile?.bio ?? ""}
+              className="rounded border px-3 py-2"
+            />
+          </label>
+
+          <label className="flex flex-col gap-1">
+            {profile?.profile_type === "casal" ? "Data de nascimento (1)" : "Data de nascimento"}
+            <input
+              type="date"
+              name="birth_date"
+              defaultValue={profile?.birth_date ?? ""}
+              className="rounded border px-3 py-2"
+            />
+          </label>
+
+          <label className="flex flex-col gap-1">
+            {profile?.profile_type === "casal" ? "Sexo (1)" : "Sexo"}
+            <select
+              name="gender"
+              defaultValue={profile?.gender ?? ""}
+              className="rounded border px-3 py-2"
+            >
+              <option value="">Selecione</option>
+              {GENDER_OPTIONS.map((g) => (
+                <option key={g} value={g}>
+                  {GENDER_LABELS[g]}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex flex-col gap-1">
+            {profile?.profile_type === "casal" ? "Orientação sexual (1)" : "Orientação sexual"}
+            <select
+              name="sexual_orientation"
+              defaultValue={profile?.sexual_orientation ?? ""}
+              className="rounded border px-3 py-2"
+            >
+              <option value="">Selecione</option>
+              {ORIENTATION_OPTIONS.map((o) => (
+                <option key={o} value={o}>
+                  {ORIENTATION_LABELS[o]}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {profile?.profile_type === "casal" && (
+            <>
+              <label className="flex flex-col gap-1">
+                Data de nascimento (2)
+                <input
+                  type="date"
+                  name="partner_birth_date"
+                  defaultValue={profile?.partner_birth_date ?? ""}
+                  className="rounded border px-3 py-2"
+                />
+              </label>
+
+              <label className="flex flex-col gap-1">
+                Sexo (2)
+                <select
+                  name="partner_gender"
+                  defaultValue={profile?.partner_gender ?? ""}
+                  className="rounded border px-3 py-2"
+                >
+                  <option value="">Selecione</option>
+                  {GENDER_OPTIONS.map((g) => (
+                    <option key={g} value={g}>
+                      {GENDER_LABELS[g]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="flex flex-col gap-1">
+                Orientação sexual (2)
+                <select
+                  name="partner_sexual_orientation"
+                  defaultValue={profile?.partner_sexual_orientation ?? ""}
+                  className="rounded border px-3 py-2"
+                >
+                  <option value="">Selecione</option>
+                  {ORIENTATION_OPTIONS.map((o) => (
+                    <option key={o} value={o}>
+                      {ORIENTATION_LABELS[o]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
+          )}
+
+          <fieldset>
+            <legend>O que busca</legend>
+            <div className="mt-1 flex gap-4">
+              {LOOKING_FOR_OPTIONS.map((option) => (
+                <label key={option} className="flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    name="looking_for"
+                    value={option}
+                    defaultChecked={profile?.looking_for?.includes(option) ?? false}
+                  />
+                  {LOOKING_FOR_LABELS[option]}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <button type="submit" className="self-start rounded border px-3 py-1.5">
+            Salvar
+          </button>
+        </form>
+      </section>
+
       {pendingRequests && pendingRequests.length > 0 && (
         <section className="mt-10 border-t pt-6">
           <h2 className="text-lg font-medium">Pedidos de acesso ao seu álbum de rosto</h2>
@@ -187,22 +345,15 @@ export default async function PerfilPage({
         <p className="text-sm text-neutral-500">
           Só fica visível para quem você aprovar um pedido de acesso.
         </p>
-        <div className="mt-3 flex flex-wrap gap-3">
-          {rostoPhotos.map((photo) => (
-            <div key={photo.id} className="flex flex-col items-center gap-1">
-              {photo.url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={photo.url} alt="" className="h-24 w-24 rounded object-cover" />
-              )}
-              <form action={deletePhoto}>
-                <input type="hidden" name="photo_id" value={photo.id} />
-                <input type="hidden" name="storage_path" value={photo.storage_path} />
-                <button type="submit" className="text-xs text-red-600 underline">
-                  Remover
-                </button>
-              </form>
-            </div>
-          ))}
+        <div className="mt-3">
+          <PhotoGallery
+            photos={rostoPhotos}
+            commentsByPhoto={commentsByPhoto}
+            currentUserId={user.id}
+            photoOwnerId={user.id}
+            revalidatePath="/perfil"
+            deletePhotoAction={deletePhoto}
+          />
         </div>
         <form action={uploadPhoto} className="mt-3 flex items-center gap-2">
           <input type="hidden" name="category" value="rosto" />
@@ -218,22 +369,15 @@ export default async function PerfilPage({
         <p className="text-sm text-neutral-500">
           Visível para qualquer usuário verificado.
         </p>
-        <div className="mt-3 flex flex-wrap gap-3">
-          {corpoPhotos.map((photo) => (
-            <div key={photo.id} className="flex flex-col items-center gap-1">
-              {photo.url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={photo.url} alt="" className="h-24 w-24 rounded object-cover" />
-              )}
-              <form action={deletePhoto}>
-                <input type="hidden" name="photo_id" value={photo.id} />
-                <input type="hidden" name="storage_path" value={photo.storage_path} />
-                <button type="submit" className="text-xs text-red-600 underline">
-                  Remover
-                </button>
-              </form>
-            </div>
-          ))}
+        <div className="mt-3">
+          <PhotoGallery
+            photos={corpoPhotos}
+            commentsByPhoto={commentsByPhoto}
+            currentUserId={user.id}
+            photoOwnerId={user.id}
+            revalidatePath="/perfil"
+            deletePhotoAction={deletePhoto}
+          />
         </div>
         <form action={uploadPhoto} className="mt-3 flex items-center gap-2">
           <input type="hidden" name="category" value="corpo" />

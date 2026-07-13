@@ -1,7 +1,21 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ExperienceBadge } from "@/components/ExperienceBadge";
-import { requestPhotoAccess } from "./actions";
+import { PhotoGallery } from "@/components/PhotoGallery";
+import {
+  CONNECTION_TYPE_LABELS,
+  CONNECTION_TYPE_OPTIONS,
+  GENDER_LABELS,
+  LOOKING_FOR_LABELS,
+  ORIENTATION_LABELS,
+  RATING_TAG_LABELS,
+  RATING_TAG_OPTIONS,
+  calculateAge,
+  type Gender,
+  type LookingFor,
+  type Orientation,
+} from "@/lib/profile-options";
+import { proposeConnection, requestPhotoAccess, respondConnection, saveRating } from "./actions";
 
 export default async function OutroPerfilPage({
   params,
@@ -96,6 +110,66 @@ export default async function OutroPerfilPage({
     );
   }
 
+  const { data: connection } = await supabase
+    .from("user_connections")
+    .select("id, requester_id, target_id, connection_type, status")
+    .or(`and(requester_id.eq.${user.id},target_id.eq.${id}),and(requester_id.eq.${id},target_id.eq.${user.id})`)
+    .maybeSingle();
+
+  const isConnectionApproved = connection?.status === "approved";
+  const targetRoles: { role: "self" | "man" | "woman"; label: string }[] =
+    target.profile_type === "casal"
+      ? [
+          { role: "man", label: "Homem do casal" },
+          { role: "woman", label: "Mulher do casal" },
+        ]
+      : [{ role: "self", label: "Avaliação" }];
+
+  const ratingsData = isConnectionApproved
+    ? await Promise.all(
+        targetRoles.map(async ({ role }) => {
+          const [{ data: counts }, { data: ownRating }] = await Promise.all([
+            supabase.rpc("get_profile_rating_counts", {
+              p_user_id: id,
+              p_target_role: role,
+            }),
+            supabase
+              .from("profile_ratings")
+              .select("tags")
+              .eq("rater_id", user.id)
+              .eq("target_id", id)
+              .eq("target_role", role)
+              .maybeSingle(),
+          ]);
+          return { role, counts: counts ?? [], ownTags: ownRating?.tags ?? [] };
+        }),
+      )
+    : [];
+
+  const allPhotoIds = [...corpoWithUrls, ...rostoWithUrls].map((p) => p.id);
+  const { data: comments } = allPhotoIds.length
+    ? await supabase
+        .from("photo_comments")
+        .select("id, photo_id, author_id, content, created_at, users!author_id(name)")
+        .in("photo_id", allPhotoIds)
+        .order("created_at", { ascending: true })
+    : { data: [] };
+
+  const commentsByPhoto: Record<
+    string,
+    { id: string; author_id: string; author_name: string; content: string; created_at: string }[]
+  > = {};
+  for (const c of comments ?? []) {
+    const author = Array.isArray(c.users) ? c.users[0] : c.users;
+    (commentsByPhoto[c.photo_id] ??= []).push({
+      id: c.id,
+      author_id: c.author_id,
+      author_name: author?.name ?? "",
+      content: c.content,
+      created_at: c.created_at,
+    });
+  }
+
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-2xl font-semibold">{target.name}</h1>
@@ -104,21 +178,157 @@ export default async function OutroPerfilPage({
         <ExperienceBadge level={target.experience_level} />
       </div>
 
+      {target.bio && <p className="mt-3 text-sm text-neutral-700">{target.bio}</p>}
+
+      <dl className="mt-4 flex flex-col gap-1 text-sm text-neutral-600">
+        {target.profile_type === "casal" ? (
+          <>
+            <div>
+              <dt className="inline text-neutral-500">Pessoa 1 — </dt>
+              <dd className="inline">
+                {calculateAge(target.birth_date) !== null && `${calculateAge(target.birth_date)} anos`}
+                {target.gender && ` · ${GENDER_LABELS[target.gender as Gender]}`}
+                {target.sexual_orientation &&
+                  ` · ${ORIENTATION_LABELS[target.sexual_orientation as Orientation]}`}
+              </dd>
+            </div>
+            <div>
+              <dt className="inline text-neutral-500">Pessoa 2 — </dt>
+              <dd className="inline">
+                {calculateAge(target.partner_birth_date) !== null &&
+                  `${calculateAge(target.partner_birth_date)} anos`}
+                {target.partner_gender && ` · ${GENDER_LABELS[target.partner_gender as Gender]}`}
+                {target.partner_sexual_orientation &&
+                  ` · ${ORIENTATION_LABELS[target.partner_sexual_orientation as Orientation]}`}
+              </dd>
+            </div>
+          </>
+        ) : (
+          <div>
+            {calculateAge(target.birth_date) !== null && `${calculateAge(target.birth_date)} anos`}
+            {target.gender && ` · ${GENDER_LABELS[target.gender as Gender]}`}
+            {target.sexual_orientation &&
+              ` · ${ORIENTATION_LABELS[target.sexual_orientation as Orientation]}`}
+          </div>
+        )}
+        {target.looking_for && target.looking_for.length > 0 && (
+          <div>
+            Busca:{" "}
+            {(target.looking_for as LookingFor[])
+              .map((option) => LOOKING_FOR_LABELS[option])
+              .join(", ")}
+          </div>
+        )}
+      </dl>
+
+      <section className="mt-8 border-t pt-6">
+        <h2 className="text-lg font-medium">Conexão</h2>
+        {!connection && (
+          <form action={proposeConnection} className="mt-2 flex items-center gap-2 text-sm">
+            <input type="hidden" name="target_id" value={id} />
+            <select name="connection_type" required className="rounded border px-2 py-1">
+              {CONNECTION_TYPE_OPTIONS.map((type) => (
+                <option key={type} value={type}>
+                  {CONNECTION_TYPE_LABELS[type]}
+                </option>
+              ))}
+            </select>
+            <button type="submit" className="rounded border px-3 py-1">
+              Propor conexão
+            </button>
+          </form>
+        )}
+        {connection?.status === "pending" && connection.requester_id === user.id && (
+          <p className="mt-2 text-sm text-neutral-600">
+            Proposta de {CONNECTION_TYPE_LABELS[connection.connection_type as keyof typeof CONNECTION_TYPE_LABELS]} enviada — aguardando confirmação.
+          </p>
+        )}
+        {connection?.status === "pending" && connection.requester_id !== user.id && (
+          <div className="mt-2 flex items-center gap-2 text-sm">
+            <span>
+              {target.name} propôs:{" "}
+              {CONNECTION_TYPE_LABELS[connection.connection_type as keyof typeof CONNECTION_TYPE_LABELS]}
+            </span>
+            <form action={respondConnection}>
+              <input type="hidden" name="connection_id" value={connection.id} />
+              <input type="hidden" name="other_user_id" value={id} />
+              <input type="hidden" name="decision" value="approved" />
+              <button type="submit" className="rounded border px-2 py-1">
+                Aceitar
+              </button>
+            </form>
+            <form action={respondConnection}>
+              <input type="hidden" name="connection_id" value={connection.id} />
+              <input type="hidden" name="other_user_id" value={id} />
+              <input type="hidden" name="decision" value="denied" />
+              <button type="submit" className="rounded border px-2 py-1">
+                Recusar
+              </button>
+            </form>
+          </div>
+        )}
+        {isConnectionApproved && (
+          <p className="mt-2 text-sm text-neutral-600">
+            Vocês são{" "}
+            {CONNECTION_TYPE_LABELS[connection!.connection_type as keyof typeof CONNECTION_TYPE_LABELS]}.
+          </p>
+        )}
+        {connection?.status === "denied" && (
+          <p className="mt-2 text-sm text-red-600">Proposta de conexão negada.</p>
+        )}
+      </section>
+
+      {isConnectionApproved && (
+        <section className="mt-8 border-t pt-6">
+          <h2 className="text-lg font-medium">Avaliação</h2>
+          {ratingsData.map(({ role, counts, ownTags }) => (
+            <div key={role} className="mt-3">
+              {target.profile_type === "casal" && (
+                <p className="text-sm font-medium">
+                  {targetRoles.find((r) => r.role === role)?.label}
+                </p>
+              )}
+              <p className="mt-1 text-xs text-neutral-500">
+                {counts
+                  .map(
+                    (c: { tag: string; tag_count: number }) =>
+                      `${RATING_TAG_LABELS[c.tag as keyof typeof RATING_TAG_LABELS]}: ${c.tag_count}`,
+                  )
+                  .join(" · ")}
+              </p>
+              <form action={saveRating} className="mt-2 flex flex-wrap items-center gap-3 text-sm">
+                <input type="hidden" name="target_id" value={id} />
+                <input type="hidden" name="target_role" value={role} />
+                {RATING_TAG_OPTIONS.map((tag) => (
+                  <label key={tag} className="flex items-center gap-1">
+                    <input
+                      type="checkbox"
+                      name="tags"
+                      value={tag}
+                      defaultChecked={ownTags.includes(tag)}
+                    />
+                    {RATING_TAG_LABELS[tag]}
+                  </label>
+                ))}
+                <button type="submit" className="rounded border px-3 py-1">
+                  Salvar avaliação
+                </button>
+              </form>
+            </div>
+          ))}
+        </section>
+      )}
+
       <section className="mt-8">
         <h2 className="text-lg font-medium">Fotos — Corpo</h2>
-        <div className="mt-3 flex flex-wrap gap-3">
-          {corpoWithUrls.map(
-            (photo) =>
-              photo.url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={photo.id}
-                  src={photo.url}
-                  alt=""
-                  className="h-24 w-24 rounded object-cover"
-                />
-              ),
-          )}
+        <div className="mt-3">
+          <PhotoGallery
+            photos={corpoWithUrls}
+            commentsByPhoto={commentsByPhoto}
+            currentUserId={user.id}
+            photoOwnerId={id}
+            revalidatePath={`/perfil/${id}`}
+          />
           {corpoWithUrls.length === 0 && (
             <p className="text-sm text-neutral-500">Nenhuma foto ainda.</p>
           )}
@@ -129,19 +339,14 @@ export default async function OutroPerfilPage({
         <h2 className="text-lg font-medium">Fotos — Rosto</h2>
 
         {accessRequest?.status === "approved" ? (
-          <div className="mt-3 flex flex-wrap gap-3">
-            {rostoWithUrls.map(
-              (photo) =>
-                photo.url && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={photo.id}
-                    src={photo.url}
-                    alt=""
-                    className="h-24 w-24 rounded object-cover"
-                  />
-                ),
-            )}
+          <div className="mt-3">
+            <PhotoGallery
+              photos={rostoWithUrls}
+              commentsByPhoto={commentsByPhoto}
+              currentUserId={user.id}
+              photoOwnerId={id}
+              revalidatePath={`/perfil/${id}`}
+            />
             {rostoWithUrls.length === 0 && (
               <p className="text-sm text-neutral-500">Nenhuma foto ainda.</p>
             )}
