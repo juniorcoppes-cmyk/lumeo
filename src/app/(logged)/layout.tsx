@@ -22,9 +22,6 @@ export default async function LoggedLayout({
           <Link href="/inicio" className="underline">
             Início
           </Link>
-          <Link href="/linha-do-tempo" className="underline">
-            Linha do tempo
-          </Link>
           <Link href="/eventos" className="underline">
             Eventos
           </Link>

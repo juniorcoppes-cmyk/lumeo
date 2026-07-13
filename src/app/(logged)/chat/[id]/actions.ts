@@ -16,11 +16,19 @@ export async function sendMessage(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  await supabase.from("messages").insert({
+  const { error } = await supabase.from("messages").insert({
     conversation_id: conversationId,
     sender_id: user.id,
     content,
   });
+
+  if (error) {
+    redirect(
+      `/chat/${conversationId}?error=${encodeURIComponent(
+        "Seu período de teste gratuito acabou — assine um plano para continuar entrando em contato com outros perfis.",
+      )}`,
+    );
+  }
 
   revalidatePath(`/chat/${conversationId}`);
 }

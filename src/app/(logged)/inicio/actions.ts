@@ -20,7 +20,7 @@ export async function createTextPost(formData: FormData) {
     content,
   });
 
-  revalidatePath("/linha-do-tempo");
+  revalidatePath("/inicio");
 }
 
 export async function deleteTextPost(formData: FormData) {
@@ -39,5 +39,5 @@ export async function deleteTextPost(formData: FormData) {
     .eq("user_id", user.id)
     .eq("type", "text");
 
-  revalidatePath("/linha-do-tempo");
+  revalidatePath("/inicio");
 }

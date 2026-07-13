@@ -210,6 +210,101 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
   em si foi testado ao vivo, sem erro; o clique no e-mail e a troca de senha
   não, por depender desse ajuste no painel). Mesma ressalva do rate limit de
   e-mail padrão do Supabase (ver "Produção") se aplica aqui.
+  **Atualização (2026-07-13)**: SMTP customizado (Resend, `smtp.resend.com`,
+  remetente `onboarding@resend.dev` — domínio de teste do Resend, trocar
+  quando `lumeo.com.br` for registrado, ver pendência 2) configurado pelo
+  fundador, o que desbloqueou a edição do template "Reset Password" no
+  painel; o link já foi trocado para o formato acima. `resetPasswordForEmail`
+  testado ao vivo em produção com e-mail real via Resend (demora ~15-20s, é
+  uma chamada síncrona de SMTP dentro da server action) — o clique no e-mail
+  em si ainda não foi confirmado ponta a ponta.
+- Conta ADM — duas idas e voltas de e-mail em 2026-07-13, resolvidas: a
+  primeira tentativa (`admloumeo@gmail.com`, com "ou" a mais) foi corrigida
+  para `amdlumeo@gmail.com` a pedido do fundador — só que essa também
+  estava errada (letras 2/3 trocadas por engano na hora de me passar a
+  correção). Nesse meio tempo descobri que **já existia uma segunda conta**,
+  criada de verdade pelo fundador via cadastro normal em `admlumeo@gmail.com`
+  (grafia natural "adm"+"lumeo") no dia da implementação do canal de
+  suporte — só que ficou com `email_confirmed_at` nulo porque o cadastro
+  esbarrou no rate limit de e-mail do Supabase (a mesma razão que me levou a
+  criar uma conta alternativa via service role naquela hora, sem saber que a
+  original já existia). Consolidado: a conta real (`admlumeo@gmail.com`)
+  foi confirmada via `email_confirm: true`, ganhou a senha `Adm1812#` e o
+  flag `is_support_channel`/`discreet_mode`; a duplicata (`amdlumeo@gmail.com`)
+  foi apagada (checado antes: 0 posts/conversas/mensagens vinculadas, sem
+  perda de dados). Login e `get_timeline()` confirmados via script
+  (`signInWithPassword` com anon key, mesma chamada que a UI faz) depois da
+  consolidação. **Se um cadastro novo "sumir" (parece não ter sido criado)
+  no futuro, checar `auth.users` antes de recriar** — pode ser rate limit de
+  e-mail deixando uma conta órfã não confirmada, não ausência real.
+- Acesso do ADM à linha do tempo (2026-07-13): primeira tentativa foi um
+  bypass específico dentro de `get_timeline()` (`20260713000000_...sql`),
+  pra não mudar `is_verified()` globalmente. **Superado ainda no mesmo dia**:
+  o fundador pediu explicitamente que o perfil ADM não precise de
+  verificação em lugar nenhum do app, não só na linha do tempo — ver item
+  abaixo, `is_verified()` agora inclui admin diretamente.
+- Eventos — descrição, fotos e lista de presença (pedido do fundador em
+  2026-07-13): `events` ganhou `description`, `photo_story_path` (vertical,
+  pensado pra celular) e `photo_landscape_path` (horizontal, pensado pra
+  desktop) — upload em `/admin/eventos` (na criação ou depois, via mini-form
+  por evento; `upsert: true` num nome fixo por slot, mesma lição de
+  storage+upsert já documentada abaixo). Bucket novo `event-photos`,
+  privado, mas com select liberado a qualquer autenticado (não só
+  verificado) — `/eventos` já era navegável por qualquer logado antes disso,
+  só a inscrição exigia selo; só admin escreve (`is_admin()`, já existente).
+  `/eventos/[id]` mostra a foto story em telas pequenas e a paisagem em
+  telas médias/grandes (`md:hidden`/`hidden md:block`, puramente CSS
+  responsivo — não depende de user-agent). Criação de evento já era
+  admin-only (`events insert admin`, `20260711000005_admin_policies.sql`) —
+  nenhuma mudança necessária aí. Listagem (`/eventos` e `events_with_open_slots`)
+  já ordenava por `event_date` desde a migração original — também nenhuma
+  mudança necessária. Lista de presença: reaproveita
+  `confirmed_attendees_for_event`, que já restringe a leitura a quem também
+  está confirmado no mesmo evento (não expõe presença pra quem só está
+  navegando/não confirmou) — só ganhou `experience_level`/`avatar_path` pra
+  ficar visualmente consistente com o resto do app.
+- Início e Linha do tempo viraram uma aba só (pedido do fundador em
+  2026-07-13): `/linha-do-tempo` foi removida; seu conteúdo (feed +
+  composer de post de texto) passou a viver dentro de `/inicio`, abaixo dos
+  blocos que já existiam ali ("Próximos eventos", "Indicações recebidas") —
+  nenhum desses dois foi removido, só deixaram de ter uma aba própria pro
+  feed ao lado. Mantive `/inicio` como rota canônica (não `/linha-do-tempo`)
+  porque é o destino padrão de vários redirects já existentes (login sem
+  `next`, guard de admin não-admin, pós-redefinição de senha) — trocar isso
+  teria mais blast radius que só mover o feed.
+- ADM vira admin de verdade, sem verificação em lugar nenhum (pedido do
+  fundador em 2026-07-13, segunda rodada): `is_verified(p_user_id)` agora
+  retorna `true` também quando `is_admin`, não só quando há
+  `verification_badge_id` — como essa função é usada em praticamente tudo
+  (Comunidade, álbum de fotos, avaliações, conexões, chat geral, avatar,
+  geolocalização, timeline), o bypass passou a valer em todo o app de uma
+  vez, substituindo o ajuste pontual de `get_timeline()` do item anterior.
+  A conta ADM (`admlumeo@gmail.com`) recebeu `is_admin = true` via script
+  (estado de conta, não schema) — com isso ela já acessa `/admin/eventos`
+  pelo guard existente em `admin/layout.tsx`, sem policy nova. `/admin/eventos`
+  ganhou edição (`updateEvent`, formulário dentro de um `<details>` por
+  evento) e exclusão (`deleteEvent`, apaga as fotos do storage antes e
+  depois a linha — FKs em cascade cuidam de inscrições/convites/conversas/
+  posts `event_confirmed` na timeline).
+- Período de teste de 1 semana + assinatura paga (pedido do fundador em
+  2026-07-13): a partir da aprovação da verificação (`verifications.reviewed_at`
+  da linha `status = 'approved'`), todo usuário tem 7 dias de acesso completo;
+  depois disso, só quem tem assinatura ativa (`subscriptions.status = 'active'`,
+  ou `'overdue'` ainda dentro da carência de 2 dias — mesma regra de
+  `src/lib/subscription.ts`) continua com acesso completo. **Escopo da
+  restrição, decisão explícita do fundador**: só afeta "contato direto"
+  (iniciar conversa nova e mandar mensagem nova) — Comunidade, linha do
+  tempo e perfis de outros continuam visíveis mesmo pra quem já passou do
+  teste sem assinar. Implementado em `has_contact_access(uuid)`, checado em
+  `start_conversation`, `start_conversation_general` e na policy de insert
+  de `messages`. `contact_admin()` e qualquer conversa com quem tem
+  `is_support_channel = true` **nunca são bloqueados** (mesma lógica que já
+  deixa não-verificados contatarem o suporte) — a policy de `messages`
+  insert tem esse escape explícito. `chat/[id]/actions.ts` agora captura
+  erro do insert em `messages` e mostra uma mensagem amigável (a RLS de
+  INSERT não tem como propagar o texto do `raise exception`, diferente das
+  RPCs `start_conversation*`, que propagam normalmente via `error.message`).
+  Ver `20260713000001_admin_full_bypass_and_trial_period.sql`.
 
 ## Correção de segurança crítica (2026-07-12)
 Durante a implementação do status de leitura de mensagens, percebi que
