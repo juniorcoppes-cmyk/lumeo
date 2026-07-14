@@ -69,6 +69,9 @@ export default async function LoggedLayout({
         <Link href="/assinatura" className="font-medium underline">
           Assinatura
         </Link>
+        <Link href="/regras" className="font-medium underline">
+          Regras
+        </Link>
         {profile?.is_admin && (
           <Link href="/admin/eventos" className="font-medium underline">
             Admin

@@ -2,6 +2,7 @@ export default function RegrasPage() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-3xl font-semibold">Manual de Boas Convivências</h1>
+      <p className="mt-1 text-sm font-medium text-neutral-600">(Código de Conduta)</p>
       <p className="mt-2 text-sm text-neutral-500">Última atualização: julho de 2026</p>
 
       <p className="mt-6 text-neutral-700">

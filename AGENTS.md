@@ -559,6 +559,16 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
   também aparece no cadastro (`/cadastro/dados`, ao lado do campo de tipo
   de perfil) e em `/perfil` (acima do álbum) — nenhuma mudança de schema
   nesta rodada, só UI e o aviso em `/admin/verificacoes`.
+- Décima segunda rodada (2026-07-14): três ajustes pequenos.
+  - `/regras` não tinha link nenhum na área logada (só na home/cadastro,
+    pra quem ainda não tinha conta) — fundador não achava o botão. Link
+    "Regras" adicionado no nav de `(logged)/layout.tsx`.
+  - `/regras` ganhou "(Código de Conduta)" como subtítulo, embaixo do
+    título principal.
+  - `LocationShareButton.tsx` (`/perfil`, "Compartilhar minha
+    localização"): ícone de mapa dobrado com um pin (SVG inline, sem
+    texto dentro do desenho) num quadrado 40×40 antes do botão — antes era
+    só texto, sem nenhum elemento visual ali.
 
 ## Correção de segurança crítica (2026-07-12)
 Durante a implementação do status de leitura de mensagens, percebi que
