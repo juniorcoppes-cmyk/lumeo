@@ -409,6 +409,33 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
     aparecia no card do plano que a pessoa JÁ tinha (não no outro, que é o
     que faria sentido clicar pra trocar) — trocado por um selo "Seu plano
     atual" (sem botão) no plano vigente e "Trocar para {nome}" nos outros.
+- Quinta rodada (2026-07-13): dois achados ao vivo pelo fundador testando
+  como ADM no celular:
+  - **Nav escondendo links sem indicação visual**: o ajuste "mobile" da
+    quarta rodada (`overflow-x-auto whitespace-nowrap`) empurrava o link
+    "Admin" (e qualquer outro que não coubesse) pra fora da tela, exigindo
+    arrastar o dedo bem naquela faixa estreita sem nenhum sinal visual de
+    que isso era possível — o fundador reportou "não aparece botão de criar
+    evento" quando na real só estava fora da vista. Trocado por
+    `flex-wrap`: tudo sempre visível, só ocupa mais altura.
+  - **Bypass do ADM incompleto**: `is_verified()` (migração
+    20260713000001) só se aplicava onde o código já chamava essa função.
+    Comunidade, perfil de outro usuário e inscrição em evento tinham gates
+    próprios checando `verification_badge_id` **do chamador** direto na
+    coluna, sem passar por `is_verified()` — mesmo problema achado antes em
+    `get_timeline()`, só que dessa vez em mais lugares e a nível de RLS, não
+    só de página. Corrigido em duas frentes: as páginas (`comunidade`,
+    `perfil/[id]`, `eventos/[id]`) passaram a checar
+    `is_admin`/`is_support_channel` também, e as policies de RLS que
+    faziam a mesma checagem crua do lado do chamador (`registrations insert
+    own`, `photo requests insert own`, `profile_photos select verified
+    corpo/rosto approved` e as duas policies equivalentes de
+    `storage.objects`) foram recriadas usando `is_verified(auth.uid())` em
+    vez da coluna direta — ver `20260713000004_admin_bypass_remaining_gates.sql`.
+    **Checagens sobre quem está sendo visto/acessado (o dono da foto, do
+    perfil) continuam olhando a coluna direto, de propósito** — o bypass é
+    só pro ADM não precisar de selo próprio, não pra ele ver gente que
+    também não é verificada.
 
 ## Correção de segurança crítica (2026-07-12)
 Durante a implementação do status de leitura de mensagens, percebi que

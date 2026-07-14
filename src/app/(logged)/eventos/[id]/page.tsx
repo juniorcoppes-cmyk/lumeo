@@ -49,9 +49,12 @@ export default async function EventoDetalhePage({
 
   const { data: profile } = await supabase
     .from("users")
-    .select("verification_badge_id")
+    .select("verification_badge_id, is_admin, is_support_channel")
     .eq("id", user.id)
     .single();
+
+  const canRegister =
+    !!profile?.verification_badge_id || !!profile?.is_admin || !!profile?.is_support_channel;
 
   const { data: billing } = await supabase
     .from("billing_profiles")
@@ -157,7 +160,7 @@ export default async function EventoDetalhePage({
             </a>
           )}
         </div>
-      ) : profile?.verification_badge_id ? (
+      ) : canRegister ? (
         <form action={inscrever} className="mt-6 flex flex-col gap-3">
           {isFull && (
             <p className="text-sm text-amber-600">

@@ -19,11 +19,16 @@ export default async function ComunidadePage({
 
   const { data: viewerProfile } = await supabase
     .from("users")
-    .select("verification_badge_id, latitude")
+    .select("verification_badge_id, latitude, is_admin, is_support_channel")
     .eq("id", user.id)
     .single();
 
-  if (!viewerProfile?.verification_badge_id) {
+  const viewerCanBrowse =
+    !!viewerProfile?.verification_badge_id ||
+    !!viewerProfile?.is_admin ||
+    !!viewerProfile?.is_support_channel;
+
+  if (!viewerCanBrowse) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-16">
         <h1 className="text-2xl font-semibold">Comunidade</h1>
