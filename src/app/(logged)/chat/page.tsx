@@ -32,14 +32,24 @@ export default async function ChatListPage({
     ),
   ];
 
-  const [{ data: otherUsers }, { data: events }] = await Promise.all([
+  const [{ data: otherUsersRaw }, { data: events }] = await Promise.all([
     otherUserIds.length
-      ? supabase.from("users").select("id, name").in("id", otherUserIds)
-      : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+      ? supabase.from("users").select("id, name, avatar_path").in("id", otherUserIds)
+      : Promise.resolve({ data: [] as { id: string; name: string; avatar_path: string | null }[] }),
     eventIds.length
       ? supabase.from("events").select("id, title").in("id", eventIds)
       : Promise.resolve({ data: [] as { id: string; title: string }[] }),
   ]);
+
+  const otherUsers = await Promise.all(
+    (otherUsersRaw ?? []).map(async (u) => {
+      if (!u.avatar_path) return { ...u, avatarUrl: undefined };
+      const { data } = await supabase.storage
+        .from("profile-photos")
+        .createSignedUrl(u.avatar_path, 300);
+      return { ...u, avatarUrl: data?.signedUrl };
+    }),
+  );
 
   const { data: myRegistrations } = await supabase
     .from("event_registrations")
@@ -59,7 +69,16 @@ export default async function ChatListPage({
       const newAttendees = (attendees ?? []).filter(
         (a: { id: string }) => !existingPairs.has(`${reg.event_id}:${a.id}`),
       );
-      return { event, attendees: newAttendees };
+      const withAvatars = await Promise.all(
+        newAttendees.map(async (a: { avatar_path: string | null }) => {
+          if (!a.avatar_path) return { ...a, avatarUrl: undefined };
+          const { data } = await supabase.storage
+            .from("profile-photos")
+            .createSignedUrl(a.avatar_path, 300);
+          return { ...a, avatarUrl: data?.signedUrl };
+        }),
+      );
+      return { event, attendees: withAvatars };
     }),
   );
 
@@ -83,16 +102,30 @@ export default async function ChatListPage({
           const other = otherUsers?.find((u) => u.id === otherId);
           const event = events?.find((e) => e.id === c.event_id);
           return (
-            <li key={c.id} className="rounded-lg border p-3">
-              <Link href={`/perfil/${otherId}`} className="font-medium underline">
-                {other?.name}
-              </Link>
-              {event && (
-                <span className="text-sm text-neutral-600"> · {event.title}</span>
+            <li key={c.id} className="flex items-center gap-3 rounded-lg border p-3">
+              {other?.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={other.avatarUrl}
+                  alt=""
+                  className="h-8 w-8 shrink-0 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[9px] text-neutral-500">
+                  —
+                </div>
               )}
-              <Link href={`/chat/${c.id}`} className="ml-2 text-sm underline">
-                Abrir conversa
-              </Link>
+              <div>
+                <Link href={`/perfil/${otherId}`} className="font-medium underline">
+                  {other?.name}
+                </Link>
+                {event && (
+                  <span className="text-sm text-neutral-600"> · {event.title}</span>
+                )}
+                <Link href={`/chat/${c.id}`} className="ml-2 text-sm underline">
+                  Abrir conversa
+                </Link>
+              </div>
             </li>
           );
         })}
@@ -110,8 +143,20 @@ export default async function ChatListPage({
                 <div key={event?.id} className="mt-4">
                   <p className="text-sm text-neutral-500">{event?.title}</p>
                   <ul className="mt-2 flex flex-col gap-2">
-                    {attendees.map((a: { id: string; name: string; verification_badge_id: string | null }) => (
+                    {attendees.map((a: { id: string; name: string; avatarUrl?: string }) => (
                       <li key={a.id} className="flex items-center gap-2">
+                        {a.avatarUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={a.avatarUrl}
+                            alt=""
+                            className="h-6 w-6 shrink-0 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[8px] text-neutral-500">
+                            —
+                          </div>
+                        )}
                         <Link href={`/perfil/${a.id}`} className="text-sm underline">
                           {a.name}
                         </Link>

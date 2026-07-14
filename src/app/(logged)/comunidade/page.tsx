@@ -70,54 +70,55 @@ export default async function ComunidadePage({
         navegação discreta no perfil não aparece aqui.
       </p>
 
-      <form method="get" className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-        <label htmlFor="profile_filter" className="text-neutral-500">
-          Perfil
+      <form
+        method="get"
+        className="mt-4 grid grid-cols-2 gap-3 rounded-lg border p-4 text-sm sm:grid-cols-4 sm:items-end"
+      >
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-neutral-500">Perfil</span>
+          <select
+            name="profile_filter"
+            defaultValue={profile_filter ?? ""}
+            className="rounded border px-2 py-1.5"
+          >
+            <option value="">Todos</option>
+            <option value="casais">Casais</option>
+            <option value="homens">Homens</option>
+            <option value="mulheres">Mulheres</option>
+          </select>
         </label>
-        <select
-          id="profile_filter"
-          name="profile_filter"
-          defaultValue={profile_filter ?? ""}
-          className="rounded border px-2 py-1"
-        >
-          <option value="">Todos</option>
-          <option value="casais">Casais</option>
-          <option value="homens">Homens</option>
-          <option value="mulheres">Mulheres</option>
-        </select>
 
-        <label htmlFor="experience_level" className="text-neutral-500">
-          Experiência
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-neutral-500">Experiência</span>
+          <select
+            name="experience_level"
+            defaultValue={experience_level ?? ""}
+            className="rounded border px-2 py-1.5"
+          >
+            <option value="">Todas</option>
+            {EXPERIENCE_LEVELS.map((level) => (
+              <option key={level} value={level}>
+                {EXPERIENCE_LEVEL_LABELS[level]}
+              </option>
+            ))}
+          </select>
         </label>
-        <select
-          id="experience_level"
-          name="experience_level"
-          defaultValue={experience_level ?? ""}
-          className="rounded border px-2 py-1"
-        >
-          <option value="">Todas</option>
-          {EXPERIENCE_LEVELS.map((level) => (
-            <option key={level} value={level}>
-              {EXPERIENCE_LEVEL_LABELS[level]}
-            </option>
-          ))}
-        </select>
 
-        <label htmlFor="max_distance_km" className="text-neutral-500">
-          Distância
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-neutral-500">Distância</span>
+          <select
+            name="max_distance_km"
+            defaultValue={max_distance_km ?? ""}
+            className="rounded border px-2 py-1.5"
+          >
+            <option value="">Qualquer</option>
+            <option value="5">Até 5 km</option>
+            <option value="25">Até 25 km</option>
+            <option value="100">Até 100 km</option>
+          </select>
         </label>
-        <select
-          id="max_distance_km"
-          name="max_distance_km"
-          defaultValue={max_distance_km ?? ""}
-          className="rounded border px-2 py-1"
-        >
-          <option value="">Qualquer distância</option>
-          <option value="5">Até 5 km</option>
-          <option value="25">Até 25 km</option>
-          <option value="100">Até 100 km</option>
-        </select>
-        <button type="submit" className="rounded border px-3 py-1">
+
+        <button type="submit" className="rounded bg-black px-3 py-1.5 text-white">
           Filtrar
         </button>
       </form>

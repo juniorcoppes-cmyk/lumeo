@@ -42,6 +42,9 @@ export default async function AdminLayout({
         <Link href="/admin/usuarios" className="font-medium underline">
           Usuários
         </Link>
+        <Link href="/admin/planos" className="font-medium underline">
+          Planos
+        </Link>
         <form action={signOut} className="ml-auto">
           <button type="submit" className="text-neutral-500 underline">
             Sair

@@ -1,12 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
-import { setAdmin } from "./actions";
+import { setAdmin, setSubscriptionExempt } from "./actions";
 
 export default async function AdminUsuariosPage() {
   const supabase = await createClient();
 
   const { data: users } = await supabase
     .from("users")
-    .select("id, name, email, profile_type, is_admin, verification_badge_id, created_at")
+    .select(
+      "id, name, email, profile_type, is_admin, verification_badge_id, subscription_exempt, created_at",
+    )
     .order("created_at", { ascending: false });
 
   return (
@@ -21,6 +23,7 @@ export default async function AdminUsuariosPage() {
             <th className="py-2">Perfil</th>
             <th className="py-2">Selo</th>
             <th className="py-2">Admin</th>
+            <th className="py-2">Isento de assinatura</th>
           </tr>
         </thead>
         <tbody>
@@ -36,6 +39,19 @@ export default async function AdminUsuariosPage() {
                   <input type="hidden" name="is_admin" value={String(u.is_admin)} />
                   <button type="submit" className="rounded border px-2 py-1">
                     {u.is_admin ? "Remover admin" : "Tornar admin"}
+                  </button>
+                </form>
+              </td>
+              <td className="py-2">
+                <form action={setSubscriptionExempt}>
+                  <input type="hidden" name="user_id" value={u.id} />
+                  <input
+                    type="hidden"
+                    name="subscription_exempt"
+                    value={String(u.subscription_exempt)}
+                  />
+                  <button type="submit" className="rounded border px-2 py-1">
+                    {u.subscription_exempt ? "Remover isenção" : "Isentar"}
                   </button>
                 </form>
               </td>

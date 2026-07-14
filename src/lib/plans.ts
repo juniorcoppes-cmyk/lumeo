@@ -1,24 +1,20 @@
-// Preço aqui é só o texto de exibição — o valor cobrado de verdade no Asaas
-// é PLAN_PRICES em src/app/(logged)/assinatura/actions.ts. Mudar um preço
-// exige lembrar do outro (ver AGENTS.md, "Pontos sensíveis").
-export const PLANS = [
-  {
-    id: "essencial",
-    name: "Essencial",
-    price: "R$ 34,90",
-    features: [
-      "Acesso completo ao app: Comunidade, linha do tempo, chat e eventos",
-      "Verificação de identidade e selo de confiança",
-    ],
-  },
-  {
-    id: "plus",
-    name: "Plus",
-    price: "R$ 59,90",
-    features: [
-      "Tudo do Essencial",
-      "Descontos especiais nos eventos",
-      "Lista VIP de prioridade quando um evento atinge lotação máxima",
-    ],
-  },
-] as const;
+import { createClient } from "@/lib/supabase/server";
+
+export type Plan = {
+  id: string;
+  name: string;
+  price: number;
+  features: string[];
+};
+
+// Preço/nome/features ficam na tabela `plans` (editável pelo admin em
+// /admin/planos) — único lugar de verdade, usado tanto pra exibir quanto
+// pra cobrar de fato no Asaas (ver assinatura/actions.ts).
+export async function getPlans(supabase: Awaited<ReturnType<typeof createClient>>): Promise<Plan[]> {
+  const { data } = await supabase
+    .from("plans")
+    .select("id, name, price, features")
+    .order("price", { ascending: true });
+
+  return (data ?? []).map((p) => ({ ...p, price: Number(p.price) }));
+}

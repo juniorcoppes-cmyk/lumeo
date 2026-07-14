@@ -5,11 +5,6 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { cancelSubscription, createSubscription, findOrCreateCustomer } from "@/lib/asaas";
 
-const PLAN_PRICES: Record<string, number> = {
-  essencial: 34.9,
-  plus: 59.9,
-};
-
 export async function choosePlan(formData: FormData) {
   const plan = formData.get("plan") as string;
   const cpfCnpj = (formData.get("cpf_cnpj") as string)?.replace(/\D/g, "");
@@ -53,6 +48,13 @@ export async function choosePlan(formData: FormData) {
       .eq("id", user.id)
       .single();
 
+    const { data: planRow } = await supabase
+      .from("plans")
+      .select("price")
+      .eq("id", plan)
+      .single();
+    if (!planRow) throw new Error("Plano não encontrado");
+
     let asaasCustomerId = billing?.asaas_customer_id as string | undefined;
 
     if (!asaasCustomerId) {
@@ -74,7 +76,7 @@ export async function choosePlan(formData: FormData) {
     const subscription = await createSubscription({
       customer: asaasCustomerId,
       billingType: "UNDEFINED",
-      value: PLAN_PRICES[plan],
+      value: Number(planRow.price),
       nextDueDate,
       cycle: "MONTHLY",
       description: `Lumeo — plano ${plan}`,

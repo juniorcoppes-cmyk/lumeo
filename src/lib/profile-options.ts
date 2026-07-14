@@ -36,17 +36,17 @@ export const CONNECTION_TYPE_LABELS: Record<ConnectionType, string> = {
 export const RATING_TAG_OPTIONS = [
   "bonito",
   "bom_papo",
+  "inteligente",
   "gostoso",
-  "sensual",
-  "interessante",
+  "engracado",
 ] as const;
 export type RatingTag = (typeof RATING_TAG_OPTIONS)[number];
 export const RATING_TAG_LABELS: Record<RatingTag, string> = {
   bonito: "Bonito",
   bom_papo: "Bom papo",
+  inteligente: "Inteligente",
   gostoso: "Gostoso",
-  sensual: "Sensual",
-  interessante: "Interessante",
+  engracado: "Engraçado",
 };
 
 // Formulário usa texto livre "DD/MM/AAAA" em vez do seletor nativo de data

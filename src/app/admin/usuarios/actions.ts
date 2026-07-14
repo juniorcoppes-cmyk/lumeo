@@ -12,3 +12,13 @@ export async function setAdmin(formData: FormData) {
 
   revalidatePath("/admin/usuarios");
 }
+
+export async function setSubscriptionExempt(formData: FormData) {
+  const userId = formData.get("user_id") as string;
+  const exempt = formData.get("subscription_exempt") === "true";
+
+  const supabase = await createClient();
+  await supabase.from("users").update({ subscription_exempt: !exempt }).eq("id", userId);
+
+  revalidatePath("/admin/usuarios");
+}

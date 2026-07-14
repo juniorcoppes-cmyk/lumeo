@@ -39,3 +39,12 @@ button:active {
   transform: scale(0.96);
   opacity: 0.7;
 }
+
+/* Título de cada página em destaque: fundo preto, texto claro. */
+main h1 {
+  display: inline-block;
+  background: #000;
+  color: #f5f5f5;
+  padding: 0.4rem 0.9rem;
+  border-radius: 0.375rem;
+}

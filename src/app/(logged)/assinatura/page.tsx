@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getSubscriptionFirstPaymentUrl } from "@/lib/asaas";
-import { PLANS } from "@/lib/plans";
+import { getPlans } from "@/lib/plans";
 import { effectiveSubscriptionStatus } from "@/lib/subscription";
 import { choosePlan } from "./actions";
 
@@ -61,6 +61,8 @@ export default async function AssinaturaPage({
       ? await getSubscriptionFirstPaymentUrl(subscription.asaas_subscription_id).catch(() => null)
       : null;
 
+  const plans = await getPlans(supabase);
+
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-2xl font-semibold">Assinatura</h1>
@@ -115,13 +117,13 @@ export default async function AssinaturaPage({
       )}
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {PLANS.map((plan) => {
+        {plans.map((plan) => {
           const isCurrentActivePlan = subscription?.plan === plan.id && displayStatus === "active";
           return (
             <form key={plan.id} action={choosePlan} className="rounded-lg border p-6">
               <input type="hidden" name="plan" value={plan.id} />
               <h2 className="text-xl font-medium">{plan.name}</h2>
-              <p className="mt-2 text-neutral-600">{plan.price} / mês</p>
+              <p className="mt-2 text-neutral-600">R$ {plan.price.toFixed(2)} / mês</p>
               <ul className="mt-3 flex flex-col gap-1 text-sm text-neutral-600">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex gap-2">

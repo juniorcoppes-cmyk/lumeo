@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { addPhotoComment, deletePhotoComment } from "@/lib/photo-comments-actions";
 
 type Photo = { id: string; url?: string; storage_path?: string };
@@ -28,7 +28,30 @@ export function PhotoGallery({
   deletePhotoAction?: (formData: FormData) => Promise<void>;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
-  const openPhoto = photos.find((p) => p.id === openId);
+  const viewablePhotos = photos.filter((p) => p.url);
+  const openIndex = viewablePhotos.findIndex((p) => p.id === openId);
+  const openPhoto = openIndex >= 0 ? viewablePhotos[openIndex] : undefined;
+
+  function showPrev() {
+    if (openIndex > 0) setOpenId(viewablePhotos[openIndex - 1].id);
+  }
+  function showNext() {
+    if (openIndex >= 0 && openIndex < viewablePhotos.length - 1) {
+      setOpenId(viewablePhotos[openIndex + 1].id);
+    }
+  }
+
+  useEffect(() => {
+    if (!openPhoto) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "ArrowLeft") showPrev();
+      if (e.key === "ArrowRight") showNext();
+      if (e.key === "Escape") setOpenId(null);
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openIndex]);
 
   return (
     <>
@@ -73,14 +96,36 @@ export function PhotoGallery({
               onClick={() => setOpenId(null)}
               className="self-end rounded bg-white px-3 py-1 text-sm"
             >
-              Fechar
+              Voltar ao álbum
             </button>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={openPhoto.url}
-              alt=""
-              className="max-h-[70vh] w-full rounded object-contain"
-            />
+            <div className="relative flex items-center justify-center">
+              {openIndex > 0 && (
+                <button
+                  type="button"
+                  onClick={showPrev}
+                  aria-label="Foto anterior"
+                  className="absolute left-2 z-10 rounded-full bg-white/80 px-3 py-2 text-lg"
+                >
+                  ‹
+                </button>
+              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={openPhoto.url}
+                alt=""
+                className="max-h-[70vh] w-full rounded object-contain"
+              />
+              {openIndex < viewablePhotos.length - 1 && (
+                <button
+                  type="button"
+                  onClick={showNext}
+                  aria-label="Próxima foto"
+                  className="absolute right-2 z-10 rounded-full bg-white/80 px-3 py-2 text-lg"
+                >
+                  ›
+                </button>
+              )}
+            </div>
 
             <div className="rounded bg-white p-4">
               <ul className="flex flex-col gap-2">

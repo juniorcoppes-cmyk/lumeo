@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ExperienceBadge } from "@/components/ExperienceBadge";
-import { createTextPost, deleteTextPost } from "./actions";
+import { createTextPost, deleteTextPost, respondInvite } from "./actions";
 
 type TimelineRow = {
   id: string;
@@ -39,6 +39,7 @@ export default async function InicioPage() {
     .from("event_invites")
     .select("id, status, event_id, events(title, event_date)")
     .eq("invitee_id", user.id)
+    .neq("status", "declined")
     .order("created_at", { ascending: false });
 
   const { data: viewerProfile } = await supabase
@@ -132,15 +133,39 @@ export default async function InicioPage() {
           <ul className="mt-3 flex flex-col gap-2">
             {invites.map((invite) => {
               const event = Array.isArray(invite.events) ? invite.events[0] : invite.events;
+              const isAccepted = invite.status === "accepted";
               return (
-                <li key={invite.id}>
-                  <Link href={`/eventos/${invite.event_id}`} className="rounded-lg border p-3 block hover:bg-neutral-50">
+                <li
+                  key={invite.id}
+                  className={`rounded-lg border p-3 ${
+                    isAccepted ? "bg-green-50 border-green-300" : "bg-yellow-50 border-yellow-300"
+                  }`}
+                >
+                  <Link href={`/eventos/${invite.event_id}`} className="block hover:underline">
                     <span className="font-medium">{event?.title}</span>
                     <span className="text-sm text-neutral-600">
                       {" "}
-                      · {event && new Date(event.event_date).toLocaleString("pt-BR")} · {invite.status}
+                      · {event && new Date(event.event_date).toLocaleString("pt-BR")}
                     </span>
                   </Link>
+                  {!isAccepted && (
+                    <div className="mt-2 flex gap-2">
+                      <form action={respondInvite}>
+                        <input type="hidden" name="invite_id" value={invite.id} />
+                        <input type="hidden" name="status" value="accepted" />
+                        <button type="submit" className="rounded border px-2 py-1 text-sm">
+                          Aceitar
+                        </button>
+                      </form>
+                      <form action={respondInvite}>
+                        <input type="hidden" name="invite_id" value={invite.id} />
+                        <input type="hidden" name="status" value="declined" />
+                        <button type="submit" className="rounded border px-2 py-1 text-sm">
+                          Recusar
+                        </button>
+                      </form>
+                    </div>
+                  )}
                 </li>
               );
             })}

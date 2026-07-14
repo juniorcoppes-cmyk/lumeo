@@ -445,6 +445,52 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
   com 3 — adicionar parâmetro via `create or replace` cria uma sobrecarga
   nova em vez de substituir (mesma lição já documentada). Ver
   `20260713000005_comunidade_filtros.sql`.
+- Sexta rodada (2026-07-14):
+  - **Planos deixam de ser hardcoded**: nova tabela `plans` (id/name/price/
+    features), `/admin/planos` (novo, nav do admin) edita tudo — é o único
+    lugar de verdade agora, tanto pra exibir em `/planos`/`/assinatura`
+    quanto pro valor cobrado de fato no Asaas em `choosePlan()` (antes era
+    um `PLAN_PRICES` hardcoded separado do `src/lib/plans.ts`, exatamente o
+    tipo de duplicação que já tinha causado risco antes). Preços iniciais
+    pedidos pelo fundador: Essencial R$ 29,90, Plus R$ 49,90. Select
+    liberado geral (`using (true)`) porque `/planos` é página pública, sem
+    login.
+  - **Isenção de assinatura por usuário**: `users.subscription_exempt`,
+    toggle em `/admin/usuarios`, conta pra `has_contact_access()` igual a
+    ter assinatura ativa. **Adicionada ao guard-rail de
+    `protect_sensitive_user_columns()`** — é uma coluna sensível nova
+    (quem pode contatar outros sem pagar), mesma classe de vulnerabilidade
+    de auto-promoção já corrigida antes; sem isso um usuário comum
+    conseguiria se auto-isentar via chamada direta à API. Ver
+    `20260714000000_editable_plans_and_exempt_users.sql`.
+  - Filtros da Comunidade reorganizados num grid (label em cima, select
+    embaixo) em vez de tudo numa linha só.
+  - Fotos no chat: lista de conversas, "iniciar nova conversa" e a própria
+    tela de conversa (que antes só dizia "Conversa", sem nem mostrar quem
+    era o outro participante) agora mostram avatar + nome.
+  - Títulos de página (`main h1`) ganharam fundo preto/texto claro via CSS
+    global — mesmo padrão do feedback de clique, não precisou tocar em
+    cada página.
+- Sétima rodada (2026-07-14): indicação de evento com cor + avaliações de
+  perfil ajustadas.
+  - `event_invites.status` ganha `'declined'` (era só `'sent'`/`'accepted'`).
+    Nova RPC `respond_invite(p_invite_id, p_status)` (não existia policy de
+    UPDATE pra quem foi indicado — só o link tinha `accept_invite`). Em
+    `/inicio`, "Indicações recebidas" agora mostra pendente em amarelo,
+    aceita em verde, e recusada some da lista (`.neq("status", "declined")`
+    na query). Só se aplica à indicação direta por selo
+    (`convidarPorSelo`) — convite por link já nasce "accepted" no clique
+    via `accept_invite`, então nunca aparece amarelo.
+  - Avaliações de perfil ficam em `/perfil/[id]` (perfil de outro usuário),
+    visível só com conexão aprovada — **restrição adicionada**: agora
+    exige `connection_type in ('amigos_sociais', 'amigos_intimos')`
+    especificamente (antes a policy aceitava qualquer tipo aprovado,
+    inclusive "amigos_virtuais", que não devia poder avaliar). Tags
+    trocadas de `bonito/bom_papo/gostoso/sensual/interessante` pra
+    `bonito/bom_papo/inteligente/gostoso/engracado` (pedido do fundador) —
+    trocado tanto no `check` da tabela quanto em `get_profile_rating_counts()`
+    e em `src/lib/profile-options.ts`. Ver
+    `20260714000001_invite_response_and_rating_tags.sql`.
 
 ## Correção de segurança crítica (2026-07-12)
 Durante a implementação do status de leitura de mensagens, percebi que

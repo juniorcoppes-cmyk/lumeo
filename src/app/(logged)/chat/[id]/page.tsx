@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { sendMessage } from "./actions";
@@ -34,9 +35,46 @@ export default async function ChatConversaPage({
     .eq("conversation_id", id)
     .order("sent_at", { ascending: true });
 
+  const { data: conversation } = await supabase
+    .from("conversations")
+    .select("user_a_id, user_b_id")
+    .eq("id", id)
+    .single();
+
+  let other: { id: string; name: string; avatarUrl?: string } | null = null;
+  if (conversation) {
+    const otherId = conversation.user_a_id === user.id ? conversation.user_b_id : conversation.user_a_id;
+    const { data: otherProfile } = await supabase
+      .from("users")
+      .select("id, name, avatar_path")
+      .eq("id", otherId)
+      .single();
+    if (otherProfile) {
+      const avatarUrl = otherProfile.avatar_path
+        ? (await supabase.storage.from("profile-photos").createSignedUrl(otherProfile.avatar_path, 300))
+            .data?.signedUrl
+        : undefined;
+      other = { id: otherProfile.id, name: otherProfile.name, avatarUrl };
+    }
+  }
+
   return (
     <main className="mx-auto flex max-w-3xl flex-col px-6 py-16">
-      <h1 className="text-2xl font-semibold">Conversa</h1>
+      {other ? (
+        <Link href={`/perfil/${other.id}`} className="flex items-center gap-3">
+          {other.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={other.avatarUrl} alt="" className="h-10 w-10 rounded-full object-cover" />
+          ) : (
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-100 text-[10px] text-neutral-500">
+              —
+            </div>
+          )}
+          <h1 className="text-2xl font-semibold underline">{other.name}</h1>
+        </Link>
+      ) : (
+        <h1 className="text-2xl font-semibold">Conversa</h1>
+      )}
 
       <ul className="mt-6 flex flex-col gap-2">
         {messages?.map((m) => {
