@@ -23,27 +23,27 @@ export default async function RedefinirSenhaPage({
 
   return (
     <main className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="text-2xl font-semibold">Nova senha</h1>
-      <p className="mt-2 text-sm text-neutral-600">
+      <h1 className="text-2xl">Nova senha</h1>
+      <p className="mt-2 text-sm text-muted">
         Escolha uma nova senha para sua conta.
       </p>
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
       <form action={updatePassword} className="mt-6 flex flex-col gap-4">
         <PasswordInput
           name="password"
           placeholder="Nova senha"
           required
           minLength={6}
-          className="rounded border px-3 py-2"
+          className="input"
         />
         <PasswordInput
           name="password_confirmation"
           placeholder="Confirmar nova senha"
           required
           minLength={6}
-          className="rounded border px-3 py-2"
+          className="input"
         />
-        <button type="submit" className="rounded bg-black px-3 py-2 text-white">
+        <button type="submit" className="btn-primary">
           Salvar nova senha
         </button>
       </form>

@@ -37,8 +37,8 @@ export default async function ComunidadePage({
   if (!viewerCanBrowse) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-16">
-        <h1 className="text-2xl font-semibold">Comunidade</h1>
-        <p className="mt-2 text-neutral-600">
+        <h1 className="text-2xl">Comunidade</h1>
+        <p className="mt-2 text-muted">
           Sua verificação de identidade ainda não foi aprovada — isso é
           necessário para ver outros usuários da plataforma.
         </p>
@@ -64,22 +64,22 @@ export default async function ComunidadePage({
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-2xl font-semibold">Comunidade</h1>
-      <p className="mt-2 text-neutral-600">
+      <h1 className="text-2xl">Comunidade</h1>
+      <p className="mt-2 text-muted">
         Outros usuários verificados da plataforma. Quem ativa o modo de
         navegação discreta no perfil não aparece aqui.
       </p>
 
       <form
         method="get"
-        className="mt-4 grid grid-cols-2 gap-3 rounded-lg border p-4 text-sm sm:grid-cols-4 sm:items-end"
+        className="card mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4 sm:items-end"
       >
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-neutral-500">Perfil</span>
+          <span className="text-xs text-muted">Perfil</span>
           <select
             name="profile_filter"
             defaultValue={profile_filter ?? ""}
-            className="rounded border px-2 py-1.5"
+            className="input"
           >
             <option value="">Todos</option>
             <option value="casais">Casais</option>
@@ -89,11 +89,11 @@ export default async function ComunidadePage({
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-neutral-500">Experiência</span>
+          <span className="text-xs text-muted">Experiência</span>
           <select
             name="experience_level"
             defaultValue={experience_level ?? ""}
-            className="rounded border px-2 py-1.5"
+            className="input"
           >
             <option value="">Todas</option>
             {EXPERIENCE_LEVELS.map((level) => (
@@ -105,11 +105,11 @@ export default async function ComunidadePage({
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-neutral-500">Distância</span>
+          <span className="text-xs text-muted">Distância</span>
           <select
             name="max_distance_km"
             defaultValue={max_distance_km ?? ""}
-            className="rounded border px-2 py-1.5"
+            className="input"
           >
             <option value="">Qualquer</option>
             <option value="5">Até 5 km</option>
@@ -118,21 +118,21 @@ export default async function ComunidadePage({
           </select>
         </label>
 
-        <button type="submit" className="rounded bg-black px-3 py-1.5 text-white">
+        <button type="submit" className="btn-primary">
           Filtrar
         </button>
       </form>
       {!viewerProfile.latitude && (
-        <p className="mt-2 text-xs text-neutral-500">
+        <p className="mt-2 text-xs text-muted">
           Compartilhe sua localização em{" "}
-          <Link href="/perfil" className="underline">
+          <Link href="/perfil">
             /perfil
           </Link>{" "}
           para usar o filtro de distância.
         </p>
       )}
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 
       <ul className="mt-6 flex flex-col gap-2">
         {peopleWithAvatars.map(
@@ -145,7 +145,7 @@ export default async function ComunidadePage({
             distance_bucket: string | null;
             avatarUrl?: string;
           }) => (
-            <li key={p.id} className="flex items-center gap-3 rounded-lg border p-3">
+            <li key={p.id} className="card flex items-center gap-3">
               {p.avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -154,21 +154,21 @@ export default async function ComunidadePage({
                   className="h-10 w-10 rounded-full object-cover"
                 />
               ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-100 text-[10px] text-neutral-500">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft text-[10px] text-muted">
                   Sem foto
                 </div>
               )}
-              <Link href={`/perfil/${p.id}`} className="font-medium underline">
+              <Link href={`/perfil/${p.id}`} className="font-medium no-underline text-foreground hover:text-accent">
                 {p.name}
               </Link>
-              <span className="text-sm text-neutral-500">{p.profile_type}</span>
+              <span className="text-sm text-muted">{p.profile_type}</span>
               <ExperienceBadge level={p.experience_level} />
               {p.distance_bucket && (
-                <span className="text-xs text-neutral-400">{p.distance_bucket}</span>
+                <span className="tag">{p.distance_bucket}</span>
               )}
               <form action={startGeneralConversation} className="ml-auto">
                 <input type="hidden" name="other_user_id" value={p.id} />
-                <button type="submit" className="rounded border px-2 py-1 text-sm">
+                <button type="submit" className="btn-secondary">
                   Conversar
                 </button>
               </form>
@@ -176,7 +176,7 @@ export default async function ComunidadePage({
           ),
         )}
         {peopleWithAvatars.length === 0 && (
-          <p className="text-neutral-600">Nenhum outro usuário verificado ainda.</p>
+          <p className="text-muted">Nenhum outro usuário verificado ainda.</p>
         )}
       </ul>
     </main>

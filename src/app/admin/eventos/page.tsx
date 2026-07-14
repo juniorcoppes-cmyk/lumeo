@@ -34,20 +34,20 @@ export default async function AdminEventosPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-2xl font-semibold">Eventos (admin)</h1>
+      <h1 className="text-2xl">Eventos (admin)</h1>
 
-      <form action={createEvent} className="mt-6 flex flex-col gap-3 rounded-lg border p-4">
-        <h2 className="font-medium">Criar evento</h2>
-        <input type="text" name="title" placeholder="Título" required className="rounded border px-3 py-2" />
-        <input type="datetime-local" name="event_date" required className="rounded border px-3 py-2" />
-        <input type="text" name="location" placeholder="Local" required className="rounded border px-3 py-2" />
+      <form action={createEvent} className="mt-6 flex flex-col gap-3 card">
+        <h2 className="text-lg">Criar evento</h2>
+        <input type="text" name="title" placeholder="Título" required className="input" />
+        <input type="datetime-local" name="event_date" required className="input" />
+        <input type="text" name="location" placeholder="Local" required className="input" />
         <input
           type="number"
           name="capacity"
           placeholder="Capacidade"
           min={1}
           required
-          className="rounded border px-3 py-2"
+          className="input"
         />
         <input
           type="number"
@@ -56,9 +56,9 @@ export default async function AdminEventosPage() {
           min={0}
           step="0.01"
           required
-          className="rounded border px-3 py-2"
+          className="input"
         />
-        <label className="flex flex-col gap-1 text-sm text-neutral-600">
+        <label className="flex flex-col gap-1 text-sm text-muted">
           Preço especial pra assinantes Plus (opcional)
           <input
             type="number"
@@ -66,43 +66,43 @@ export default async function AdminEventosPage() {
             placeholder="Deixe em branco pra não ter desconto nesse evento"
             min={0}
             step="0.01"
-            className="rounded border px-3 py-2"
+            className="input"
           />
         </label>
         <textarea
           name="description"
           placeholder="Descrição do evento"
           rows={3}
-          className="rounded border px-3 py-2"
+          className="input"
         />
-        <label className="flex flex-col gap-1 text-sm text-neutral-600">
+        <label className="flex flex-col gap-1 text-sm text-muted">
           Foto formato story (celular, vertical)
           <input type="file" name="story_photo" accept="image/*" className="text-sm" />
         </label>
-        <label className="flex flex-col gap-1 text-sm text-neutral-600">
+        <label className="flex flex-col gap-1 text-sm text-muted">
           Foto formato paisagem (computador, horizontal)
           <input type="file" name="landscape_photo" accept="image/*" className="text-sm" />
         </label>
-        <button type="submit" className="self-start rounded bg-black px-4 py-2 text-white">
+        <button type="submit" className="btn-primary self-start">
           Criar
         </button>
       </form>
 
       <ul className="mt-8 flex flex-col gap-6">
         {events?.map((event) => (
-          <li key={event.id} className="rounded-lg border p-4">
+          <li key={event.id} className="card">
             <div className="flex items-start justify-between gap-2">
-              <h3 className="text-lg font-medium">{event.title}</h3>
+              <h3 className="text-lg">{event.title}</h3>
               <form action={deleteEvent}>
                 <input type="hidden" name="event_id" value={event.id} />
-                <button type="submit" className="text-xs text-red-600 underline">
+                <button type="submit" className="text-xs text-red-400 no-underline hover:underline">
                   Excluir evento
                 </button>
               </form>
             </div>
 
             <details className="mt-2">
-              <summary className="cursor-pointer text-sm underline">Editar evento</summary>
+              <summary className="cursor-pointer text-sm text-accent no-underline">Editar evento</summary>
               <form action={updateEvent} className="mt-3 flex flex-col gap-3 text-sm">
                 <input type="hidden" name="event_id" value={event.id} />
                 <input
@@ -110,21 +110,21 @@ export default async function AdminEventosPage() {
                   name="title"
                   defaultValue={event.title}
                   required
-                  className="rounded border px-3 py-2"
+                  className="input"
                 />
                 <input
                   type="datetime-local"
                   name="event_date"
                   defaultValue={toDatetimeLocal(event.event_date)}
                   required
-                  className="rounded border px-3 py-2"
+                  className="input"
                 />
                 <input
                   type="text"
                   name="location"
                   defaultValue={event.location}
                   required
-                  className="rounded border px-3 py-2"
+                  className="input"
                 />
                 <input
                   type="number"
@@ -132,7 +132,7 @@ export default async function AdminEventosPage() {
                   defaultValue={event.capacity}
                   min={1}
                   required
-                  className="rounded border px-3 py-2"
+                  className="input"
                 />
                 <input
                   type="number"
@@ -141,9 +141,9 @@ export default async function AdminEventosPage() {
                   min={0}
                   step="0.01"
                   required
-                  className="rounded border px-3 py-2"
+                  className="input"
                 />
-                <label className="flex flex-col gap-1 text-neutral-600">
+                <label className="flex flex-col gap-1 text-muted">
                   Preço especial pra assinantes Plus (opcional)
                   <input
                     type="number"
@@ -152,22 +152,22 @@ export default async function AdminEventosPage() {
                     placeholder="Deixe em branco pra não ter desconto nesse evento"
                     min={0}
                     step="0.01"
-                    className="rounded border px-3 py-2"
+                    className="input"
                   />
                 </label>
                 <textarea
                   name="description"
                   defaultValue={event.description ?? ""}
                   rows={3}
-                  className="rounded border px-3 py-2"
+                  className="input"
                 />
-                <button type="submit" className="self-start rounded border px-3 py-1.5">
+                <button type="submit" className="btn-secondary self-start">
                   Salvar alterações
                 </button>
               </form>
             </details>
 
-            <p className="mt-2 text-sm text-neutral-600">
+            <p className="mt-2 text-sm text-muted">
               {new Date(event.event_date).toLocaleString("pt-BR")} · {event.location} ·
               {" "}capacidade {event.capacity} · R$ {Number(event.price).toFixed(2)}
               {event.plus_price !== null && (
@@ -175,20 +175,20 @@ export default async function AdminEventosPage() {
               )}
             </p>
             {event.description && (
-              <p className="mt-1 text-sm text-neutral-600">{event.description}</p>
+              <p className="mt-1 text-sm text-muted">{event.description}</p>
             )}
 
             <form action={updateEventPhotos} className="mt-3 flex flex-wrap items-end gap-3 text-sm">
               <input type="hidden" name="event_id" value={event.id} />
-              <label className="flex flex-col gap-1 text-neutral-600">
+              <label className="flex flex-col gap-1 text-muted">
                 {event.photo_story_path ? "Trocar foto story" : "Foto story"}
                 <input type="file" name="story_photo" accept="image/*" className="text-sm" />
               </label>
-              <label className="flex flex-col gap-1 text-neutral-600">
+              <label className="flex flex-col gap-1 text-muted">
                 {event.photo_landscape_path ? "Trocar foto paisagem" : "Foto paisagem"}
                 <input type="file" name="landscape_photo" accept="image/*" className="text-sm" />
               </label>
-              <button type="submit" className="rounded border px-3 py-1.5">
+              <button type="submit" className="btn-secondary">
                 Salvar fotos
               </button>
             </form>
@@ -221,7 +221,7 @@ export default async function AdminEventosPage() {
                     <span>
                       {user?.name} ({user?.email}) — {reg.status}
                       {plus && (
-                        <span className="ml-2 rounded-full border px-2 py-0.5 text-xs">
+                        <span className="ml-2 tag">
                           Plus — prioridade
                         </span>
                       )}
@@ -230,14 +230,14 @@ export default async function AdminEventosPage() {
                       <form action={updateRegistrationStatus}>
                         <input type="hidden" name="registration_id" value={reg.id} />
                         <input type="hidden" name="status" value="confirmed" />
-                        <button type="submit" className="rounded border px-2 py-1">
+                        <button type="submit" className="btn-secondary !px-2.5 !py-1 !text-xs">
                           Confirmar
                         </button>
                       </form>
                       <form action={updateRegistrationStatus}>
                         <input type="hidden" name="registration_id" value={reg.id} />
                         <input type="hidden" name="status" value="cancelled" />
-                        <button type="submit" className="rounded border px-2 py-1">
+                        <button type="submit" className="btn-secondary !px-2.5 !py-1 !text-xs">
                           Cancelar
                         </button>
                       </form>
@@ -246,7 +246,7 @@ export default async function AdminEventosPage() {
                 );
               })}
               {event.event_registrations?.length === 0 && (
-                <li className="text-sm text-neutral-500">Nenhum inscrito ainda.</li>
+                <li className="text-sm text-muted">Nenhum inscrito ainda.</li>
               )}
             </ul>
           </li>

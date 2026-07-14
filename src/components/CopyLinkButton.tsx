@@ -13,7 +13,7 @@ export function CopyLinkButton({ path }: { path: string }) {
   }
 
   return (
-    <button type="button" onClick={handleCopy} className="text-xs underline">
+    <button type="button" onClick={handleCopy} className="text-xs text-accent no-underline hover:underline">
       {copied ? "Copiado!" : "Copiar link"}
     </button>
   );

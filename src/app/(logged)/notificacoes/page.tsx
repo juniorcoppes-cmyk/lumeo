@@ -25,28 +25,28 @@ export default async function NotificacoesPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-16">
-      <h1 className="text-2xl font-semibold">Notificações</h1>
+      <h1 className="text-2xl">Notificações</h1>
 
       <ul className="mt-6 flex flex-col gap-2">
         {notifications?.map((n) => (
           <li
             key={n.id}
-            className={`rounded-lg border p-3 text-sm ${!n.read_at ? "font-bold" : ""}`}
+            className={`card text-sm ${!n.read_at ? "font-bold" : ""}`}
           >
             {n.related_user_id ? (
-              <Link href={`/perfil/${n.related_user_id}`} className="underline">
+              <Link href={`/perfil/${n.related_user_id}`}>
                 {n.content}
               </Link>
             ) : (
               <span>{n.content}</span>
             )}
-            <span className="ml-2 text-xs font-normal text-neutral-500">
+            <span className="ml-2 text-xs font-normal text-muted">
               {new Date(n.created_at).toLocaleString("pt-BR")}
             </span>
           </li>
         ))}
         {notifications?.length === 0 && (
-          <p className="text-neutral-600">Nenhuma notificação ainda.</p>
+          <p className="text-muted">Nenhuma notificação ainda.</p>
         )}
       </ul>
     </main>

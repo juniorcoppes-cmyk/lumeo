@@ -32,7 +32,7 @@ export function PasswordInput({
       <button
         type="button"
         onClick={() => setVisible((v) => !v)}
-        className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-neutral-500 underline"
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-accent no-underline hover:underline"
         tabIndex={-1}
       >
         {visible ? "Ocultar" : "Mostrar"}

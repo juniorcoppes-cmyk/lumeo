@@ -1,14 +1,14 @@
 export default function TermosPage() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-semibold">Termos de Uso</h1>
-      <p className="mt-2 text-sm text-neutral-500">
+      <h1 className="text-3xl">Termos de Uso</h1>
+      <p className="mt-2 text-sm text-muted">
         Última atualização: julho de 2026
       </p>
 
-      <div className="mt-8 flex flex-col gap-6 text-neutral-700">
+      <div className="mt-8 flex flex-col gap-6 text-foreground/90">
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             1. O que é o Lumeo
           </h2>
           <p className="mt-2">
@@ -21,7 +21,7 @@ export default function TermosPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             2. Elegibilidade e verificação
           </h2>
           <p className="mt-2">
@@ -35,7 +35,7 @@ export default function TermosPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             3. Conduta na plataforma e nos eventos
           </h2>
           <p className="mt-2">
@@ -49,7 +49,7 @@ export default function TermosPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             4. Assinaturas, eventos pagos e cobrança
           </h2>
           <p className="mt-2">
@@ -64,7 +64,7 @@ export default function TermosPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             5. Fotos e álbum de perfil
           </h2>
           <p className="mt-2">
@@ -77,7 +77,7 @@ export default function TermosPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             6. Moderação e encerramento de conta
           </h2>
           <p className="mt-2">
@@ -89,7 +89,7 @@ export default function TermosPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             7. Isenção de responsabilidade
           </h2>
           <p className="mt-2">
@@ -102,26 +102,26 @@ export default function TermosPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             8. Contato
           </h2>
           <p className="mt-2">
             Dúvidas sobre estes termos podem ser enviadas para{" "}
-            <a href="mailto:contato@lumeo.com.br" className="underline">
+            <a href="mailto:contato@lumeo.com.br">
               contato@lumeo.com.br
             </a>
             .
           </p>
         </section>
 
-        <p className="mt-4 text-sm text-neutral-500">
+        <p className="mt-4 text-sm text-muted">
           Veja também nossa{" "}
-          <a href="/privacidade" className="underline">
+          <a href="/privacidade">
             Política de Privacidade
           </a>
           , sobre como tratamos seus dados, incluindo documentos e vídeo de
           verificação, e o{" "}
-          <a href="/regras" className="underline">
+          <a href="/regras">
             Manual de Boas Convivências
           </a>
           .

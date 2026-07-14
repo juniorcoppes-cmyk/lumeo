@@ -8,7 +8,7 @@ export function ExperienceBadge({
   if (!level || !(level in EXPERIENCE_LEVEL_LABELS)) return null;
 
   return (
-    <span className="rounded-full border px-2 py-0.5 text-xs text-neutral-600">
+    <span className="tag">
       {EXPERIENCE_LEVEL_LABELS[level as ExperienceLevel]}
     </span>
   );

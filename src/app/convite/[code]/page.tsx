@@ -32,36 +32,36 @@ export default async function ConvitePage({
   if (!preview) {
     return (
       <main className="mx-auto max-w-sm px-6 py-16">
-        <h1 className="text-2xl font-semibold">Convite não encontrado</h1>
+        <h1 className="text-2xl">Convite não encontrado</h1>
       </main>
     );
   }
 
   return (
     <main className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="text-2xl font-semibold">Você foi indicado(a)</h1>
-      <p className="mt-2 text-neutral-600">
-        {preview.inviter_name} indicou o evento <strong>{preview.event_title}</strong>
+      <h1 className="text-2xl">Você foi indicado(a)</h1>
+      <p className="mt-2 text-muted">
+        {preview.inviter_name} indicou o evento <strong className="text-foreground">{preview.event_title}</strong>
       </p>
-      <p className="mt-2 text-sm text-neutral-500">
+      <p className="mt-2 text-sm text-muted">
         {new Date(preview.event_date).toLocaleString("pt-BR")} · {preview.location}
       </p>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 
       {user ? (
         <form action={aceitarConvite} className="mt-6">
           <input type="hidden" name="code" value={code} />
-          <button type="submit" className="rounded bg-black px-4 py-2 text-white">
+          <button type="submit" className="btn-primary">
             Ver evento
           </button>
         </form>
       ) : (
         <div className="mt-6 flex gap-4 text-sm font-medium">
-          <Link href={`/login?next=${encodeURIComponent(`/convite/${code}`)}`} className="underline">
+          <Link href={`/login?next=${encodeURIComponent(`/convite/${code}`)}`} className="btn-secondary">
             Entrar
           </Link>
-          <Link href={`/cadastro/dados?invite=${code}`} className="underline">
+          <Link href={`/cadastro/dados?invite=${code}`} className="btn-primary">
             Cadastre-se
           </Link>
         </div>

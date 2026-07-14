@@ -82,14 +82,14 @@ export default async function InicioPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-2xl font-semibold">Início</h1>
+      <h1 className="text-2xl">Início</h1>
 
-      <details className="mt-4 rounded-lg border p-4">
-        <summary className="cursor-pointer text-sm font-medium underline">
+      <details className="card mt-4">
+        <summary className="cursor-pointer text-sm font-medium text-accent no-underline">
           Comece por aqui
         </summary>
-        <div className="mt-3 flex flex-col gap-3 text-sm text-neutral-700">
-          <p className="font-medium text-neutral-900">
+        <div className="mt-3 flex flex-col gap-3 text-sm text-foreground/90">
+          <p className="font-medium text-foreground">
             Lumeo é sobre conexão, não pressa.
           </p>
           <p>
@@ -110,26 +110,26 @@ export default async function InicioPage() {
       </details>
 
       <section className="mt-8">
-        <h2 className="text-lg font-medium">Próximos eventos</h2>
+        <h2 className="text-lg">Próximos eventos</h2>
         <ul className="mt-3 flex flex-col gap-2">
           {events?.map((event) => (
             <li key={event.id}>
-              <Link href={`/eventos/${event.id}`} className="rounded-lg border p-3 block hover:bg-neutral-50">
-                <span className="font-medium">{event.title}</span>
-                <span className="text-sm text-neutral-600">
+              <Link href={`/eventos/${event.id}`} className="card block no-underline hover:bg-accent-soft">
+                <span className="font-medium text-foreground">{event.title}</span>
+                <span className="text-sm text-muted">
                   {" "}
                   · {new Date(event.event_date).toLocaleString("pt-BR")} · {event.location}
                 </span>
               </Link>
             </li>
           ))}
-          {events?.length === 0 && <p className="text-neutral-600">Nenhum evento agendado.</p>}
+          {events?.length === 0 && <p className="text-muted">Nenhum evento agendado.</p>}
         </ul>
       </section>
 
       {invites && invites.length > 0 && (
         <section className="mt-8">
-          <h2 className="text-lg font-medium">Indicações recebidas</h2>
+          <h2 className="text-lg">Indicações recebidas</h2>
           <ul className="mt-3 flex flex-col gap-2">
             {invites.map((invite) => {
               const event = Array.isArray(invite.events) ? invite.events[0] : invite.events;
@@ -137,13 +137,15 @@ export default async function InicioPage() {
               return (
                 <li
                   key={invite.id}
-                  className={`rounded-lg border p-3 ${
-                    isAccepted ? "bg-green-50 border-green-300" : "bg-yellow-50 border-yellow-300"
+                  className={`rounded-2xl border p-3 ${
+                    isAccepted
+                      ? "border-green-700/40 bg-green-900/20"
+                      : "border-on-accent-soft/40 bg-on-accent-soft/10"
                   }`}
                 >
-                  <Link href={`/eventos/${invite.event_id}`} className="block hover:underline">
-                    <span className="font-medium">{event?.title}</span>
-                    <span className="text-sm text-neutral-600">
+                  <Link href={`/eventos/${invite.event_id}`} className="block no-underline hover:opacity-80">
+                    <span className="font-medium text-foreground">{event?.title}</span>
+                    <span className="text-sm text-muted">
                       {" "}
                       · {event && new Date(event.event_date).toLocaleString("pt-BR")}
                     </span>
@@ -153,14 +155,14 @@ export default async function InicioPage() {
                       <form action={respondInvite}>
                         <input type="hidden" name="invite_id" value={invite.id} />
                         <input type="hidden" name="status" value="accepted" />
-                        <button type="submit" className="rounded border px-2 py-1 text-sm">
+                        <button type="submit" className="btn-primary">
                           Aceitar
                         </button>
                       </form>
                       <form action={respondInvite}>
                         <input type="hidden" name="invite_id" value={invite.id} />
                         <input type="hidden" name="status" value="declined" />
-                        <button type="submit" className="rounded border px-2 py-1 text-sm">
+                        <button type="submit" className="btn-secondary">
                           Recusar
                         </button>
                       </form>
@@ -173,11 +175,11 @@ export default async function InicioPage() {
         </section>
       )}
 
-      <section className="mt-10 border-t pt-8">
-        <h2 className="text-lg font-medium">Linha do tempo</h2>
+      <section className="mt-10 border-t border-line pt-8">
+        <h2 className="text-lg">Linha do tempo</h2>
 
         {!canSeeTimeline ? (
-          <p className="mt-2 text-neutral-600">
+          <p className="mt-2 text-muted">
             Sua verificação de identidade ainda não foi aprovada — isso é
             necessário para ver e postar na linha do tempo.
           </p>
@@ -189,19 +191,16 @@ export default async function InicioPage() {
                 placeholder="Compartilhe algo"
                 required
                 rows={3}
-                className="rounded border px-3 py-2 text-sm"
+                className="input text-sm"
               />
-              <button
-                type="submit"
-                className="self-end rounded bg-black px-4 py-1.5 text-sm text-white"
-              >
+              <button type="submit" className="btn-primary self-end">
                 Publicar
               </button>
             </form>
 
             <ul className="mt-6 flex flex-col gap-4">
               {timelineRows.map((post) => (
-                <li key={post.id} className="rounded-lg border p-4">
+                <li key={post.id} className="card">
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       {post.avatarUrl ? (
@@ -212,16 +211,16 @@ export default async function InicioPage() {
                           className="h-8 w-8 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-[9px] text-neutral-500">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-[9px] text-muted">
                           —
                         </div>
                       )}
-                      <Link href={`/perfil/${post.user_id}`} className="font-medium underline">
+                      <Link href={`/perfil/${post.user_id}`} className="font-medium no-underline text-foreground hover:text-accent">
                         {post.author_name}
                       </Link>
                       <ExperienceBadge level={post.author_experience_level} />
                     </div>
-                    <span className="text-xs text-neutral-500">
+                    <span className="text-xs text-muted">
                       {new Date(post.created_at).toLocaleString("pt-BR")}
                     </span>
                   </div>
@@ -234,7 +233,7 @@ export default async function InicioPage() {
                           <input type="hidden" name="post_id" value={post.id} />
                           <button
                             type="submit"
-                            className="shrink-0 text-xs text-red-600 underline"
+                            className="shrink-0 text-xs text-red-400 no-underline hover:underline"
                           >
                             Remover
                           </button>
@@ -244,9 +243,9 @@ export default async function InicioPage() {
                   )}
 
                   {post.type === "event_confirmed" && (
-                    <p className="mt-2 text-sm text-neutral-700">
+                    <p className="mt-2 text-sm text-foreground/90">
                       Confirmou presença em{" "}
-                      <Link href={`/eventos/${post.event_id}`} className="underline">
+                      <Link href={`/eventos/${post.event_id}`}>
                         {post.event_title}
                       </Link>
                       .
@@ -259,17 +258,17 @@ export default async function InicioPage() {
                       <img
                         src={post.photoUrl}
                         alt=""
-                        className="mt-2 h-32 w-32 rounded object-cover"
+                        className="mt-2 h-32 w-32 rounded-xl object-cover"
                       />
                     ) : (
-                      <div className="mt-2 flex items-center gap-2 rounded border border-dashed p-3 text-sm text-neutral-500">
+                      <div className="mt-2 flex items-center gap-2 rounded-xl border border-dashed border-line p-3 text-sm text-muted">
                         <span>
                           Postou uma foto no álbum de rosto — privada, visível só
                           mediante aprovação.
                         </span>
                         <Link
                           href={`/perfil/${post.user_id}`}
-                          className="shrink-0 underline"
+                          className="shrink-0"
                         >
                           Solicitar acesso
                         </Link>
@@ -278,7 +277,7 @@ export default async function InicioPage() {
                 </li>
               ))}
               {timelineRows.length === 0 && (
-                <p className="text-neutral-600">Nenhuma novidade ainda.</p>
+                <p className="text-muted">Nenhuma novidade ainda.</p>
               )}
             </ul>
           </>

@@ -1,28 +1,55 @@
 @import "tailwindcss";
 
+/* Identidade visual "Calor": espresso quente + coral, cantos arredondados.
+   Ver memória project-lumeo-visual-identity para o racional da escolha. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #241512;
+  --surface: #2c1a16;
+  --line: #402a24;
+  --foreground: #fbeee5;
+  --muted: #c9a99c;
+  --accent: #d6524f;
+  --on-accent: #fff5ef;
+  --accent-soft: #40241f;
+  --on-accent-soft: #f2a15a;
+  --tag-bg: #3a221d;
+  --tag-ink: #f2a15a;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent-soft: var(--on-accent-soft);
+  --color-tag-bg: var(--tag-bg);
+  --color-tag-ink: var(--tag-ink);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-display: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+a {
+  color: var(--accent);
 }
 
 /* Feedback visual ao clicar em qualquer botão/link — sem isso os cliques
@@ -40,11 +67,80 @@ button:active {
   opacity: 0.7;
 }
 
-/* Título de cada página em destaque: fundo preto, texto claro. */
+/* Título de cada página em destaque. */
 main h1 {
   display: inline-block;
-  background: #000;
-  color: #f5f5f5;
+  background: var(--accent);
+  color: var(--on-accent);
   padding: 0.4rem 0.9rem;
-  border-radius: 0.375rem;
+  border-radius: 0.75rem;
+}
+
+/* Classes de componente na layer "components" — assim qualquer utilitário
+   do Tailwind (ex.: pr-16, !py-1) continua podendo sobrescrever, como no
+   padrão recomendado do próprio Tailwind. */
+@layer components {
+  /* Botão sólido (ação primária): pill coral. */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--on-accent);
+    padding: 0.5rem 1.1rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border: none;
+  }
+
+  /* Botão contornado (ação secundária): pill com borda quente. */
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--foreground);
+    border: 1px solid var(--line);
+    padding: 0.5rem 1.1rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+
+  /* Cartão: superfície elevada com brilho quente. */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 1.25rem;
+    padding: 1rem;
+    box-shadow: 0 8px 24px -12px rgba(214, 82, 79, 0.25);
+  }
+
+  /* Campo de formulário. */
+  .input {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 0.9rem;
+    color: var(--foreground);
+    padding: 0.5rem 0.9rem;
+  }
+
+  .input::placeholder {
+    color: var(--muted);
+  }
+
+  /* Selo/etiqueta pequena (ex.: nível de experiência, status). */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    background: var(--tag-bg);
+    color: var(--tag-ink);
+    padding: 0.15rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
 }

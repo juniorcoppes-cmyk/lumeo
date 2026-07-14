@@ -30,13 +30,13 @@ export default async function EventosPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-2xl font-semibold">Eventos</h1>
-      {error && <p className="mt-4 text-sm text-red-600">{error.message}</p>}
+      <h1 className="text-2xl">Eventos</h1>
+      {error && <p className="mt-4 text-sm text-red-400">{error.message}</p>}
       <ul className="mt-6 flex flex-col gap-4">
         {withThumbs.map((event) => {
           const vagasRestantes = event.capacity - Number(event.confirmed_count);
           return (
-            <li key={event.id} className="overflow-hidden rounded-lg border">
+            <li key={event.id} className="overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_8px_24px_-12px_rgba(214,82,79,0.25)]">
               {event.thumbUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -46,17 +46,17 @@ export default async function EventosPage() {
                 />
               )}
               <div className="p-4">
-                <Link href={`/eventos/${event.id}`} className="text-lg font-medium underline">
+                <Link href={`/eventos/${event.id}`} className="text-lg font-medium">
                   {event.title}
                 </Link>
-                <p className="text-sm text-neutral-600">
+                <p className="text-sm text-muted">
                   {new Date(event.event_date).toLocaleString("pt-BR")} · {event.location} ·{" "}
                   {Number(event.price) > 0 ? `R$ ${Number(event.price).toFixed(2)}` : "Gratuito"}
                 </p>
                 {event.description && (
-                  <p className="mt-1 line-clamp-2 text-sm text-neutral-600">{event.description}</p>
+                  <p className="mt-1 line-clamp-2 text-sm text-muted">{event.description}</p>
                 )}
-                <p className="mt-1 text-sm text-neutral-600">
+                <p className="mt-1 text-sm text-muted">
                   {vagasRestantes > 0 ? `${vagasRestantes} vagas restantes` : "Esgotado"}
                 </p>
               </div>
@@ -64,7 +64,7 @@ export default async function EventosPage() {
           );
         })}
         {rows.length === 0 && (
-          <p className="text-neutral-600">Nenhum evento disponível no momento.</p>
+          <p className="text-muted">Nenhum evento disponível no momento.</p>
         )}
       </ul>
     </main>

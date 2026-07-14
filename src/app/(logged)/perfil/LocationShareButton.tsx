@@ -23,13 +23,13 @@ export function LocationShareButton() {
 
   return (
     <span className="flex items-center gap-2">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded border bg-neutral-50">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line bg-accent-soft">
         <svg
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
           strokeWidth="1.5"
-          className="h-6 w-6 text-neutral-500"
+          className="h-6 w-6 text-on-accent-soft"
           aria-hidden="true"
         >
           <path
@@ -43,18 +43,18 @@ export function LocationShareButton() {
       <button
         type="button"
         onClick={handleClick}
-        className="rounded border px-3 py-1 text-sm"
+        className="btn-secondary"
       >
         Compartilhar minha localização
       </button>
       {status === "loading" && (
-        <span className="text-xs text-neutral-500">Obtendo localização…</span>
+        <span className="text-xs text-muted">Obtendo localização…</span>
       )}
       {status === "done" && (
-        <span className="text-xs text-green-700">Localização atualizada.</span>
+        <span className="text-xs text-green-400">Localização atualizada.</span>
       )}
       {status === "error" && (
-        <span className="text-xs text-red-600">Não foi possível obter sua localização.</span>
+        <span className="text-xs text-red-400">Não foi possível obter sua localização.</span>
       )}
     </span>
   );

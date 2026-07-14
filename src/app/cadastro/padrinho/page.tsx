@@ -16,17 +16,17 @@ export default async function CadastroPadrinhoPage({
 
   return (
     <main className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="text-2xl font-semibold">Indicação de padrinho</h1>
-      <p className="mt-2 text-sm text-neutral-600">Etapa 4 de 4 (opcional)</p>
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      <h1 className="text-2xl">Indicação de padrinho</h1>
+      <p className="mt-2 text-sm text-muted">Etapa 4 de 4 (opcional)</p>
+      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
       <form action={setPadrinho} className="mt-6 flex flex-col gap-4">
         <input
           type="text"
           name="badge_id"
           placeholder="Selo do padrinho (opcional)"
-          className="rounded border px-3 py-2"
+          className="input"
         />
-        <button type="submit" className="rounded bg-black px-3 py-2 text-white">
+        <button type="submit" className="btn-primary">
           Finalizar cadastro
         </button>
       </form>

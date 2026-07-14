@@ -13,11 +13,11 @@ export default async function AdminUsuariosPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-2xl font-semibold">Usuários (admin)</h1>
+      <h1 className="text-2xl">Usuários (admin)</h1>
 
       <table className="mt-6 w-full text-left text-sm">
         <thead>
-          <tr className="border-b text-neutral-500">
+          <tr className="border-b border-line text-muted">
             <th className="py-2">Nome</th>
             <th className="py-2">E-mail</th>
             <th className="py-2">Perfil</th>
@@ -28,7 +28,7 @@ export default async function AdminUsuariosPage() {
         </thead>
         <tbody>
           {users?.map((u) => (
-            <tr key={u.id} className="border-b">
+            <tr key={u.id} className="border-b border-line">
               <td className="py-2">{u.name}</td>
               <td className="py-2">{u.email}</td>
               <td className="py-2">{u.profile_type}</td>
@@ -37,7 +37,7 @@ export default async function AdminUsuariosPage() {
                 <form action={setAdmin}>
                   <input type="hidden" name="user_id" value={u.id} />
                   <input type="hidden" name="is_admin" value={String(u.is_admin)} />
-                  <button type="submit" className="rounded border px-2 py-1">
+                  <button type="submit" className="btn-secondary !px-2.5 !py-1 !text-xs">
                     {u.is_admin ? "Remover admin" : "Tornar admin"}
                   </button>
                 </form>
@@ -50,7 +50,7 @@ export default async function AdminUsuariosPage() {
                     name="subscription_exempt"
                     value={String(u.subscription_exempt)}
                   />
-                  <button type="submit" className="rounded border px-2 py-1">
+                  <button type="submit" className="btn-secondary !px-2.5 !py-1 !text-xs">
                     {u.subscription_exempt ? "Remover isenção" : "Isentar"}
                   </button>
                 </form>

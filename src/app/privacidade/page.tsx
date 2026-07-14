@@ -1,12 +1,12 @@
 export default function PrivacidadePage() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-semibold">Política de Privacidade</h1>
-      <p className="mt-2 text-sm text-neutral-500">
+      <h1 className="text-3xl">Política de Privacidade</h1>
+      <p className="mt-2 text-sm text-muted">
         Última atualização: julho de 2026
       </p>
 
-      <div className="mt-8 flex flex-col gap-6 text-neutral-700">
+      <div className="mt-8 flex flex-col gap-6 text-foreground/90">
         <section>
           <p>
             Esta política descreve quais dados o Lumeo coleta, por que
@@ -17,7 +17,7 @@ export default function PrivacidadePage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             1. Dados de cadastro
           </h2>
           <p className="mt-2">
@@ -27,7 +27,7 @@ export default function PrivacidadePage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             2. Documento e vídeo de verificação
           </h2>
           <p className="mt-2">
@@ -47,7 +47,7 @@ export default function PrivacidadePage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             3. Dados de pagamento
           </h2>
           <p className="mt-2">
@@ -61,7 +61,7 @@ export default function PrivacidadePage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             4. Fotos, mensagens e uso do app
           </h2>
           <p className="mt-2">
@@ -73,7 +73,7 @@ export default function PrivacidadePage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             5. Cookies
           </h2>
           <p className="mt-2">
@@ -84,7 +84,7 @@ export default function PrivacidadePage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             6. Com quem compartilhamos dados
           </h2>
           <p className="mt-2">
@@ -97,7 +97,7 @@ export default function PrivacidadePage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             7. Seus direitos
           </h2>
           <p className="mt-2">
@@ -108,12 +108,12 @@ export default function PrivacidadePage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             8. Contato
           </h2>
           <p className="mt-2">
             Dúvidas sobre privacidade e dados pessoais podem ser enviadas para{" "}
-            <a href="mailto:contato@lumeo.com.br" className="underline">
+            <a href="mailto:contato@lumeo.com.br">
               contato@lumeo.com.br
             </a>
             .

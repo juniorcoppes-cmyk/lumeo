@@ -28,8 +28,8 @@ export default async function AdminVerificacoesPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-2xl font-semibold">Verificações</h1>
-      <p className="mt-2 text-neutral-600">
+      <h1 className="text-2xl">Verificações</h1>
+      <p className="mt-2 text-muted">
         Fila de aprovação de documento e vídeo dos usuários. Mínimo pra
         aprovar: 6 fotos no álbum no total; perfil casal precisa de pelo
         menos 2 fotos de corpo inteiro — confirme visualmente que são as
@@ -45,23 +45,23 @@ export default async function AdminVerificacoesPage() {
           const meetsMinimum = meetsTotal && meetsCorpo;
 
           return (
-            <li key={v.id} className="rounded-lg border p-4">
-              <p className="font-medium">{user?.name}</p>
-              <p className="text-sm text-neutral-600">{user?.email}</p>
+            <li key={v.id} className="card">
+              <p className="font-medium text-foreground">{user?.name}</p>
+              <p className="text-sm text-muted">{user?.email}</p>
               <div className="mt-2 flex gap-4 text-sm">
                 {v.documentUrl && (
-                  <a href={v.documentUrl} target="_blank" rel="noreferrer" className="underline">
+                  <a href={v.documentUrl} target="_blank" rel="noreferrer">
                     Ver documento
                   </a>
                 )}
                 {v.videoUrl && (
-                  <a href={v.videoUrl} target="_blank" rel="noreferrer" className="underline">
+                  <a href={v.videoUrl} target="_blank" rel="noreferrer">
                     Ver vídeo
                   </a>
                 )}
               </div>
 
-              <p className={`mt-2 text-sm ${meetsMinimum ? "text-neutral-600" : "text-red-600"}`}>
+              <p className={`mt-2 text-sm ${meetsMinimum ? "text-muted" : "text-red-400"}`}>
                 Álbum: {v.totalPhotos} foto(s) no total
                 {isCasal && ` · ${v.corpoPhotos} de corpo inteiro`}
                 {!meetsMinimum && (
@@ -76,7 +76,7 @@ export default async function AdminVerificacoesPage() {
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <form action={approveVerification}>
                   <input type="hidden" name="verification_id" value={v.id} />
-                  <button type="submit" className="rounded bg-black px-3 py-1.5 text-sm text-white">
+                  <button type="submit" className="btn-primary">
                     Aprovar
                   </button>
                 </form>
@@ -87,9 +87,9 @@ export default async function AdminVerificacoesPage() {
                     name="rejection_reason"
                     placeholder="Motivo da reprovação"
                     required
-                    className="rounded border px-2 py-1 text-sm"
+                    className="input !py-1 text-sm"
                   />
-                  <button type="submit" className="rounded border px-3 py-1.5 text-sm">
+                  <button type="submit" className="btn-secondary">
                     Reprovar
                   </button>
                 </form>
@@ -98,7 +98,7 @@ export default async function AdminVerificacoesPage() {
           );
         })}
         {withDetails.length === 0 && (
-          <p className="text-neutral-600">Nenhuma verificação pendente.</p>
+          <p className="text-muted">Nenhuma verificação pendente.</p>
         )}
       </ul>
     </main>

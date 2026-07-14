@@ -11,8 +11,8 @@ export default async function LoginPage({
 
   return (
     <main className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="text-2xl font-semibold">Entrar</h1>
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      <h1 className="text-2xl">Entrar</h1>
+      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
       <form action={login} className="mt-6 flex flex-col gap-4">
         {next && <input type="hidden" name="next" value={next} />}
         <input
@@ -20,21 +20,21 @@ export default async function LoginPage({
           name="email"
           placeholder="E-mail"
           required
-          className="rounded border px-3 py-2"
+          className="input"
         />
-        <PasswordInput name="password" placeholder="Senha" required className="rounded border px-3 py-2" />
-        <button type="submit" className="rounded bg-black px-3 py-2 text-white">
+        <PasswordInput name="password" placeholder="Senha" required className="input" />
+        <button type="submit" className="btn-primary">
           Entrar
         </button>
       </form>
-      <p className="mt-4 text-sm text-neutral-600">
-        <Link href="/recuperar-senha" className="underline">
+      <p className="mt-4 text-sm text-muted">
+        <Link href="/recuperar-senha">
           Esqueci minha senha
         </Link>
       </p>
-      <p className="mt-2 text-sm text-neutral-600">
+      <p className="mt-2 text-sm text-muted">
         Ainda não tem conta?{" "}
-        <Link href="/cadastro/dados" className="underline">
+        <Link href="/cadastro/dados">
           Criar conta
         </Link>
       </p>

@@ -39,46 +39,46 @@ export default async function LoggedLayout({
 
   return (
     <PinLockGate>
-      <header className="flex justify-center border-b py-3">
-        <span className="text-lg font-semibold tracking-tight">Lumeo</span>
+      <header className="flex justify-center border-b border-line bg-surface py-3">
+        <span className="font-display text-lg text-accent">Lumeo</span>
       </header>
-      <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-3 text-sm sm:px-6">
-        <Link href="/inicio" className="font-medium underline">
+      <nav className="flex flex-wrap items-center gap-2 px-3 py-3 text-sm sm:px-6">
+        <Link href="/inicio" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
           Início
         </Link>
-        <Link href="/eventos" className="font-medium underline">
+        <Link href="/eventos" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
           Eventos
         </Link>
-        <Link href="/comunidade" className="font-medium underline">
+        <Link href="/comunidade" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
           Comunidade
         </Link>
-        <Link href="/chat" className="font-medium underline">
+        <Link href="/chat" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
           Chat
         </Link>
-        <Link href="/notificacoes" className="font-medium underline">
+        <Link href="/notificacoes" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
           Notificações
           {!!unreadNotifications && (
-            <span className="ml-1 rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-normal text-white">
+            <span className="ml-1 rounded-full bg-accent px-1.5 py-0.5 text-xs font-normal text-on-accent">
               {unreadNotifications}
             </span>
           )}
         </Link>
-        <Link href="/perfil" className="font-medium underline">
+        <Link href="/perfil" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
           Perfil
         </Link>
-        <Link href="/assinatura" className="font-medium underline">
+        <Link href="/assinatura" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
           Assinatura
         </Link>
-        <Link href="/regras" className="font-medium underline">
+        <Link href="/regras" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
           Regras
         </Link>
         {profile?.is_admin && (
-          <Link href="/admin/eventos" className="font-medium underline">
+          <Link href="/admin/eventos" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
             Admin
           </Link>
         )}
         <form action={signOut} className="ml-auto">
-          <button type="submit" className="text-neutral-500 underline">
+          <button type="submit" className="rounded-full px-3 py-1.5 text-muted no-underline">
             Sair
           </button>
         </form>

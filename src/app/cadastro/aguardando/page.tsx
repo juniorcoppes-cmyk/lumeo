@@ -23,21 +23,21 @@ export default async function CadastroAguardandoPage() {
 
   return (
     <main className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="text-2xl font-semibold">Cadastro em análise</h1>
+      <h1 className="text-2xl">Cadastro em análise</h1>
       {verification?.status === "rejected" ? (
         <div className="mt-4">
-          <p className="text-sm text-red-600">
+          <p className="text-sm text-red-400">
             Verificação reprovada: {verification.rejection_reason}
           </p>
           <Link
             href="/cadastro/documento"
-            className="mt-2 inline-block text-sm underline text-neutral-600"
+            className="mt-2 inline-block text-sm"
           >
             Enviar novamente o documento e o vídeo
           </Link>
         </div>
       ) : (
-        <p className="mt-2 text-sm text-neutral-600">
+        <p className="mt-2 text-sm text-muted">
           Nossa equipe está analisando seu documento e vídeo. Você será
           avisado assim que a verificação for concluída.
         </p>

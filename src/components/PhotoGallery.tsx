@@ -69,7 +69,7 @@ export function PhotoGallery({
                   <img
                     src={photo.url}
                     alt=""
-                    className="h-24 w-24 rounded object-cover"
+                    className="h-24 w-24 rounded-xl object-cover"
                   />
                 </button>
                 <form action={togglePhotoLike}>
@@ -89,7 +89,7 @@ export function PhotoGallery({
                   <form action={deletePhotoAction}>
                     <input type="hidden" name="photo_id" value={photo.id} />
                     <input type="hidden" name="storage_path" value={photo.storage_path} />
-                    <button type="submit" className="text-xs text-red-600 underline">
+                    <button type="submit" className="text-xs text-red-400 no-underline hover:underline">
                       Remover
                     </button>
                   </form>
@@ -101,7 +101,7 @@ export function PhotoGallery({
 
       {openPhoto && (
         <div
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 p-4"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/90 p-4"
           onClick={() => setOpenId(null)}
         >
           <div
@@ -111,7 +111,7 @@ export function PhotoGallery({
             <button
               type="button"
               onClick={() => setOpenId(null)}
-              className="self-end rounded bg-white px-3 py-1 text-sm"
+              className="btn-primary self-end"
             >
               Voltar ao álbum
             </button>
@@ -121,7 +121,7 @@ export function PhotoGallery({
                   type="button"
                   onClick={showPrev}
                   aria-label="Foto anterior"
-                  className="absolute left-2 z-10 rounded-full bg-white/80 px-3 py-2 text-lg"
+                  className="absolute left-2 z-10 rounded-full bg-surface/90 px-3 py-2 text-lg text-foreground"
                 >
                   ‹
                 </button>
@@ -130,28 +130,28 @@ export function PhotoGallery({
               <img
                 src={openPhoto.url}
                 alt=""
-                className="max-h-[70vh] w-full rounded object-contain"
+                className="max-h-[70vh] w-full rounded-2xl object-contain"
               />
               {openIndex < viewablePhotos.length - 1 && (
                 <button
                   type="button"
                   onClick={showNext}
                   aria-label="Próxima foto"
-                  className="absolute right-2 z-10 rounded-full bg-white/80 px-3 py-2 text-lg"
+                  className="absolute right-2 z-10 rounded-full bg-surface/90 px-3 py-2 text-lg text-foreground"
                 >
                   ›
                 </button>
               )}
             </div>
 
-            <div className="rounded bg-white p-4">
+            <div className="card">
               <form action={togglePhotoLike} className="mb-3">
                 <input type="hidden" name="photo_id" value={openPhoto.id} />
                 <input type="hidden" name="revalidate_path" value={revalidatePath} />
                 <button
                   type="submit"
-                  className={`flex items-center gap-2 rounded border px-3 py-1.5 text-sm ${
-                    likesByPhoto[openPhoto.id]?.likedByMe ? "border-black" : "border-neutral-300"
+                  className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm ${
+                    likesByPhoto[openPhoto.id]?.likedByMe ? "border-accent bg-accent-soft" : "border-line"
                   }`}
                 >
                   <span>😈</span>
@@ -167,7 +167,7 @@ export function PhotoGallery({
                       <form action={deletePhotoComment} className="inline">
                         <input type="hidden" name="comment_id" value={c.id} />
                         <input type="hidden" name="revalidate_path" value={revalidatePath} />
-                        <button type="submit" className="ml-2 text-xs text-red-600 underline">
+                        <button type="submit" className="ml-2 text-xs text-red-400 no-underline hover:underline">
                           Remover
                         </button>
                       </form>
@@ -175,7 +175,7 @@ export function PhotoGallery({
                   </li>
                 ))}
                 {(commentsByPhoto[openPhoto.id] ?? []).length === 0 && (
-                  <li className="text-sm text-neutral-500">Nenhum comentário ainda.</li>
+                  <li className="text-sm text-muted">Nenhum comentário ainda.</li>
                 )}
               </ul>
               <form action={addPhotoComment} className="mt-3 flex gap-2">
@@ -186,9 +186,9 @@ export function PhotoGallery({
                   name="content"
                   placeholder="Comentar"
                   required
-                  className="flex-1 rounded border px-2 py-1 text-sm"
+                  className="input flex-1 !py-1 text-sm"
                 />
-                <button type="submit" className="rounded border px-3 py-1 text-sm">
+                <button type="submit" className="btn-secondary !px-3 !py-1 !text-sm">
                   Enviar
                 </button>
               </form>

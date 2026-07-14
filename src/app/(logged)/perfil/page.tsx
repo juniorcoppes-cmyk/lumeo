@@ -128,9 +128,9 @@ export default async function PerfilPage({
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-2xl font-semibold">Perfil</h1>
+      <h1 className="text-2xl">Perfil</h1>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 
       <div className="mt-4 flex items-center gap-4">
         {avatarUrl ? (
@@ -141,25 +141,25 @@ export default async function PerfilPage({
             className="h-20 w-20 rounded-full object-cover"
           />
         ) : (
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-100 text-xs text-neutral-500">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-accent-soft text-xs text-muted">
             Sem foto
           </div>
         )}
         <div className="flex flex-col gap-2">
           <form action={updateAvatar} className="flex items-center gap-2">
             <input type="file" name="avatar" accept="image/*" required className="text-sm" />
-            <button type="submit" className="rounded border px-3 py-1 text-sm">
+            <button type="submit" className="btn-secondary">
               {avatarUrl ? "Trocar" : "Adicionar"}
             </button>
           </form>
           {avatarUrl && (
             <form action={removeAvatar}>
-              <button type="submit" className="text-xs text-red-600 underline">
+              <button type="submit" className="text-xs text-red-400 no-underline hover:underline">
                 Remover foto de perfil
               </button>
             </form>
           )}
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-muted">
             Visível para qualquer usuário verificado, na Comunidade, na linha
             do tempo e no seu perfil.
           </p>
@@ -168,23 +168,23 @@ export default async function PerfilPage({
 
       <dl className="mt-6 flex flex-col gap-2 text-sm">
         <div>
-          <dt className="text-neutral-500">Nome</dt>
+          <dt className="text-muted">Nome</dt>
           <dd>{profile?.name}</dd>
         </div>
         <div>
-          <dt className="text-neutral-500">E-mail</dt>
+          <dt className="text-muted">E-mail</dt>
           <dd>{profile?.email}</dd>
         </div>
         <div>
-          <dt className="text-neutral-500">Perfil</dt>
+          <dt className="text-muted">Perfil</dt>
           <dd>{profile?.profile_type}</dd>
         </div>
         <div>
-          <dt className="text-neutral-500">Selo de verificação</dt>
+          <dt className="text-muted">Selo de verificação</dt>
           <dd>{profile?.verification_badge_id ?? "Ainda não emitido"}</dd>
         </div>
         <div>
-          <dt className="text-neutral-500">Plano atual</dt>
+          <dt className="text-muted">Plano atual</dt>
           <dd>{subscription ? `${subscription.plan} (${subscription.status})` : "Nenhum plano ativo"}</dd>
         </div>
       </dl>
@@ -199,7 +199,7 @@ export default async function PerfilPage({
         <label htmlFor="discreet_mode" className="text-sm">
           Modo de navegação discreta
         </label>
-        <button type="submit" className="ml-4 rounded border px-3 py-1 text-sm">
+        <button type="submit" className="btn-secondary ml-4">
           Salvar
         </button>
       </form>
@@ -216,11 +216,11 @@ export default async function PerfilPage({
             <label htmlFor="couple_single_device" className="text-sm">
               Vocês dois acessam o Lumeo pelo mesmo celular
             </label>
-            <button type="submit" className="ml-4 rounded border px-3 py-1 text-sm">
+            <button type="submit" className="btn-secondary ml-4">
               Salvar
             </button>
           </form>
-          <p className="mt-1 text-xs text-neutral-500">
+          <p className="mt-1 text-xs text-muted">
             Sem marcar isso, uma mensagem só sai do negrito quando os dois
             aparelhos do casal confirmarem a leitura — se vocês usam sempre
             o mesmo celular, marque aqui pra bastar 1.
@@ -231,14 +231,14 @@ export default async function PerfilPage({
       <PinSettings />
 
       <form action={updateExperienceLevel} className="mt-4 flex items-center gap-2">
-        <label htmlFor="experience_level" className="text-sm text-neutral-500">
+        <label htmlFor="experience_level" className="text-sm text-muted">
           Experiência no meio liberal
         </label>
         <select
           id="experience_level"
           name="experience_level"
           defaultValue={profile?.experience_level ?? ""}
-          className="rounded border px-2 py-1 text-sm"
+          className="input !py-1 text-sm"
         >
           <option value="" disabled>
             Selecione
@@ -249,13 +249,13 @@ export default async function PerfilPage({
             </option>
           ))}
         </select>
-        <button type="submit" className="rounded border px-3 py-1 text-sm">
+        <button type="submit" className="btn-secondary">
           Salvar
         </button>
       </form>
 
       <div className="mt-4 flex items-center gap-3">
-        <span className="text-sm text-neutral-500">
+        <span className="text-sm text-muted">
           {profile?.location_updated_at
             ? `Localização compartilhada (atualizada em ${new Date(
                 profile.location_updated_at,
@@ -265,20 +265,20 @@ export default async function PerfilPage({
         <LocationShareButton />
         {profile?.location_updated_at && (
           <form action={clearLocation}>
-            <button type="submit" className="text-xs text-red-600 underline">
+            <button type="submit" className="text-xs text-red-400 no-underline hover:underline">
               Remover
             </button>
           </form>
         )}
       </div>
-      <p className="mt-1 text-xs text-neutral-500">
+      <p className="mt-1 text-xs text-muted">
         Usada só para mostrar uma faixa de distância aproximada na
         Comunidade (ex.: &quot;5–25 km&quot;) — nunca a distância exata nem
         sua localização precisa.
       </p>
 
-      <section className="mt-10 border-t pt-6">
-        <h2 className="text-lg font-medium">Detalhes do perfil</h2>
+      <section className="mt-10 border-t border-line pt-6">
+        <h2 className="text-lg">Detalhes do perfil</h2>
         <form action={updateProfileDetails} className="mt-3 flex flex-col gap-3 text-sm">
           <label className="flex flex-col gap-1">
             Descrição
@@ -286,7 +286,7 @@ export default async function PerfilPage({
               name="bio"
               rows={3}
               defaultValue={profile?.bio ?? ""}
-              className="rounded border px-3 py-2"
+              className="input"
             />
           </label>
 
@@ -299,7 +299,7 @@ export default async function PerfilPage({
               placeholder="DD/MM/AAAA"
               pattern="\d{2}/\d{2}/\d{4}"
               defaultValue={formatBirthDateForInput(profile?.birth_date)}
-              className="rounded border px-3 py-2"
+              className="input"
             />
           </label>
 
@@ -308,7 +308,7 @@ export default async function PerfilPage({
             <select
               name="gender"
               defaultValue={profile?.gender ?? ""}
-              className="rounded border px-3 py-2"
+              className="input"
             >
               <option value="">Selecione</option>
               {GENDER_OPTIONS.map((g) => (
@@ -324,7 +324,7 @@ export default async function PerfilPage({
             <select
               name="sexual_orientation"
               defaultValue={profile?.sexual_orientation ?? ""}
-              className="rounded border px-3 py-2"
+              className="input"
             >
               <option value="">Selecione</option>
               {ORIENTATION_OPTIONS.map((o) => (
@@ -346,7 +346,7 @@ export default async function PerfilPage({
                   placeholder="DD/MM/AAAA"
                   pattern="\d{2}/\d{2}/\d{4}"
                   defaultValue={formatBirthDateForInput(profile?.partner_birth_date)}
-                  className="rounded border px-3 py-2"
+                  className="input"
                 />
               </label>
 
@@ -355,7 +355,7 @@ export default async function PerfilPage({
                 <select
                   name="partner_gender"
                   defaultValue={profile?.partner_gender ?? ""}
-                  className="rounded border px-3 py-2"
+                  className="input"
                 >
                   <option value="">Selecione</option>
                   {GENDER_OPTIONS.map((g) => (
@@ -371,7 +371,7 @@ export default async function PerfilPage({
                 <select
                   name="partner_sexual_orientation"
                   defaultValue={profile?.partner_sexual_orientation ?? ""}
-                  className="rounded border px-3 py-2"
+                  className="input"
                 >
                   <option value="">Selecione</option>
                   {ORIENTATION_OPTIONS.map((o) => (
@@ -401,15 +401,15 @@ export default async function PerfilPage({
             </div>
           </fieldset>
 
-          <button type="submit" className="self-start rounded border px-3 py-1.5">
+          <button type="submit" className="btn-secondary self-start">
             Salvar
           </button>
         </form>
       </section>
 
       {pendingRequests && pendingRequests.length > 0 && (
-        <section className="mt-10 border-t pt-6">
-          <h2 className="text-lg font-medium">Pedidos de acesso ao seu álbum de rosto</h2>
+        <section className="mt-10 border-t border-line pt-6">
+          <h2 className="text-lg">Pedidos de acesso ao seu álbum de rosto</h2>
           <ul className="mt-3 flex flex-col gap-2">
             {pendingRequests.map((req) => {
               const requester = Array.isArray(req.users) ? req.users[0] : req.users;
@@ -419,14 +419,14 @@ export default async function PerfilPage({
                   <form action={respondPhotoRequest}>
                     <input type="hidden" name="request_id" value={req.id} />
                     <input type="hidden" name="decision" value="approved" />
-                    <button type="submit" className="rounded border px-2 py-1">
+                    <button type="submit" className="btn-secondary !px-2.5 !py-1 !text-xs">
                       Aprovar
                     </button>
                   </form>
                   <form action={respondPhotoRequest}>
                     <input type="hidden" name="request_id" value={req.id} />
                     <input type="hidden" name="decision" value="denied" />
-                    <button type="submit" className="rounded border px-2 py-1">
+                    <button type="submit" className="btn-secondary !px-2.5 !py-1 !text-xs">
                       Negar
                     </button>
                   </form>
@@ -437,15 +437,15 @@ export default async function PerfilPage({
         </section>
       )}
 
-      <section className="mt-10 border-t pt-6">
-        <p className="rounded border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800">
+      <section className="mt-10 border-t border-line pt-6">
+        <p className="rounded-xl border border-on-accent-soft/40 bg-on-accent-soft/10 p-3 text-xs text-on-accent-soft">
           Sua verificação só é aprovada com no mínimo 6 fotos no álbum
           (rosto + corpo somados).
           {profile?.profile_type === "casal" &&
             " Perfil casal também precisa de pelo menos uma foto de corpo inteiro de cada um dos dois — perfil com foto de só uma pessoa não é aceito."}
         </p>
-        <h2 className="mt-4 text-lg font-medium">Fotos — Rosto</h2>
-        <p className="text-sm text-neutral-500">
+        <h2 className="mt-4 text-lg">Fotos — Rosto</h2>
+        <p className="text-sm text-muted">
           Só fica visível para quem você aprovar um pedido de acesso.
         </p>
         <div className="mt-3">
@@ -462,15 +462,15 @@ export default async function PerfilPage({
         <form action={uploadPhoto} className="mt-3 flex items-center gap-2">
           <input type="hidden" name="category" value="rosto" />
           <input type="file" name="photo" accept="image/*" required />
-          <button type="submit" className="rounded border px-3 py-1.5 text-sm">
+          <button type="submit" className="btn-secondary">
             Adicionar
           </button>
         </form>
       </section>
 
       <section className="mt-8">
-        <h2 className="text-lg font-medium">Fotos — Corpo</h2>
-        <p className="text-sm text-neutral-500">
+        <h2 className="text-lg">Fotos — Corpo</h2>
+        <p className="text-sm text-muted">
           Visível para qualquer usuário verificado.
         </p>
         <div className="mt-3">
@@ -487,7 +487,7 @@ export default async function PerfilPage({
         <form action={uploadPhoto} className="mt-3 flex items-center gap-2">
           <input type="hidden" name="category" value="corpo" />
           <input type="file" name="photo" accept="image/*" required />
-          <button type="submit" className="rounded border px-3 py-1.5 text-sm">
+          <button type="submit" className="btn-secondary">
             Adicionar
           </button>
         </form>

@@ -84,14 +84,14 @@ export default async function ChatListPage({
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-2xl font-semibold">Conversas</h1>
-      <p className="mt-2 text-neutral-600">
+      <h1 className="text-2xl">Conversas</h1>
+      <p className="mt-2 text-muted">
         Suas conversas com outros usuários verificados.
       </p>
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 
       <form action={contactSupport} className="mt-4">
-        <button type="submit" className="rounded border px-3 py-1.5 text-sm">
+        <button type="submit" className="btn-secondary">
           Falar com o suporte (ADM)
         </button>
       </form>
@@ -102,7 +102,7 @@ export default async function ChatListPage({
           const other = otherUsers?.find((u) => u.id === otherId);
           const event = events?.find((e) => e.id === c.event_id);
           return (
-            <li key={c.id} className="flex items-center gap-3 rounded-lg border p-3">
+            <li key={c.id} className="card flex items-center gap-3">
               {other?.avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -111,18 +111,18 @@ export default async function ChatListPage({
                   className="h-8 w-8 shrink-0 rounded-full object-cover"
                 />
               ) : (
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[9px] text-neutral-500">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[9px] text-muted">
                   —
                 </div>
               )}
               <div>
-                <Link href={`/perfil/${otherId}`} className="font-medium underline">
+                <Link href={`/perfil/${otherId}`} className="font-medium no-underline text-foreground hover:text-accent">
                   {other?.name}
                 </Link>
                 {event && (
-                  <span className="text-sm text-neutral-600"> · {event.title}</span>
+                  <span className="text-sm text-muted"> · {event.title}</span>
                 )}
-                <Link href={`/chat/${c.id}`} className="ml-2 text-sm underline">
+                <Link href={`/chat/${c.id}`} className="ml-2 text-sm">
                   Abrir conversa
                 </Link>
               </div>
@@ -130,18 +130,18 @@ export default async function ChatListPage({
           );
         })}
         {conversations?.length === 0 && (
-          <p className="text-neutral-600">Nenhuma conversa ainda.</p>
+          <p className="text-muted">Nenhuma conversa ainda.</p>
         )}
       </ul>
 
       {attendeesByEvent.some((e) => e.attendees.length > 0) && (
         <div className="mt-10">
-          <h2 className="text-lg font-medium">Iniciar nova conversa</h2>
+          <h2 className="text-lg">Iniciar nova conversa</h2>
           {attendeesByEvent.map(
             ({ event, attendees }) =>
               attendees.length > 0 && (
                 <div key={event?.id} className="mt-4">
-                  <p className="text-sm text-neutral-500">{event?.title}</p>
+                  <p className="text-sm text-muted">{event?.title}</p>
                   <ul className="mt-2 flex flex-col gap-2">
                     {attendees.map((a: { id: string; name: string; avatarUrl?: string }) => (
                       <li key={a.id} className="flex items-center gap-2">
@@ -153,17 +153,17 @@ export default async function ChatListPage({
                             className="h-6 w-6 shrink-0 rounded-full object-cover"
                           />
                         ) : (
-                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[8px] text-neutral-500">
+                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[8px] text-muted">
                             —
                           </div>
                         )}
-                        <Link href={`/perfil/${a.id}`} className="text-sm underline">
+                        <Link href={`/perfil/${a.id}`} className="text-sm">
                           {a.name}
                         </Link>
                         <form action={startConversation}>
                           <input type="hidden" name="event_id" value={event?.id} />
                           <input type="hidden" name="other_user_id" value={a.id} />
-                          <button type="submit" className="rounded border px-2 py-1 text-sm">
+                          <button type="submit" className="btn-secondary !px-2 !py-1 !text-xs">
                             Conversar
                           </button>
                         </form>

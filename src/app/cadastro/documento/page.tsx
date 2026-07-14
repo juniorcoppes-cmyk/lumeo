@@ -16,12 +16,12 @@ export default async function CadastroDocumentoPage({
 
   return (
     <main className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="text-2xl font-semibold">Envio de documento</h1>
-      <p className="mt-2 text-sm text-neutral-600">Etapa 2 de 4</p>
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      <h1 className="text-2xl">Envio de documento</h1>
+      <p className="mt-2 text-sm text-muted">Etapa 2 de 4</p>
+      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
       <form action={uploadDocumento} className="mt-6 flex flex-col gap-4">
         <input type="file" name="documento" accept="image/*,.pdf" required />
-        <button type="submit" className="rounded bg-black px-3 py-2 text-white">
+        <button type="submit" className="btn-primary">
           Continuar
         </button>
       </form>

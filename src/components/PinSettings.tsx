@@ -40,19 +40,19 @@ export function PinSettings() {
 
   return (
     <section className="mt-8">
-      <h2 className="text-lg font-medium">PIN de acesso rápido</h2>
-      <p className="mt-1 text-sm text-neutral-500">
+      <h2 className="text-lg">PIN de acesso rápido</h2>
+      <p className="mt-1 text-sm text-muted">
         Fica salvo só neste aparelho — pede esse PIN toda vez que você abre o
         Lumeo pelo ícone instalado na tela inicial, antes de mostrar sua
         conta. Não substitui a senha da conta.
       </p>
 
-      {message && <p className="mt-2 text-sm text-neutral-600">{message}</p>}
+      {message && <p className="mt-2 text-sm text-muted">{message}</p>}
 
       {configured ? (
         <button
           onClick={handleRemove}
-          className="mt-3 rounded border px-3 py-1.5 text-sm text-red-600"
+          className="mt-3 rounded-full border border-red-400 px-3 py-1.5 text-sm text-red-400"
         >
           Remover PIN deste aparelho
         </button>
@@ -66,7 +66,7 @@ export function PinSettings() {
               maxLength={4}
               value={pin}
               onChange={(e) => setPinValue(e.target.value.replace(/\D/g, "").slice(0, 4))}
-              className="w-24 rounded border px-3 py-2 text-center tracking-[0.3em]"
+              className="input w-24 text-center tracking-[0.3em]"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm">
@@ -77,10 +77,10 @@ export function PinSettings() {
               maxLength={4}
               value={confirmPin}
               onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
-              className="w-24 rounded border px-3 py-2 text-center tracking-[0.3em]"
+              className="input w-24 text-center tracking-[0.3em]"
             />
           </label>
-          <button type="submit" className="rounded border px-3 py-2 text-sm">
+          <button type="submit" className="btn-secondary">
             Salvar PIN
           </button>
         </form>

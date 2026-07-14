@@ -24,7 +24,7 @@ export default async function AdminDenunciasPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-2xl font-semibold">Denúncias (admin)</h1>
+      <h1 className="text-2xl">Denúncias (admin)</h1>
 
       <ul className="mt-6 flex flex-col gap-4">
         {reports?.map((r) => {
@@ -33,25 +33,25 @@ export default async function AdminDenunciasPage() {
           return (
             <li
               key={r.id}
-              className={`rounded-lg border p-4 text-sm ${
-                r.status === "pending" ? "border-amber-400" : "border-neutral-200"
+              className={`rounded-2xl border bg-surface p-4 text-sm ${
+                r.status === "pending" ? "border-on-accent-soft/60" : "border-line"
               }`}
             >
               <p>
-                <Link href={`/perfil/${r.reporter_id}`} className="underline">
+                <Link href={`/perfil/${r.reporter_id}`}>
                   {reporter?.name}
                 </Link>{" "}
                 denunciou{" "}
-                <Link href={`/perfil/${r.reported_id}`} className="underline">
+                <Link href={`/perfil/${r.reported_id}`}>
                   {reported?.name}
                 </Link>{" "}
-                · <strong>{REASON_LABELS[r.reason] ?? r.reason}</strong> ·{" "}
+                · <strong className="text-foreground">{REASON_LABELS[r.reason] ?? r.reason}</strong> ·{" "}
                 {new Date(r.created_at).toLocaleString("pt-BR")}
               </p>
-              {r.description && <p className="mt-1 text-neutral-600">{r.description}</p>}
+              {r.description && <p className="mt-1 text-muted">{r.description}</p>}
 
               {r.status === "reviewed" ? (
-                <p className="mt-2 text-xs text-neutral-500">
+                <p className="mt-2 text-xs text-muted">
                   Revisada{r.admin_notes ? ` — ${r.admin_notes}` : ""}
                 </p>
               ) : (
@@ -61,9 +61,9 @@ export default async function AdminDenunciasPage() {
                     type="text"
                     name="admin_notes"
                     placeholder="Nota (opcional)"
-                    className="rounded border px-2 py-1 text-sm"
+                    className="input !py-1 text-sm"
                   />
-                  <button type="submit" className="rounded border px-2 py-1 text-sm">
+                  <button type="submit" className="btn-secondary !px-2.5 !py-1 !text-xs">
                     Marcar como revisada
                   </button>
                 </form>
@@ -71,7 +71,7 @@ export default async function AdminDenunciasPage() {
             </li>
           );
         })}
-        {reports?.length === 0 && <p className="text-neutral-600">Nenhuma denúncia ainda.</p>}
+        {reports?.length === 0 && <p className="text-muted">Nenhuma denúncia ainda.</p>}
       </ul>
     </main>
   );

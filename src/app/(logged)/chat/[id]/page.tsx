@@ -93,19 +93,19 @@ export default async function ChatConversaPage({
   return (
     <main className="mx-auto flex max-w-3xl flex-col px-6 py-16">
       {other ? (
-        <Link href={`/perfil/${other.id}`} className="flex items-center gap-3">
+        <Link href={`/perfil/${other.id}`} className="flex items-center gap-3 no-underline">
           {other.avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={other.avatarUrl} alt="" className="h-10 w-10 rounded-full object-cover" />
           ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-100 text-[10px] text-neutral-500">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft text-[10px] text-muted">
               —
             </div>
           )}
-          <h1 className="text-2xl font-semibold underline">{other.name}</h1>
+          <h1 className="text-2xl">{other.name}</h1>
         </Link>
       ) : (
-        <h1 className="text-2xl font-semibold">Conversa</h1>
+        <h1 className="text-2xl">Conversa</h1>
       )}
 
       <ul className="mt-6 flex flex-col gap-2">
@@ -118,23 +118,25 @@ export default async function ChatConversaPage({
           return (
             <li
               key={m.id}
-              className={`flex max-w-[75%] flex-col gap-1 rounded-lg px-3 py-2 text-sm ${
-                isMine ? "self-end bg-black text-white" : "self-start bg-neutral-100"
+              className={`flex max-w-[75%] flex-col gap-1 rounded-[18px] px-3 py-2 text-sm ${
+                isMine
+                  ? "self-end bg-accent text-on-accent"
+                  : "self-start border border-line bg-surface text-foreground"
               } ${unread ? "font-bold" : "font-normal"}`}
             >
               <span>{m.content}</span>
               <span
-                className={`text-xs ${isMine ? "text-neutral-300" : "text-neutral-500"} font-normal`}
+                className={`text-xs ${isMine ? "text-on-accent/70" : "text-muted"} font-normal`}
               >
                 {new Date(m.sent_at).toLocaleString("pt-BR")}
               </span>
             </li>
           );
         })}
-        {messages?.length === 0 && <p className="text-neutral-600">Nenhuma mensagem ainda.</p>}
+        {messages?.length === 0 && <p className="text-muted">Nenhuma mensagem ainda.</p>}
       </ul>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 
       <form action={sendMessage} className="mt-6 flex gap-2">
         <input type="hidden" name="conversation_id" value={id} />
@@ -143,9 +145,9 @@ export default async function ChatConversaPage({
           name="content"
           placeholder="Escreva uma mensagem"
           required
-          className="flex-1 rounded border px-3 py-2"
+          className="input flex-1"
         />
-        <button type="submit" className="rounded bg-black px-4 py-2 text-white">
+        <button type="submit" className="btn-primary">
           Enviar
         </button>
       </form>

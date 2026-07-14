@@ -66,8 +66,8 @@ export default async function OutroPerfilPage({
   if (!viewerCanBrowse) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-16">
-        <h1 className="text-2xl font-semibold">Perfil não disponível</h1>
-        <p className="mt-2 text-neutral-600">
+        <h1 className="text-2xl">Perfil não disponível</h1>
+        <p className="mt-2 text-muted">
           Sua verificação de identidade ainda não foi aprovada — isso é
           necessário para ver o perfil de outros usuários.
         </p>
@@ -83,8 +83,8 @@ export default async function OutroPerfilPage({
   if (!target) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-16">
-        <h1 className="text-2xl font-semibold">Perfil não disponível</h1>
-        <p className="mt-2 text-neutral-600">
+        <h1 className="text-2xl">Perfil não disponível</h1>
+        <p className="mt-2 text-muted">
           Esse usuário não existe ou ainda não foi verificado.
         </p>
       </main>
@@ -230,24 +230,24 @@ export default async function OutroPerfilPage({
             className="h-16 w-16 rounded-full object-cover"
           />
         ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-100 text-xs text-neutral-500">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent-soft text-xs text-muted">
             Sem foto
           </div>
         )}
-        <h1 className="text-2xl font-semibold">{target.name}</h1>
+        <h1 className="text-2xl">{target.name}</h1>
       </div>
-      <div className="mt-2 flex items-center gap-2 text-sm text-neutral-600">
+      <div className="mt-2 flex items-center gap-2 text-sm text-muted">
         <span>{target.profile_type}</span>
         <ExperienceBadge level={target.experience_level} />
       </div>
 
-      {target.bio && <p className="mt-3 text-sm text-neutral-700">{target.bio}</p>}
+      {target.bio && <p className="mt-3 text-sm text-foreground/90">{target.bio}</p>}
 
-      <dl className="mt-4 flex flex-col gap-1 text-sm text-neutral-600">
+      <dl className="mt-4 flex flex-col gap-1 text-sm text-muted">
         {target.profile_type === "casal" ? (
           <>
             <div>
-              <dt className="inline text-neutral-500">Pessoa 1 — </dt>
+              <dt className="inline text-muted">Pessoa 1 — </dt>
               <dd className="inline">
                 {calculateAge(target.birth_date) !== null && `${calculateAge(target.birth_date)} anos`}
                 {target.gender && ` · ${GENDER_LABELS[target.gender as Gender]}`}
@@ -256,7 +256,7 @@ export default async function OutroPerfilPage({
               </dd>
             </div>
             <div>
-              <dt className="inline text-neutral-500">Pessoa 2 — </dt>
+              <dt className="inline text-muted">Pessoa 2 — </dt>
               <dd className="inline">
                 {calculateAge(target.partner_birth_date) !== null &&
                   `${calculateAge(target.partner_birth_date)} anos`}
@@ -284,25 +284,25 @@ export default async function OutroPerfilPage({
         )}
       </dl>
 
-      <section className="mt-8 border-t pt-6">
-        <h2 className="text-lg font-medium">Conexão</h2>
+      <section className="mt-8 border-t border-line pt-6">
+        <h2 className="text-lg">Conexão</h2>
         {!connection && (
           <form action={proposeConnection} className="mt-2 flex items-center gap-2 text-sm">
             <input type="hidden" name="target_id" value={id} />
-            <select name="connection_type" required className="rounded border px-2 py-1">
+            <select name="connection_type" required className="input !py-1">
               {CONNECTION_TYPE_OPTIONS.map((type) => (
                 <option key={type} value={type}>
                   {CONNECTION_TYPE_LABELS[type]}
                 </option>
               ))}
             </select>
-            <button type="submit" className="rounded border px-3 py-1">
+            <button type="submit" className="btn-secondary">
               Propor conexão
             </button>
           </form>
         )}
         {connection?.status === "pending" && connection.requester_id === user.id && (
-          <p className="mt-2 text-sm text-neutral-600">
+          <p className="mt-2 text-sm text-muted">
             Proposta de {CONNECTION_TYPE_LABELS[connection.connection_type as keyof typeof CONNECTION_TYPE_LABELS]} enviada — aguardando confirmação.
           </p>
         )}
@@ -316,7 +316,7 @@ export default async function OutroPerfilPage({
               <input type="hidden" name="connection_id" value={connection.id} />
               <input type="hidden" name="other_user_id" value={id} />
               <input type="hidden" name="decision" value="approved" />
-              <button type="submit" className="rounded border px-2 py-1">
+              <button type="submit" className="btn-secondary !px-2.5 !py-1 !text-xs">
                 Aceitar
               </button>
             </form>
@@ -324,26 +324,26 @@ export default async function OutroPerfilPage({
               <input type="hidden" name="connection_id" value={connection.id} />
               <input type="hidden" name="other_user_id" value={id} />
               <input type="hidden" name="decision" value="denied" />
-              <button type="submit" className="rounded border px-2 py-1">
+              <button type="submit" className="btn-secondary !px-2.5 !py-1 !text-xs">
                 Recusar
               </button>
             </form>
           </div>
         )}
         {isConnectionApproved && (
-          <p className="mt-2 text-sm text-neutral-600">
+          <p className="mt-2 text-sm text-muted">
             Vocês são{" "}
             {CONNECTION_TYPE_LABELS[connection!.connection_type as keyof typeof CONNECTION_TYPE_LABELS]}.
           </p>
         )}
         {connection?.status === "denied" && (
-          <p className="mt-2 text-sm text-red-600">Proposta de conexão negada.</p>
+          <p className="mt-2 text-sm text-red-400">Proposta de conexão negada.</p>
         )}
       </section>
 
       {isConnectionApproved && (
-        <section className="mt-8 border-t pt-6">
-          <h2 className="text-lg font-medium">Avaliação</h2>
+        <section className="mt-8 border-t border-line pt-6">
+          <h2 className="text-lg">Avaliação</h2>
           {ratingsData.map(({ role, counts, ownTags }) => (
             <div key={role} className="mt-3">
               {target.profile_type === "casal" && (
@@ -351,7 +351,7 @@ export default async function OutroPerfilPage({
                   {targetRoles.find((r) => r.role === role)?.label}
                 </p>
               )}
-              <p className="mt-1 text-xs text-neutral-500">
+              <p className="mt-1 text-xs text-muted">
                 {counts
                   .map(
                     (c: { tag: string; tag_count: number }) =>
@@ -373,7 +373,7 @@ export default async function OutroPerfilPage({
                     {RATING_TAG_LABELS[tag]}
                   </label>
                 ))}
-                <button type="submit" className="rounded border px-3 py-1">
+                <button type="submit" className="btn-secondary">
                   Salvar avaliação
                 </button>
               </form>
@@ -383,7 +383,7 @@ export default async function OutroPerfilPage({
       )}
 
       <section className="mt-8">
-        <h2 className="text-lg font-medium">Fotos — Corpo</h2>
+        <h2 className="text-lg">Fotos — Corpo</h2>
         <div className="mt-3">
           <PhotoGallery
             photos={corpoWithUrls}
@@ -394,13 +394,13 @@ export default async function OutroPerfilPage({
             revalidatePath={`/perfil/${id}`}
           />
           {corpoWithUrls.length === 0 && (
-            <p className="text-sm text-neutral-500">Nenhuma foto ainda.</p>
+            <p className="text-sm text-muted">Nenhuma foto ainda.</p>
           )}
         </div>
       </section>
 
       <section className="mt-8">
-        <h2 className="text-lg font-medium">Fotos — Rosto</h2>
+        <h2 className="text-lg">Fotos — Rosto</h2>
 
         {accessRequest?.status === "approved" ? (
           <div className="mt-3">
@@ -413,21 +413,21 @@ export default async function OutroPerfilPage({
               revalidatePath={`/perfil/${id}`}
             />
             {rostoWithUrls.length === 0 && (
-              <p className="text-sm text-neutral-500">Nenhuma foto ainda.</p>
+              <p className="text-sm text-muted">Nenhuma foto ainda.</p>
             )}
           </div>
         ) : accessRequest?.status === "pending" ? (
-          <p className="mt-2 text-sm text-neutral-600">
+          <p className="mt-2 text-sm text-muted">
             Pedido de acesso enviado — aguardando aprovação.
           </p>
         ) : (
           <div className="mt-2">
             {accessRequest?.status === "denied" && (
-              <p className="text-sm text-red-600">Pedido anterior negado.</p>
+              <p className="text-sm text-red-400">Pedido anterior negado.</p>
             )}
             <form action={requestPhotoAccess} className="mt-2">
               <input type="hidden" name="owner_id" value={id} />
-              <button type="submit" className="rounded border px-3 py-1.5 text-sm">
+              <button type="submit" className="btn-secondary">
                 Solicitar acesso
               </button>
             </form>
@@ -435,19 +435,19 @@ export default async function OutroPerfilPage({
         )}
       </section>
 
-      <section className="mt-10 border-t pt-6">
+      <section className="mt-10 border-t border-line pt-6">
         <details>
-          <summary className="cursor-pointer text-sm text-red-600 underline">
+          <summary className="cursor-pointer text-sm text-red-400 no-underline hover:underline">
             Denunciar este perfil
           </summary>
           {reported ? (
-            <p className="mt-3 text-sm text-neutral-600">
+            <p className="mt-3 text-sm text-muted">
               Denúncia enviada — nossa equipe vai avaliar.
             </p>
           ) : (
             <form action={reportUser} className="mt-3 flex flex-col gap-2 text-sm">
               <input type="hidden" name="reported_id" value={id} />
-              <select name="reason" required className="rounded border px-2 py-1.5">
+              <select name="reason" required className="input">
                 {Object.entries(REPORT_REASON_LABELS).map(([value, label]) => (
                   <option key={value} value={value}>
                     {label}
@@ -458,11 +458,11 @@ export default async function OutroPerfilPage({
                 name="description"
                 placeholder="Detalhes (opcional)"
                 rows={3}
-                className="rounded border px-2 py-1.5"
+                className="input"
               />
               <button
                 type="submit"
-                className="self-start rounded border border-red-600 px-3 py-1.5 text-red-600"
+                className="self-start rounded-full border border-red-400 px-4 py-2 text-sm font-semibold text-red-400"
               >
                 Enviar denúncia
               </button>

@@ -33,7 +33,7 @@ export default async function EventoDetalhePage({
   if (!event) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-16">
-        <h1 className="text-2xl font-semibold">Evento não encontrado</h1>
+        <h1 className="text-2xl">Evento não encontrado</h1>
       </main>
     );
   }
@@ -111,7 +111,7 @@ export default async function EventoDetalhePage({
         <img
           src={storyUrl.data.signedUrl}
           alt=""
-          className="block aspect-[9/16] w-full max-w-xs rounded-lg object-cover md:hidden"
+          className="block aspect-[9/16] w-full max-w-xs rounded-2xl object-cover md:hidden"
         />
       )}
       {landscapeUrl.data?.signedUrl && (
@@ -119,43 +119,43 @@ export default async function EventoDetalhePage({
         <img
           src={landscapeUrl.data.signedUrl}
           alt=""
-          className="hidden aspect-[16/9] w-full rounded-lg object-cover md:block"
+          className="hidden aspect-[16/9] w-full rounded-2xl object-cover md:block"
         />
       )}
 
-      <h1 className="mt-4 text-2xl font-semibold">{event.title}</h1>
-      <p className="mt-2 text-neutral-600">
+      <h1 className="mt-4 text-2xl">{event.title}</h1>
+      <p className="mt-2 text-muted">
         {new Date(event.event_date).toLocaleString("pt-BR")} · {event.location} ·{" "}
         {Number(event.price) > 0 ? `R$ ${Number(event.price).toFixed(2)}` : "Gratuito"}
       </p>
       {event.plus_price !== null && (
-        <p className={`text-sm ${isPlusActive ? "font-medium text-neutral-900" : "text-neutral-500"}`}>
+        <p className={`text-sm ${isPlusActive ? "font-medium text-foreground" : "text-muted"}`}>
           Preço especial pra assinantes Plus: R$ {Number(event.plus_price).toFixed(2)}
           {!isPlusActive && (
             <>
               {" "}
               ·{" "}
-              <Link href="/assinatura" className="underline">
+              <Link href="/assinatura">
                 Assine o Plus
               </Link>
             </>
           )}
         </p>
       )}
-      {event.description && <p className="mt-2 text-neutral-700">{event.description}</p>}
+      {event.description && <p className="mt-2 text-foreground/90">{event.description}</p>}
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 
       {registration ? (
-        <div className="mt-6 text-sm text-neutral-600">
+        <div className="mt-6 text-sm text-muted">
           <p>
-            Sua inscrição está: <strong>{registration.status}</strong>
+            Sua inscrição está: <strong className="text-foreground">{registration.status}</strong>
             {registration.payment_status !== "not_required" && (
-              <> · pagamento: <strong>{registration.payment_status}</strong></>
+              <> · pagamento: <strong className="text-foreground">{registration.payment_status}</strong></>
             )}
           </p>
           {registration.payment_url && registration.payment_status === "pending" && (
-            <a href={registration.payment_url} target="_blank" rel="noreferrer" className="underline">
+            <a href={registration.payment_url} target="_blank" rel="noreferrer">
               Finalizar pagamento
             </a>
           )}
@@ -163,7 +163,7 @@ export default async function EventoDetalhePage({
       ) : canRegister ? (
         <form action={inscrever} className="mt-6 flex flex-col gap-3">
           {isFull && (
-            <p className="text-sm text-amber-600">
+            <p className="text-sm text-on-accent-soft">
               Evento lotado —{" "}
               {isPlusActive
                 ? "como assinante Plus, sua inscrição entra na lista de prioridade: se abrir uma vaga, você é chamado primeiro."
@@ -177,23 +177,23 @@ export default async function EventoDetalhePage({
               name="cpf_cnpj"
               placeholder="CPF"
               required
-              className="w-full max-w-xs rounded border px-3 py-2 text-sm"
+              className="input w-full max-w-xs text-sm"
             />
           )}
-          <button type="submit" className="self-start rounded bg-black px-4 py-2 text-white">
+          <button type="submit" className="btn-primary self-start">
             {isFull ? "Entrar na lista de espera" : "Confirmar vaga"}
           </button>
         </form>
       ) : (
-        <p className="mt-6 text-sm text-neutral-600">
+        <p className="mt-6 text-sm text-muted">
           Sua verificação de identidade ainda não foi aprovada — isso é
           necessário antes de se inscrever em um evento.
         </p>
       )}
 
       {attendees && attendees.length > 0 && (
-        <div className="mt-10 border-t pt-6">
-          <h2 className="text-lg font-medium">Quem já confirmou presença</h2>
+        <div className="mt-10 border-t border-line pt-6">
+          <h2 className="text-lg">Quem já confirmou presença</h2>
           <ul className="mt-3 flex flex-col gap-2">
             {attendees.map(
               (attendee: {
@@ -203,7 +203,7 @@ export default async function EventoDetalhePage({
                 experience_level: string | null;
               }) => (
                 <li key={attendee.id} className="flex items-center gap-2">
-                  <Link href={`/perfil/${attendee.id}`} className="text-sm font-medium underline">
+                  <Link href={`/perfil/${attendee.id}`} className="text-sm font-medium no-underline text-foreground hover:text-accent">
                     {attendee.name}
                   </Link>
                   <ExperienceBadge level={attendee.experience_level} />
@@ -214,8 +214,8 @@ export default async function EventoDetalhePage({
         </div>
       )}
 
-      <div className="mt-10 border-t pt-6">
-        <h2 className="text-lg font-medium">Indicar este evento</h2>
+      <div className="mt-10 border-t border-line pt-6">
+        <h2 className="text-lg">Indicar este evento</h2>
 
         <form action={convidarPorSelo} className="mt-3 flex items-center gap-2">
           <input type="hidden" name="event_id" value={event.id} />
@@ -224,22 +224,22 @@ export default async function EventoDetalhePage({
             name="badge_id"
             placeholder="Selo de quem você quer indicar"
             required
-            className="rounded border px-3 py-2 text-sm"
+            className="input text-sm"
           />
-          <button type="submit" className="rounded border px-3 py-2 text-sm">
+          <button type="submit" className="btn-secondary">
             Indicar
           </button>
         </form>
 
         <form action={gerarLinkConvite} className="mt-3">
           <input type="hidden" name="event_id" value={event.id} />
-          <button type="submit" className="rounded border px-3 py-2 text-sm">
+          <button type="submit" className="btn-secondary">
             Gerar link de convite
           </button>
         </form>
 
         {myInvites && myInvites.length > 0 && (
-          <ul className="mt-4 flex flex-col gap-2 text-sm text-neutral-600">
+          <ul className="mt-4 flex flex-col gap-2 text-sm text-muted">
             {myInvites.map((invite) => (
               <li key={invite.id} className="flex items-center gap-2">
                 <span>

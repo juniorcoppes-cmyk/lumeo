@@ -1,20 +1,20 @@
 export default function RegrasPage() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-semibold">Manual de Boas Convivências</h1>
-      <p className="mt-1 text-sm font-medium text-neutral-600">(Código de Conduta)</p>
-      <p className="mt-2 text-sm text-neutral-500">Última atualização: julho de 2026</p>
+      <h1 className="text-3xl">Manual de Boas Convivências</h1>
+      <p className="mt-1 text-sm font-medium text-muted">(Código de Conduta)</p>
+      <p className="mt-2 text-sm text-muted">Última atualização: julho de 2026</p>
 
-      <p className="mt-6 text-neutral-700">
+      <p className="mt-6 text-foreground/90">
         O Lumeo existe para aproximar pessoas do meio liberal com leveza e
         respeito. Estas regras existem para que todo mundo se sinta seguro
         pra usar o app — e valem tanto aqui dentro quanto nos encontros
         presenciais que ele viabiliza.
       </p>
 
-      <div className="mt-8 flex flex-col gap-6 text-neutral-700">
+      <div className="mt-8 flex flex-col gap-6 text-foreground/90">
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             1. Consentimento sempre, sem exceção
           </h2>
           <p className="mt-2">
@@ -26,7 +26,7 @@ export default function RegrasPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">2. Autenticidade</h2>
+          <h2 className="text-lg text-foreground">2. Autenticidade</h2>
           <p className="mt-2">
             Use fotos e informações reais. Perfis falsos, fotos de
             terceiros ou identidade forjada resultam em banimento. É
@@ -37,7 +37,7 @@ export default function RegrasPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             3. Comunicação respeitosa
           </h2>
           <p className="mt-2">
@@ -50,7 +50,7 @@ export default function RegrasPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             4. Discrição é regra, não favor
           </h2>
           <p className="mt-2">
@@ -64,7 +64,7 @@ export default function RegrasPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             5. Perfis e fotos do álbum
           </h2>
           <p className="mt-2">
@@ -76,7 +76,7 @@ export default function RegrasPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             6. Nos encontros presenciais
           </h2>
           <p className="mt-2">
@@ -88,7 +88,7 @@ export default function RegrasPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg text-foreground">
             7. O que gera denúncia e banimento
           </h2>
           <p className="mt-2">
@@ -101,13 +101,13 @@ export default function RegrasPage() {
         </section>
       </div>
 
-      <p className="mt-8 text-sm text-neutral-500">
+      <p className="mt-8 text-sm text-muted">
         Veja também nossos{" "}
-        <a href="/termos" className="underline">
+        <a href="/termos">
           Termos de Uso
         </a>{" "}
         e nossa{" "}
-        <a href="/privacidade" className="underline">
+        <a href="/privacidade">
           Política de Privacidade
         </a>
         .
