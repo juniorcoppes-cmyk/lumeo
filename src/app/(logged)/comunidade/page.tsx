@@ -2,14 +2,20 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ExperienceBadge } from "@/components/ExperienceBadge";
+import { EXPERIENCE_LEVEL_LABELS, EXPERIENCE_LEVELS } from "@/lib/experience-level";
 import { startGeneralConversation } from "./actions";
 
 export default async function ComunidadePage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; max_distance_km?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    max_distance_km?: string;
+    profile_filter?: string;
+    experience_level?: string;
+  }>;
 }) {
-  const { error, max_distance_km } = await searchParams;
+  const { error, max_distance_km, profile_filter, experience_level } = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -42,6 +48,8 @@ export default async function ComunidadePage({
 
   const { data: people } = await supabase.rpc("browse_verified_users", {
     p_max_distance_km: max_distance_km ? Number(max_distance_km) : null,
+    p_profile_filter: profile_filter || null,
+    p_experience_level: experience_level || null,
   });
 
   const peopleWithAvatars = await Promise.all(
@@ -62,9 +70,41 @@ export default async function ComunidadePage({
         navegação discreta no perfil não aparece aqui.
       </p>
 
-      <form method="get" className="mt-4 flex items-center gap-2 text-sm">
+      <form method="get" className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+        <label htmlFor="profile_filter" className="text-neutral-500">
+          Perfil
+        </label>
+        <select
+          id="profile_filter"
+          name="profile_filter"
+          defaultValue={profile_filter ?? ""}
+          className="rounded border px-2 py-1"
+        >
+          <option value="">Todos</option>
+          <option value="casais">Casais</option>
+          <option value="homens">Homens</option>
+          <option value="mulheres">Mulheres</option>
+        </select>
+
+        <label htmlFor="experience_level" className="text-neutral-500">
+          Experiência
+        </label>
+        <select
+          id="experience_level"
+          name="experience_level"
+          defaultValue={experience_level ?? ""}
+          className="rounded border px-2 py-1"
+        >
+          <option value="">Todas</option>
+          {EXPERIENCE_LEVELS.map((level) => (
+            <option key={level} value={level}>
+              {EXPERIENCE_LEVEL_LABELS[level]}
+            </option>
+          ))}
+        </select>
+
         <label htmlFor="max_distance_km" className="text-neutral-500">
-          Filtrar por distância
+          Distância
         </label>
         <select
           id="max_distance_km"

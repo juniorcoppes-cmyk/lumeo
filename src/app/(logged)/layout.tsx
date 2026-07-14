@@ -33,7 +33,10 @@ export default async function LoggedLayout({
 
   return (
     <PinLockGate>
-      <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2 text-sm sm:px-6">
+      <header className="flex justify-center border-b py-3">
+        <span className="text-lg font-semibold tracking-tight">Lumeo</span>
+      </header>
+      <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-3 text-sm sm:px-6">
         <Link href="/inicio" className="font-medium underline">
           Início
         </Link>

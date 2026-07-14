@@ -436,6 +436,15 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
     perfil) continuam olhando a coluna direto, de propósito** — o bypass é
     só pro ADM não precisar de selo próprio, não pra ele ver gente que
     também não é verificada.
+- Filtros de busca na Comunidade (pedido do fundador em 2026-07-13):
+  `browse_verified_users` ganhou `p_profile_filter` ('casais'/'homens'/
+  'mulheres') e `p_experience_level`, além da distância que já existia.
+  "Homens"/"mulheres" só filtra perfil individual (`profile_type` +
+  `gender`); perfil casal sempre cai em "casais" independente do gênero de
+  cada parceiro. Precisou dropar a função de 1 parâmetro antes de recriar
+  com 3 — adicionar parâmetro via `create or replace` cria uma sobrecarga
+  nova em vez de substituir (mesma lição já documentada). Ver
+  `20260713000005_comunidade_filtros.sql`.
 
 ## Correção de segurança crítica (2026-07-12)
 Durante a implementação do status de leitura de mensagens, percebi que
