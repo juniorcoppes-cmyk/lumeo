@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { sendMessage } from "./actions";
@@ -19,21 +20,7 @@ export default async function ChatConversaPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Marca como lida qualquer mensagem do outro participante ainda não lida
-  // ao abrir a conversa — é isso que faz o texto do remetente voltar ao
-  // normal (deixa de estar em negrito) na tela dele.
-  await supabase
-    .from("messages")
-    .update({ read_at: new Date().toISOString() })
-    .eq("conversation_id", id)
-    .is("read_at", null)
-    .neq("sender_id", user.id);
-
-  const { data: messages } = await supabase
-    .from("messages")
-    .select("id, sender_id, content, sent_at, read_at")
-    .eq("conversation_id", id)
-    .order("sent_at", { ascending: true });
+  const deviceId = (await cookies()).get("lumeo_device_id")?.value;
 
   const { data: conversation } = await supabase
     .from("conversations")
@@ -41,12 +28,12 @@ export default async function ChatConversaPage({
     .eq("id", id)
     .single();
 
-  let other: { id: string; name: string; avatarUrl?: string } | null = null;
+  let other: { id: string; name: string; avatarUrl?: string; profileType: string } | null = null;
   if (conversation) {
     const otherId = conversation.user_a_id === user.id ? conversation.user_b_id : conversation.user_a_id;
     const { data: otherProfile } = await supabase
       .from("users")
-      .select("id, name, avatar_path")
+      .select("id, name, avatar_path, profile_type")
       .eq("id", otherId)
       .single();
     if (otherProfile) {
@@ -54,9 +41,45 @@ export default async function ChatConversaPage({
         ? (await supabase.storage.from("profile-photos").createSignedUrl(otherProfile.avatar_path, 300))
             .data?.signedUrl
         : undefined;
-      other = { id: otherProfile.id, name: otherProfile.name, avatarUrl };
+      other = {
+        id: otherProfile.id,
+        name: otherProfile.name,
+        avatarUrl,
+        profileType: otherProfile.profile_type,
+      };
     }
   }
+
+  const { data: messages } = await supabase
+    .from("messages")
+    .select("id, sender_id, content, sent_at, message_reads(device_id)")
+    .eq("conversation_id", id)
+    .order("sent_at", { ascending: true });
+
+  // Leitura por aparelho (não por conta) — perfil casal usa o mesmo login
+  // em dois celulares, então "lido" é rastreado por dispositivo, não pela
+  // conta. Marca como lida, pra ESTE aparelho, qualquer mensagem do outro
+  // participante ainda não confirmada por ele.
+  if (deviceId && messages) {
+    const toMark = messages.filter(
+      (m) =>
+        m.sender_id !== user.id &&
+        !(m.message_reads as { device_id: string }[]).some((r) => r.device_id === deviceId),
+    );
+    if (toMark.length > 0) {
+      await supabase
+        .from("message_reads")
+        .upsert(
+          toMark.map((m) => ({ message_id: m.id, device_id: deviceId })),
+          { onConflict: "message_id,device_id" },
+        );
+    }
+  }
+
+  // Perfil casal só conta como "lida de verdade" quando 2 aparelhos
+  // distintos do destinatário já confirmaram — cada parceiro no seu
+  // celular. Perfil individual, basta 1.
+  const requiredReaders = other?.profileType === "casal" ? 2 : 1;
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col px-6 py-16">
@@ -79,7 +102,10 @@ export default async function ChatConversaPage({
       <ul className="mt-6 flex flex-col gap-2">
         {messages?.map((m) => {
           const isMine = m.sender_id === user.id;
-          const unread = isMine && !m.read_at;
+          const distinctReaders = new Set(
+            (m.message_reads as { device_id: string }[]).map((r) => r.device_id),
+          ).size;
+          const unread = isMine && distinctReaders < requiredReaders;
           return (
             <li
               key={m.id}

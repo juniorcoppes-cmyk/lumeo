@@ -31,6 +31,12 @@ export default async function LoggedLayout({
     redirect(`/convite/${code}`);
   }
 
+  const { count: unreadNotifications } = await supabase
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .is("read_at", null);
+
   return (
     <PinLockGate>
       <header className="flex justify-center border-b py-3">
@@ -48,6 +54,14 @@ export default async function LoggedLayout({
         </Link>
         <Link href="/chat" className="font-medium underline">
           Chat
+        </Link>
+        <Link href="/notificacoes" className="font-medium underline">
+          Notificações
+          {!!unreadNotifications && (
+            <span className="ml-1 rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-normal text-white">
+              {unreadNotifications}
+            </span>
+          )}
         </Link>
         <Link href="/perfil" className="font-medium underline">
           Perfil

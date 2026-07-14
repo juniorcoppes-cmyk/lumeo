@@ -491,6 +491,32 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
     trocado tanto no `check` da tabela quanto em `get_profile_rating_counts()`
     e em `src/lib/profile-options.ts`. Ver
     `20260714000001_invite_response_and_rating_tags.sql`.
+- Oitava rodada (2026-07-14): notificação de comentário em foto + leitura
+  de mensagem por aparelho pra perfil casal — **duas decisões explícitas do
+  fundador**: notificação só dentro do app (sem push de verdade, que
+  exigiria pedir permissão ao usuário e infraestrutura de Web Push — não
+  construído), e leitura rastreada por aparelho (não por identidade
+  declarada).
+  - `notifications` (tabela nova, só o dono lê/marca como lida) + trigger
+    `notify_photo_comment_trigger` em `photo_comments` (security definer,
+    não existe policy de insert pra usuário comum de propósito). Nav ganha
+    link "Notificações" com contador de não lidas; `/notificacoes` marca
+    tudo como lido ao abrir, mesmo padrão do `/chat/[id]`.
+  - Leitura por aparelho: perfil casal usa o mesmo login em dois celulares
+    — não tem como saber "qual dos dois" leu pela sessão (é a mesma
+    conta). Cookie `lumeo_device_id` (gerado no middleware, 5 anos) mais
+    tabela nova `message_reads (message_id, device_id)` substituem
+    `messages.read_at` (coluna antiga fica no schema sem uso — nada mais
+    escreve nela). Mensagem só considerada lida quando o número de
+    aparelhos distintos que confirmaram bate com o esperado:
+    `profile_type = 'casal'` exige 2, `'individual'` exige 1. **Limitação
+    conhecida**: se o casal usar sempre o mesmo aparelho/navegador (só 1
+    device_id), a mensagem nunca vai "des-negritar" — o mecanismo pressupõe
+    2 aparelhos físicos distintos, como o fundador confirmou ser o caso
+    real de uso. Policy de insert em `message_reads` exige
+    `sender_id <> auth.uid()` — sem isso o próprio remetente poderia
+    inserir um device_id falso e fingir que a própria mensagem foi lida.
+    Ver `20260714000002_notifications_and_per_device_read.sql`.
 
 ## Correção de segurança crítica (2026-07-12)
 Durante a implementação do status de leitura de mensagens, percebi que

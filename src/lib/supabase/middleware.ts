@@ -27,5 +27,16 @@ export async function updateSession(request: NextRequest) {
 
   await supabase.auth.getUser();
 
+  // Identifica o aparelho (cookie de longa duração) — usado pra marcar
+  // leitura de mensagem por aparelho, não por conta (perfil casal usa o
+  // mesmo login em dois celulares diferentes).
+  if (!request.cookies.get("lumeo_device_id")) {
+    response.cookies.set("lumeo_device_id", crypto.randomUUID(), {
+      maxAge: 60 * 60 * 24 * 365 * 5,
+      path: "/",
+      sameSite: "lax",
+    });
+  }
+
   return response;
 }
