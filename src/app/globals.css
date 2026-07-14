@@ -24,3 +24,18 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Feedback visual ao clicar em qualquer botão/link — sem isso os cliques
+   pareciam não fazer nada até a página terminar de responder. */
+a,
+button {
+  transition:
+    transform 0.1s ease,
+    opacity 0.1s ease;
+}
+
+a:active,
+button:active {
+  transform: scale(0.96);
+  opacity: 0.7;
+}

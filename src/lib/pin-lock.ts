@@ -1,8 +1,16 @@
 // Cadeado de privacidade local (não é autenticação de verdade — só evita
 // abrir o app por acidente/curiosidade quando instalado na tela inicial do
 // celular). PIN fica só no aparelho (localStorage), nunca no servidor.
+//
+// O "desbloqueado" NÃO é persistido em storage nenhum, de propósito — um
+// PWA instalado costuma manter o processo vivo em segundo plano (o celular
+// só "esconde" o app, não fecha de verdade), então sessionStorage ficava
+// desbloqueado pra sempre mesmo saindo do app (bug relatado pelo
+// fundador). O estado de desbloqueio vive só em memória (useState em
+// PinLockGate) e é resetado toda vez que a aba fica oculta
+// (visibilitychange), então trocar de app ou apagar a tela sempre exige o
+// PIN de novo ao voltar.
 const PIN_HASH_KEY = "lumeo_pin_hash";
-const UNLOCKED_KEY = "lumeo_pin_unlocked";
 
 async function hashPin(pin: string): Promise<string> {
   const bytes = new TextEncoder().encode(pin);
@@ -22,21 +30,12 @@ export async function setPin(pin: string): Promise<void> {
 
 export function clearPin(): void {
   localStorage.removeItem(PIN_HASH_KEY);
-  sessionStorage.removeItem(UNLOCKED_KEY);
 }
 
 export async function checkPin(pin: string): Promise<boolean> {
   const stored = localStorage.getItem(PIN_HASH_KEY);
   if (!stored) return false;
   return (await hashPin(pin)) === stored;
-}
-
-export function isUnlockedThisSession(): boolean {
-  return sessionStorage.getItem(UNLOCKED_KEY) === "1";
-}
-
-export function markUnlockedThisSession(): void {
-  sessionStorage.setItem(UNLOCKED_KEY, "1");
 }
 
 export function isStandalonePwa(): boolean {

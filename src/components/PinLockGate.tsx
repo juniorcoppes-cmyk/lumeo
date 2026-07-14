@@ -1,32 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  checkPin,
-  hasPinConfigured,
-  isStandalonePwa,
-  isUnlockedThisSession,
-  markUnlockedThisSession,
-} from "@/lib/pin-lock";
+import { useEffect, useRef, useState } from "react";
+import { checkPin, hasPinConfigured, isStandalonePwa } from "@/lib/pin-lock";
 
 export function PinLockGate({ children }: { children: React.ReactNode }) {
   const [locked, setLocked] = useState(false);
   const [ready, setReady] = useState(false);
   const [pin, setPinValue] = useState("");
   const [error, setError] = useState(false);
+  // Só relockar quando a aba volta a ficar visível DEPOIS de ter ficado
+  // oculta — sem isso, o primeiro visibilitychange (disparado logo na
+  // montagem em alguns navegadores) relockava na hora, antes mesmo de dar
+  // pra digitar o PIN.
+  const wasHidden = useRef(false);
 
   useEffect(() => {
-    const shouldLock = isStandalonePwa() && hasPinConfigured() && !isUnlockedThisSession();
-    setLocked(shouldLock);
+    const active = isStandalonePwa() && hasPinConfigured();
+    setLocked(active);
     setReady(true);
+
+    function handleVisibilityChange() {
+      if (!isStandalonePwa() || !hasPinConfigured()) return;
+      if (document.hidden) {
+        wasHidden.current = true;
+      } else if (wasHidden.current) {
+        // Voltou de segundo plano (trocou de app, apagou a tela, etc.) —
+        // sempre pede o PIN de novo, nunca fica "logado" indefinidamente.
+        setLocked(true);
+        wasHidden.current = false;
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (await checkPin(pin)) {
-      markUnlockedThisSession();
       setLocked(false);
       setError(false);
+      setPinValue("");
     } else {
       setError(true);
       setPinValue("");
