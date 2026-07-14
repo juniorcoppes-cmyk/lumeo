@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/lib/auth-actions";
 import { PinLockGate } from "@/components/PinLockGate";
+import { PrimaryNav } from "@/components/PrimaryNav";
+import { CalendarIcon, FlagIcon, ShieldCheckIcon, UsersIcon } from "@/components/icons";
 
 export default async function AdminLayout({
   children,
@@ -29,42 +31,42 @@ export default async function AdminLayout({
     .select("id", { count: "exact", head: true })
     .eq("status", "pending");
 
+  const primaryItems = [
+    { href: "/admin/eventos", label: "Eventos", icon: <CalendarIcon /> },
+    { href: "/admin/verificacoes", label: "Verificações", icon: <ShieldCheckIcon /> },
+    { href: "/admin/usuarios", label: "Usuários", icon: <UsersIcon /> },
+    {
+      href: "/admin/denuncias",
+      label: "Denúncias",
+      icon: <FlagIcon />,
+      badge: pendingReports ?? 0,
+    },
+  ];
+
   return (
     <PinLockGate>
-      <header className="flex justify-center border-b border-line bg-surface py-3">
-        <span className="font-display text-lg text-accent">Lumeo</span>
+      <header className="border-b border-line bg-surface">
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-2 px-3 py-3">
+          <span className="font-display text-lg text-accent">Lumeo</span>
+          <PrimaryNav items={primaryItems} />
+        </div>
       </header>
-      <nav className="flex flex-wrap items-center gap-2 px-3 py-3 text-sm sm:px-6">
-        <Link href="/inicio" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
+
+      <div className="pb-16">{children}</div>
+
+      <footer className="fixed inset-x-0 bottom-0 z-40 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line bg-surface px-3 py-2 text-xs">
+        <Link href="/inicio" className="text-muted no-underline hover:text-foreground">
           Início
         </Link>
-        <Link href="/admin/eventos" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
-          Eventos
-        </Link>
-        <Link href="/admin/verificacoes" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
-          Verificações
-        </Link>
-        <Link href="/admin/usuarios" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
-          Usuários
-        </Link>
-        <Link href="/admin/planos" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
+        <Link href="/admin/planos" className="text-muted no-underline hover:text-foreground">
           Planos
         </Link>
-        <Link href="/admin/denuncias" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
-          Denúncias
-          {!!pendingReports && (
-            <span className="ml-1 rounded-full bg-accent px-1.5 py-0.5 text-xs font-normal text-on-accent">
-              {pendingReports}
-            </span>
-          )}
-        </Link>
-        <form action={signOut} className="ml-auto">
-          <button type="submit" className="rounded-full px-3 py-1.5 text-muted no-underline">
+        <form action={signOut}>
+          <button type="submit" className="text-muted no-underline hover:text-foreground">
             Sair
           </button>
         </form>
-      </nav>
-      {children}
+      </footer>
     </PinLockGate>
   );
 }

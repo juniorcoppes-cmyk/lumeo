@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/lib/auth-actions";
 import { PinLockGate } from "@/components/PinLockGate";
+import { PrimaryNav } from "@/components/PrimaryNav";
+import { CalendarIcon, HomeIcon, MessageIcon, UserIcon, UsersIcon } from "@/components/icons";
 
 export default async function LoggedLayout({
   children,
@@ -37,53 +39,51 @@ export default async function LoggedLayout({
     .eq("user_id", user.id)
     .is("read_at", null);
 
+  const primaryItems = [
+    { href: "/inicio", label: "Início", icon: <HomeIcon /> },
+    { href: "/eventos", label: "Eventos", icon: <CalendarIcon /> },
+    { href: "/comunidade", label: "Comunidade", icon: <UsersIcon /> },
+    { href: "/chat", label: "Chat", icon: <MessageIcon /> },
+    { href: "/perfil", label: "Perfil", icon: <UserIcon /> },
+  ];
+
   return (
     <PinLockGate>
-      <header className="flex justify-center border-b border-line bg-surface py-3">
-        <span className="font-display text-lg text-accent">Lumeo</span>
+      <header className="border-b border-line bg-surface">
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-2 px-3 py-3">
+          <span className="font-display text-lg text-accent">Lumeo</span>
+          <PrimaryNav items={primaryItems} />
+        </div>
       </header>
-      <nav className="flex flex-wrap items-center gap-2 px-3 py-3 text-sm sm:px-6">
-        <Link href="/inicio" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
-          Início
-        </Link>
-        <Link href="/eventos" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
-          Eventos
-        </Link>
-        <Link href="/comunidade" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
-          Comunidade
-        </Link>
-        <Link href="/chat" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
-          Chat
-        </Link>
-        <Link href="/notificacoes" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
+
+      <div className="pb-16">{children}</div>
+
+      <footer className="fixed inset-x-0 bottom-0 z-40 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line bg-surface px-3 py-2 text-xs">
+        <Link href="/notificacoes" className="text-muted no-underline hover:text-foreground">
           Notificações
           {!!unreadNotifications && (
-            <span className="ml-1 rounded-full bg-accent px-1.5 py-0.5 text-xs font-normal text-on-accent">
+            <span className="ml-1 rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold text-on-accent">
               {unreadNotifications}
             </span>
           )}
         </Link>
-        <Link href="/perfil" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
-          Perfil
-        </Link>
-        <Link href="/assinatura" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
+        <Link href="/assinatura" className="text-muted no-underline hover:text-foreground">
           Assinatura
         </Link>
-        <Link href="/regras" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
+        <Link href="/regras" className="text-muted no-underline hover:text-foreground">
           Regras
         </Link>
         {profile?.is_admin && (
-          <Link href="/admin/eventos" className="rounded-full px-3 py-1.5 font-medium no-underline hover:bg-accent-soft">
+          <Link href="/admin/eventos" className="text-muted no-underline hover:text-foreground">
             Admin
           </Link>
         )}
-        <form action={signOut} className="ml-auto">
-          <button type="submit" className="rounded-full px-3 py-1.5 text-muted no-underline">
+        <form action={signOut}>
+          <button type="submit" className="text-muted no-underline hover:text-foreground">
             Sair
           </button>
         </form>
-      </nav>
-      {children}
+      </footer>
     </PinLockGate>
   );
 }
