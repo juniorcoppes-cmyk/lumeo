@@ -26,22 +26,20 @@ export default async function AdminLayout({
 
   return (
     <PinLockGate>
-      <nav className="flex items-center justify-between gap-2 px-3 py-2 text-sm sm:px-6">
-        <div className="flex gap-4 overflow-x-auto whitespace-nowrap font-medium">
-          <Link href="/inicio" className="underline">
-            Início
-          </Link>
-          <Link href="/admin/eventos" className="underline">
-            Eventos
-          </Link>
-          <Link href="/admin/verificacoes" className="underline">
-            Verificações
-          </Link>
-          <Link href="/admin/usuarios" className="underline">
-            Usuários
-          </Link>
-        </div>
-        <form action={signOut} className="shrink-0">
+      <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2 text-sm sm:px-6">
+        <Link href="/inicio" className="font-medium underline">
+          Início
+        </Link>
+        <Link href="/admin/eventos" className="font-medium underline">
+          Eventos
+        </Link>
+        <Link href="/admin/verificacoes" className="font-medium underline">
+          Verificações
+        </Link>
+        <Link href="/admin/usuarios" className="font-medium underline">
+          Usuários
+        </Link>
+        <form action={signOut} className="ml-auto">
           <button type="submit" className="text-neutral-500 underline">
             Sair
           </button>

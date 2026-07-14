@@ -33,33 +33,31 @@ export default async function LoggedLayout({
 
   return (
     <PinLockGate>
-      <nav className="flex items-center justify-between gap-2 px-3 py-2 text-sm sm:px-6">
-        <div className="flex gap-4 overflow-x-auto whitespace-nowrap font-medium">
-          <Link href="/inicio" className="underline">
-            Início
+      <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2 text-sm sm:px-6">
+        <Link href="/inicio" className="font-medium underline">
+          Início
+        </Link>
+        <Link href="/eventos" className="font-medium underline">
+          Eventos
+        </Link>
+        <Link href="/comunidade" className="font-medium underline">
+          Comunidade
+        </Link>
+        <Link href="/chat" className="font-medium underline">
+          Chat
+        </Link>
+        <Link href="/perfil" className="font-medium underline">
+          Perfil
+        </Link>
+        <Link href="/assinatura" className="font-medium underline">
+          Assinatura
+        </Link>
+        {profile?.is_admin && (
+          <Link href="/admin/eventos" className="font-medium underline">
+            Admin
           </Link>
-          <Link href="/eventos" className="underline">
-            Eventos
-          </Link>
-          <Link href="/comunidade" className="underline">
-            Comunidade
-          </Link>
-          <Link href="/chat" className="underline">
-            Chat
-          </Link>
-          <Link href="/perfil" className="underline">
-            Perfil
-          </Link>
-          <Link href="/assinatura" className="underline">
-            Assinatura
-          </Link>
-          {profile?.is_admin && (
-            <Link href="/admin/eventos" className="underline">
-              Admin
-            </Link>
-          )}
-        </div>
-        <form action={signOut} className="shrink-0">
+        )}
+        <form action={signOut} className="ml-auto">
           <button type="submit" className="text-neutral-500 underline">
             Sair
           </button>
