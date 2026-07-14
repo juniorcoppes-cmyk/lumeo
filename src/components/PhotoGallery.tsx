@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { addPhotoComment, deletePhotoComment } from "@/lib/photo-comments-actions";
+import { togglePhotoLike } from "@/lib/photo-likes-actions";
 
 type Photo = { id: string; url?: string; storage_path?: string };
 type Comment = {
@@ -11,10 +12,12 @@ type Comment = {
   content: string;
   created_at: string;
 };
+type LikeInfo = { count: number; likedByMe: boolean };
 
 export function PhotoGallery({
   photos,
   commentsByPhoto,
+  likesByPhoto,
   currentUserId,
   photoOwnerId,
   revalidatePath,
@@ -22,6 +25,7 @@ export function PhotoGallery({
 }: {
   photos: Photo[];
   commentsByPhoto: Record<string, Comment[]>;
+  likesByPhoto: Record<string, LikeInfo>;
   currentUserId: string;
   photoOwnerId: string;
   revalidatePath: string;
@@ -68,6 +72,19 @@ export function PhotoGallery({
                     className="h-24 w-24 rounded object-cover"
                   />
                 </button>
+                <form action={togglePhotoLike}>
+                  <input type="hidden" name="photo_id" value={photo.id} />
+                  <input type="hidden" name="revalidate_path" value={revalidatePath} />
+                  <button
+                    type="submit"
+                    className={`flex items-center gap-1 text-xs ${
+                      likesByPhoto[photo.id]?.likedByMe ? "opacity-100" : "opacity-50"
+                    }`}
+                  >
+                    <span>😈</span>
+                    <span>{likesByPhoto[photo.id]?.count ?? 0}</span>
+                  </button>
+                </form>
                 {deletePhotoAction && (
                   <form action={deletePhotoAction}>
                     <input type="hidden" name="photo_id" value={photo.id} />
@@ -128,6 +145,19 @@ export function PhotoGallery({
             </div>
 
             <div className="rounded bg-white p-4">
+              <form action={togglePhotoLike} className="mb-3">
+                <input type="hidden" name="photo_id" value={openPhoto.id} />
+                <input type="hidden" name="revalidate_path" value={revalidatePath} />
+                <button
+                  type="submit"
+                  className={`flex items-center gap-2 rounded border px-3 py-1.5 text-sm ${
+                    likesByPhoto[openPhoto.id]?.likedByMe ? "border-black" : "border-neutral-300"
+                  }`}
+                >
+                  <span>😈</span>
+                  <span>{likesByPhoto[openPhoto.id]?.count ?? 0} curtida(s)</span>
+                </button>
+              </form>
               <ul className="flex flex-col gap-2">
                 {(commentsByPhoto[openPhoto.id] ?? []).map((c) => (
                   <li key={c.id} className="text-sm">

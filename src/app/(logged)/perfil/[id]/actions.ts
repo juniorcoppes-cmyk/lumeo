@@ -98,3 +98,24 @@ export async function saveRating(formData: FormData) {
 
   revalidatePath(`/perfil/${targetId}`);
 }
+
+export async function reportUser(formData: FormData) {
+  const reportedId = formData.get("reported_id") as string;
+  const reason = formData.get("reason") as string;
+  const description = (formData.get("description") as string)?.trim() || null;
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  await supabase.from("user_reports").insert({
+    reporter_id: user.id,
+    reported_id: reportedId,
+    reason,
+    description,
+  });
+
+  redirect(`/perfil/${reportedId}?reported=1`);
+}

@@ -41,6 +41,12 @@ export default async function CadastroDadosPage({
           <option value="individual">Individual</option>
           <option value="casal">Casal</option>
         </select>
+        <p className="-mt-2 text-xs text-neutral-500">
+          Seu perfil só é aprovado com no mínimo 6 fotos no álbum. Perfil
+          casal precisa, além disso, de pelo menos uma foto de corpo
+          inteiro de cada um dos dois — perfil com foto de só uma pessoa
+          não é aceito como casal.
+        </p>
         <select
           name="experience_level"
           required
@@ -62,10 +68,14 @@ export default async function CadastroDadosPage({
             Tenho 18 anos ou mais e li e aceito os{" "}
             <a href="/termos" target="_blank" className="underline">
               Termos de Uso
-            </a>{" "}
-            e a{" "}
+            </a>
+            , a{" "}
             <a href="/privacidade" target="_blank" className="underline">
               Política de Privacidade
+            </a>{" "}
+            e o{" "}
+            <a href="/regras" target="_blank" className="underline">
+              Manual de Boas Convivências
             </a>
             .
           </span>

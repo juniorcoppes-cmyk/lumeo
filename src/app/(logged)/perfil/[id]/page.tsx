@@ -15,14 +15,32 @@ import {
   type LookingFor,
   type Orientation,
 } from "@/lib/profile-options";
-import { proposeConnection, requestPhotoAccess, respondConnection, saveRating } from "./actions";
+import {
+  proposeConnection,
+  reportUser,
+  requestPhotoAccess,
+  respondConnection,
+  saveRating,
+} from "./actions";
+
+const REPORT_REASON_LABELS: Record<string, string> = {
+  spam: "Spam",
+  mensagem_ofensiva: "Mensagem ofensiva",
+  conteudo_inadequado: "Conteúdo inadequado",
+  assedio: "Assédio",
+  perfil_falso: "Perfil falso",
+  outro: "Outro",
+};
 
 export default async function OutroPerfilPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ reported?: string }>;
 }) {
   const { id } = await params;
+  const { reported } = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -181,6 +199,24 @@ export default async function OutroPerfilPage({
       content: c.content,
       created_at: c.created_at,
     });
+  }
+
+  const [{ data: likeCounts }, { data: myLikes }] = allPhotoIds.length
+    ? await Promise.all([
+        supabase.rpc("get_photo_like_counts", { p_photo_ids: allPhotoIds }),
+        supabase.from("photo_likes").select("photo_id").eq("user_id", user.id).in("photo_id", allPhotoIds),
+      ])
+    : [{ data: [] }, { data: [] }];
+
+  const myLikedPhotoIds = new Set((myLikes ?? []).map((l) => l.photo_id));
+  const likesByPhoto: Record<string, { count: number; likedByMe: boolean }> = {};
+  for (const photoId of allPhotoIds) {
+    likesByPhoto[photoId] = {
+      count: Number(
+        likeCounts?.find((l: { photo_id: string }) => l.photo_id === photoId)?.like_count ?? 0,
+      ),
+      likedByMe: myLikedPhotoIds.has(photoId),
+    };
   }
 
   return (
@@ -352,6 +388,7 @@ export default async function OutroPerfilPage({
           <PhotoGallery
             photos={corpoWithUrls}
             commentsByPhoto={commentsByPhoto}
+            likesByPhoto={likesByPhoto}
             currentUserId={user.id}
             photoOwnerId={id}
             revalidatePath={`/perfil/${id}`}
@@ -370,6 +407,7 @@ export default async function OutroPerfilPage({
             <PhotoGallery
               photos={rostoWithUrls}
               commentsByPhoto={commentsByPhoto}
+              likesByPhoto={likesByPhoto}
               currentUserId={user.id}
               photoOwnerId={id}
               revalidatePath={`/perfil/${id}`}
@@ -395,6 +433,42 @@ export default async function OutroPerfilPage({
             </form>
           </div>
         )}
+      </section>
+
+      <section className="mt-10 border-t pt-6">
+        <details>
+          <summary className="cursor-pointer text-sm text-red-600 underline">
+            Denunciar este perfil
+          </summary>
+          {reported ? (
+            <p className="mt-3 text-sm text-neutral-600">
+              Denúncia enviada — nossa equipe vai avaliar.
+            </p>
+          ) : (
+            <form action={reportUser} className="mt-3 flex flex-col gap-2 text-sm">
+              <input type="hidden" name="reported_id" value={id} />
+              <select name="reason" required className="rounded border px-2 py-1.5">
+                {Object.entries(REPORT_REASON_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <textarea
+                name="description"
+                placeholder="Detalhes (opcional)"
+                rows={3}
+                className="rounded border px-2 py-1.5"
+              />
+              <button
+                type="submit"
+                className="self-start rounded border border-red-600 px-3 py-1.5 text-red-600"
+              >
+                Enviar denúncia
+              </button>
+            </form>
+          )}
+        </details>
       </section>
     </main>
   );

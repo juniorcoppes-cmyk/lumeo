@@ -18,6 +18,7 @@ import {
   deletePhoto,
   removeAvatar,
   respondPhotoRequest,
+  toggleCoupleSingleDevice,
   toggleDiscreetMode,
   updateAvatar,
   updateExperienceLevel,
@@ -40,7 +41,7 @@ export default async function PerfilPage({
   const { data: profile } = await supabase
     .from("users")
     .select(
-      "name, email, profile_type, verification_badge_id, discreet_mode, experience_level, location_updated_at, bio, birth_date, gender, sexual_orientation, looking_for, partner_birth_date, partner_gender, partner_sexual_orientation, avatar_path",
+      "name, email, profile_type, verification_badge_id, discreet_mode, couple_single_device, experience_level, location_updated_at, bio, birth_date, gender, sexual_orientation, looking_for, partner_birth_date, partner_gender, partner_sexual_orientation, avatar_path",
     )
     .eq("id", user.id)
     .single();
@@ -99,6 +100,24 @@ export default async function PerfilPage({
       content: c.content,
       created_at: c.created_at,
     });
+  }
+
+  const [{ data: likeCounts }, { data: myLikes }] = photoIds.length
+    ? await Promise.all([
+        supabase.rpc("get_photo_like_counts", { p_photo_ids: photoIds }),
+        supabase.from("photo_likes").select("photo_id").eq("user_id", user.id).in("photo_id", photoIds),
+      ])
+    : [{ data: [] }, { data: [] }];
+
+  const myLikedPhotoIds = new Set((myLikes ?? []).map((l) => l.photo_id));
+  const likesByPhoto: Record<string, { count: number; likedByMe: boolean }> = {};
+  for (const id of photoIds) {
+    likesByPhoto[id] = {
+      count: Number(
+        likeCounts?.find((l: { photo_id: string }) => l.photo_id === id)?.like_count ?? 0,
+      ),
+      likedByMe: myLikedPhotoIds.has(id),
+    };
   }
 
   const { data: pendingRequests } = await supabase
@@ -184,6 +203,30 @@ export default async function PerfilPage({
           Salvar
         </button>
       </form>
+
+      {profile?.profile_type === "casal" && (
+        <div className="mt-4">
+          <form action={toggleCoupleSingleDevice} className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="couple_single_device"
+              name="couple_single_device"
+              defaultChecked={profile?.couple_single_device ?? false}
+            />
+            <label htmlFor="couple_single_device" className="text-sm">
+              Vocês dois acessam o Lumeo pelo mesmo celular
+            </label>
+            <button type="submit" className="ml-4 rounded border px-3 py-1 text-sm">
+              Salvar
+            </button>
+          </form>
+          <p className="mt-1 text-xs text-neutral-500">
+            Sem marcar isso, uma mensagem só sai do negrito quando os dois
+            aparelhos do casal confirmarem a leitura — se vocês usam sempre
+            o mesmo celular, marque aqui pra bastar 1.
+          </p>
+        </div>
+      )}
 
       <PinSettings />
 
@@ -395,7 +438,13 @@ export default async function PerfilPage({
       )}
 
       <section className="mt-10 border-t pt-6">
-        <h2 className="text-lg font-medium">Fotos — Rosto</h2>
+        <p className="rounded border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800">
+          Sua verificação só é aprovada com no mínimo 6 fotos no álbum
+          (rosto + corpo somados).
+          {profile?.profile_type === "casal" &&
+            " Perfil casal também precisa de pelo menos uma foto de corpo inteiro de cada um dos dois — perfil com foto de só uma pessoa não é aceito."}
+        </p>
+        <h2 className="mt-4 text-lg font-medium">Fotos — Rosto</h2>
         <p className="text-sm text-neutral-500">
           Só fica visível para quem você aprovar um pedido de acesso.
         </p>
@@ -403,6 +452,7 @@ export default async function PerfilPage({
           <PhotoGallery
             photos={rostoPhotos}
             commentsByPhoto={commentsByPhoto}
+            likesByPhoto={likesByPhoto}
             currentUserId={user.id}
             photoOwnerId={user.id}
             revalidatePath="/perfil"
@@ -427,6 +477,7 @@ export default async function PerfilPage({
           <PhotoGallery
             photos={corpoPhotos}
             commentsByPhoto={commentsByPhoto}
+            likesByPhoto={likesByPhoto}
             currentUserId={user.id}
             photoOwnerId={user.id}
             revalidatePath="/perfil"

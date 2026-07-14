@@ -120,7 +120,11 @@ export default function TermosPage() {
             Política de Privacidade
           </a>
           , sobre como tratamos seus dados, incluindo documentos e vídeo de
-          verificação.
+          verificação, e o{" "}
+          <a href="/regras" className="underline">
+            Manual de Boas Convivências
+          </a>
+          .
         </p>
       </div>
     </main>

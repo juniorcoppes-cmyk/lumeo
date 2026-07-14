@@ -28,6 +28,9 @@ export default function HomePage() {
         <Link href="/privacidade" className="underline">
           Privacidade
         </Link>
+        <Link href="/regras" className="underline">
+          Regras
+        </Link>
       </div>
     </main>
   );

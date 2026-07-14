@@ -24,6 +24,11 @@ export default async function AdminLayout({
 
   if (!profile?.is_admin) redirect("/inicio");
 
+  const { count: pendingReports } = await supabase
+    .from("user_reports")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "pending");
+
   return (
     <PinLockGate>
       <header className="flex justify-center border-b py-3">
@@ -44,6 +49,14 @@ export default async function AdminLayout({
         </Link>
         <Link href="/admin/planos" className="font-medium underline">
           Planos
+        </Link>
+        <Link href="/admin/denuncias" className="font-medium underline">
+          Denúncias
+          {!!pendingReports && (
+            <span className="ml-1 rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-normal text-white">
+              {pendingReports}
+            </span>
+          )}
         </Link>
         <form action={signOut} className="ml-auto">
           <button type="submit" className="text-neutral-500 underline">

@@ -517,6 +517,48 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
     `sender_id <> auth.uid()` — sem isso o próprio remetente poderia
     inserir um device_id falso e fingir que a própria mensagem foi lida.
     Ver `20260714000002_notifications_and_per_device_read.sql`.
+- Nona rodada (2026-07-14): resolvida a limitação de aparelho único do
+  casal + curtida de foto.
+  - `users.couple_single_device`: toggle em `/perfil` (só aparece pra
+    `profile_type = 'casal'`) — "vocês dois acessam pelo mesmo celular".
+    Marcado, `chat/[id]/page.tsx` passa a exigir só 1 aparelho confirmando
+    leitura em vez de 2 (senão nunca sairia do negrito nesse caso).
+  - Curtida de foto do álbum, ícone 😈 (carinha de diabo, mesmo emoji do
+    WhatsApp): tabela `photo_likes`, mesma regra de visibilidade de
+    `photo_comments` (quem vê a foto pode curtir/descurtir, é um toggle).
+    Contagem agregada pública via `get_photo_like_counts` — **não expõe
+    quem curtiu**, mesma decisão de privacidade já usada em
+    `profile_ratings`. Botão aparece tanto na miniatura (contagem pequena)
+    quanto no lightbox (maior, com rótulo). Ver
+    `20260714000003_couple_single_device_and_photo_likes.sql`.
+- Décima rodada (2026-07-14): denúncia de usuário. Botão "Denunciar este
+  perfil" em `/perfil/[id]` (dentro de um `<details>`, escondido por
+  padrão — é uma ação séria, não precisa estar sempre visível), motivo +
+  descrição opcional, vai pra `user_reports`. `/admin/denuncias` (nova, nav
+  do admin com contador de pendentes) lista tudo, admin marca como
+  revisada com uma nota — **não faz nenhuma ação automática** (banir,
+  suspender), só organiza a fila; a decisão de "tomar as providências" (o
+  fundador quem decide o quê, caso a caso) usa as ferramentas que já
+  existem (`/admin/usuarios`, remover selo, etc.) ou uma nova se ele pedir.
+  Quem denunciou só vê a própria denúncia; admin vê todas. Ver
+  `20260714000004_user_reports.sql`.
+- Décima primeira rodada (2026-07-14): `/regras` (Manual de Boas
+  Convivências — conteúdo redigido por Claude, aprovado tacitamente pelo
+  fundador que só pediu o local; conteúdo em si nunca foi confirmado item a
+  item), linkado no cadastro (junto de Termos/Privacidade no checkbox de
+  aceite), na home e no rodapé de `/termos`. Mínimo de fotos pra aprovar
+  verificação (pedido do fundador): 6 no álbum no total; perfil casal
+  precisa de pelo menos 2 fotos de corpo inteiro — **decisão explícita**:
+  trava só na aprovação (não bloqueia cadastro nem visibilidade), e é um
+  aviso pro admin em `/admin/verificacoes`, não um bloqueio automático do
+  botão "Aprovar". **Limitação técnica reconhecida e comunicada ao
+  fundador**: o sistema não consegue confirmar que as 2 fotos de corpo
+  mostram duas pessoas diferentes (exigiria reconhecimento de imagem) — a
+  contagem é só um piso mínimo; confirmar visualmente que é o casal de
+  verdade continua sendo julgamento do admin ao revisar. Mesmo aviso
+  também aparece no cadastro (`/cadastro/dados`, ao lado do campo de tipo
+  de perfil) e em `/perfil` (acima do álbum) — nenhuma mudança de schema
+  nesta rodada, só UI e o aviso em `/admin/verificacoes`.
 
 ## Correção de segurança crítica (2026-07-12)
 Durante a implementação do status de leitura de mensagens, percebi que

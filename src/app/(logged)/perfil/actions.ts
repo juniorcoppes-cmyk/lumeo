@@ -22,6 +22,23 @@ export async function toggleDiscreetMode(formData: FormData) {
   revalidatePath("/perfil");
 }
 
+export async function toggleCoupleSingleDevice(formData: FormData) {
+  const singleDevice = formData.get("couple_single_device") === "on";
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  await supabase
+    .from("users")
+    .update({ couple_single_device: singleDevice })
+    .eq("id", user.id);
+
+  revalidatePath("/perfil");
+}
+
 export async function updateExperienceLevel(formData: FormData) {
   const experienceLevel = formData.get("experience_level") as string;
   const supabase = await createClient();

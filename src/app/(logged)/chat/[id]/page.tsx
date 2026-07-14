@@ -28,12 +28,18 @@ export default async function ChatConversaPage({
     .eq("id", id)
     .single();
 
-  let other: { id: string; name: string; avatarUrl?: string; profileType: string } | null = null;
+  let other: {
+    id: string;
+    name: string;
+    avatarUrl?: string;
+    profileType: string;
+    coupleSingleDevice: boolean;
+  } | null = null;
   if (conversation) {
     const otherId = conversation.user_a_id === user.id ? conversation.user_b_id : conversation.user_a_id;
     const { data: otherProfile } = await supabase
       .from("users")
-      .select("id, name, avatar_path, profile_type")
+      .select("id, name, avatar_path, profile_type, couple_single_device")
       .eq("id", otherId)
       .single();
     if (otherProfile) {
@@ -46,6 +52,7 @@ export default async function ChatConversaPage({
         name: otherProfile.name,
         avatarUrl,
         profileType: otherProfile.profile_type,
+        coupleSingleDevice: otherProfile.couple_single_device,
       };
     }
   }
@@ -78,8 +85,10 @@ export default async function ChatConversaPage({
 
   // Perfil casal só conta como "lida de verdade" quando 2 aparelhos
   // distintos do destinatário já confirmaram — cada parceiro no seu
-  // celular. Perfil individual, basta 1.
-  const requiredReaders = other?.profileType === "casal" ? 2 : 1;
+  // celular. Perfil individual, basta 1 — casal que marcou "mesmo celular"
+  // em /perfil também basta 1, senão nunca sairia do negrito.
+  const requiredReaders =
+    other?.profileType === "casal" && !other.coupleSingleDevice ? 2 : 1;
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col px-6 py-16">
