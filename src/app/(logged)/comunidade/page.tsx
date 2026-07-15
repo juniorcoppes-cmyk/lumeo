@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
 import { ExperienceBadge } from "@/components/ExperienceBadge";
+import { ComunidadeSearch } from "@/components/ComunidadeSearch";
 import { EXPERIENCE_LEVEL_LABELS, EXPERIENCE_LEVELS } from "@/lib/experience-level";
 import { startGeneralConversation } from "./actions";
 
@@ -14,9 +15,10 @@ export default async function ComunidadePage({
     max_distance_km?: string;
     profile_filter?: string;
     experience_level?: string;
+    q?: string;
   }>;
 }) {
-  const { error, max_distance_km, profile_filter, experience_level } = await searchParams;
+  const { error, max_distance_km, profile_filter, experience_level, q } = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -51,6 +53,7 @@ export default async function ComunidadePage({
     p_max_distance_km: max_distance_km ? Number(max_distance_km) : null,
     p_profile_filter: profile_filter || null,
     p_experience_level: experience_level || null,
+    p_name_query: q || null,
   });
 
   const peopleWithAvatars = await Promise.all(
@@ -71,10 +74,10 @@ export default async function ComunidadePage({
         navegação discreta no perfil não aparece aqui.
       </p>
 
-      <form
-        method="get"
-        className="card mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4 sm:items-end"
-      >
+      <form method="get" className="card mt-4 flex flex-col gap-3 text-sm">
+        <ComunidadeSearch initialQuery={q ?? ""} />
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:items-end">
         <label className="flex flex-col gap-1">
           <span className="text-xs text-muted">Perfil</span>
           <select
@@ -122,6 +125,7 @@ export default async function ComunidadePage({
         <button type="submit" className="btn-primary">
           Filtrar
         </button>
+        </div>
       </form>
       {!viewerProfile.latitude && (
         <p className="mt-2 text-xs text-muted">
