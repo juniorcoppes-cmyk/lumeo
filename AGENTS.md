@@ -649,6 +649,35 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
     se opaco, chamar o endpoint REST `/auth/v1/admin/generate_link`
     direto com a service role pra pegar o erro cru (o SDK JS às vezes
     engole o corpo do erro em `{}`).
+- Décima quarta rodada (2026-07-15): ajustes de mobile, destaque visual
+  no admin, foto de evento na home e isenção de assinatura com prazo.
+  - **Cortes de tela no mobile** (achado real, reportado pelo fundador):
+    a linha de cada pessoa em `/comunidade` (avatar + nome + tipo +
+    selos + botão) não quebrava nem truncava — corrigido com
+    `flex-wrap`, `min-w-0`/`truncate` no nome. Em `/perfil`, os
+    `<input type="file">` de upload de foto têm um botão nativo largo
+    no celular que empurrava o resto da linha pra fora da tela —
+    envolvidos em `flex-wrap` com `min-w-0`. A tabela de
+    `/admin/usuarios` não tinha rolagem horizontal — envolvida num
+    `overflow-x-auto`. Também aumentada a folga do rodapé fixo
+    (`pb-16` → `pb-24`) e adicionado `env(safe-area-inset-bottom)`.
+  - `/admin/eventos`: linha do inscrito fica verde quando confirmado,
+    os botões "Confirmar"/"Cancelar" mudam de cor sólida quando já é o
+    estado atual — antes não tinha nenhuma pista visual de quem já
+    tinha sido confirmado.
+  - `/inicio`: cards de "Próximos eventos" ganharam a foto paisagem,
+    ícone e descrição do evento (antes só apareciam em `/eventos`).
+  - **Isenção de assinatura com prazo** (`users.subscription_exempt_until`,
+    `20260715000000_exempt_subscription_expiration.sql`): admin escolhe
+    "Isentar 30 dias" ou "Isentar até revogar" em `/admin/usuarios`;
+    `NULL` = sem prazo. `has_contact_access()` passa a checar
+    `subscription_exempt_until is null or subscription_exempt_until >
+    now()`. A coluna nova entrou no mesmo guard-rail de
+    `protect_sensitive_user_columns()` das outras colunas sensíveis —
+    sem isso seria uma vulnerabilidade de auto-isenção com prazo longo,
+    mesma classe já corrigida antes. Testado ao vivo contra o banco real
+    (5 cenários: sem isenção, sem prazo, prazo futuro, prazo vencido,
+    isenção removida) via script descartável antes do commit.
 
 ## Correção de segurança crítica (2026-07-12)
 Durante a implementação do status de leitura de mensagens, percebi que
