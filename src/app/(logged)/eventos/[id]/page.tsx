@@ -47,54 +47,57 @@ export default async function EventoDetalhePage({
       : Promise.resolve({ data: undefined }),
   ]);
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("verification_badge_id, is_admin, is_support_channel")
-    .eq("id", user.id)
-    .single();
+  // Nenhuma dessas 6 consultas depende do resultado de outra — rodar em
+  // paralelo em vez de sequencial corta a maior parte do tempo de resposta
+  // desta página (era o gargalo de performance percebido pelo fundador).
+  const [
+    { data: profile },
+    { data: billing },
+    { data: registration },
+    { count: confirmedCount },
+    { data: subscription },
+    { data: myInvites },
+  ] = await Promise.all([
+    supabase
+      .from("users")
+      .select("verification_badge_id, is_admin, is_support_channel")
+      .eq("id", user.id)
+      .single(),
+    supabase.from("billing_profiles").select("cpf_cnpj").eq("user_id", user.id).maybeSingle(),
+    supabase
+      .from("event_registrations")
+      .select("status, payment_status, payment_url")
+      .eq("event_id", id)
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("event_registrations")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", id)
+      .eq("status", "confirmed"),
+    supabase
+      .from("subscriptions")
+      .select("plan, status, overdue_since")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("event_invites")
+      .select("id, invite_code, status, invitee_id")
+      .eq("event_id", id)
+      .eq("inviter_id", user.id)
+      .order("created_at", { ascending: false }),
+  ]);
 
   const canRegister =
     !!profile?.verification_badge_id || !!profile?.is_admin || !!profile?.is_support_channel;
 
-  const { data: billing } = await supabase
-    .from("billing_profiles")
-    .select("cpf_cnpj")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  const { data: registration } = await supabase
-    .from("event_registrations")
-    .select("status, payment_status, payment_url")
-    .eq("event_id", id)
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  const { count: confirmedCount } = await supabase
-    .from("event_registrations")
-    .select("id", { count: "exact", head: true })
-    .eq("event_id", id)
-    .eq("status", "confirmed");
-
   const isFull = (confirmedCount ?? 0) >= event.capacity;
-
-  const { data: subscription } = await supabase
-    .from("subscriptions")
-    .select("plan, status, overdue_since")
-    .eq("user_id", user.id)
-    .maybeSingle();
 
   const isPlusActive =
     subscription?.plan === "plus" &&
     ["active", "overdue"].includes(
       effectiveSubscriptionStatus(subscription.status, subscription.overdue_since),
     );
-
-  const { data: myInvites } = await supabase
-    .from("event_invites")
-    .select("id, invite_code, status, invitee_id")
-    .eq("event_id", id)
-    .eq("inviter_id", user.id)
-    .order("created_at", { ascending: false });
 
   // A RPC já restringe a lista a quem também está confirmado no mesmo
   // evento (ver confirmed_attendees_for_event) — não expõe presença pra

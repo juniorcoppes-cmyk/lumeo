@@ -28,25 +28,27 @@ export default async function InicioPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: events } = await supabase
-    .from("events")
-    .select("id, title, event_date, location")
-    .gte("event_date", new Date().toISOString())
-    .order("event_date", { ascending: true })
-    .limit(5);
-
-  const { data: invites } = await supabase
-    .from("event_invites")
-    .select("id, status, event_id, events(title, event_date)")
-    .eq("invitee_id", user.id)
-    .neq("status", "declined")
-    .order("created_at", { ascending: false });
-
-  const { data: viewerProfile } = await supabase
-    .from("users")
-    .select("verification_badge_id, is_admin, is_support_channel")
-    .eq("id", user.id)
-    .single();
+  // As 3 consultas abaixo são independentes — rodar em paralelo em vez de
+  // sequencial reduz o tempo de resposta da página.
+  const [{ data: events }, { data: invites }, { data: viewerProfile }] = await Promise.all([
+    supabase
+      .from("events")
+      .select("id, title, event_date, location")
+      .gte("event_date", new Date().toISOString())
+      .order("event_date", { ascending: true })
+      .limit(5),
+    supabase
+      .from("event_invites")
+      .select("id, status, event_id, events(title, event_date)")
+      .eq("invitee_id", user.id)
+      .neq("status", "declined")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("users")
+      .select("verification_badge_id, is_admin, is_support_channel")
+      .eq("id", user.id)
+      .single(),
+  ]);
 
   const canSeeTimeline =
     !!viewerProfile?.verification_badge_id ||

@@ -59,7 +59,7 @@ export default async function LoggedLayout({
       <div className="pb-16">{children}</div>
 
       <footer className="fixed inset-x-0 bottom-0 z-40 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line bg-surface px-3 py-2 text-xs">
-        <Link href="/notificacoes" className="text-muted no-underline hover:text-foreground">
+        <Link href="/notificacoes" className="text-foreground no-underline hover:text-accent">
           Notificações
           {!!unreadNotifications && (
             <span className="ml-1 rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold text-on-accent">
@@ -67,19 +67,19 @@ export default async function LoggedLayout({
             </span>
           )}
         </Link>
-        <Link href="/assinatura" className="text-muted no-underline hover:text-foreground">
+        <Link href="/assinatura" className="text-foreground no-underline hover:text-accent">
           Assinatura
         </Link>
-        <Link href="/regras" className="text-muted no-underline hover:text-foreground">
+        <Link href="/regras" className="text-foreground no-underline hover:text-accent">
           Regras
         </Link>
         {profile?.is_admin && (
-          <Link href="/admin/eventos" className="text-muted no-underline hover:text-foreground">
+          <Link href="/admin/eventos" className="text-foreground no-underline hover:text-accent">
             Admin
           </Link>
         )}
         <form action={signOut}>
-          <button type="submit" className="text-muted no-underline hover:text-foreground">
+          <button type="submit" className="text-foreground no-underline hover:text-accent">
             Sair
           </button>
         </form>

@@ -38,14 +38,36 @@ export default async function PerfilPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select(
-      "name, email, profile_type, verification_badge_id, discreet_mode, couple_single_device, experience_level, location_updated_at, bio, birth_date, gender, sexual_orientation, looking_for, partner_birth_date, partner_gender, partner_sexual_orientation, avatar_path",
-    )
-    .eq("id", user.id)
-    .single();
+  // Nenhuma dessas 4 consultas depende do resultado de outra — rodar em
+  // paralelo reduz o tempo de resposta da página (era o gargalo de
+  // performance percebido pelo fundador).
+  const [
+    { data: profile },
+    { data: subscription },
+    { data: photos },
+    { data: pendingRequests },
+  ] = await Promise.all([
+    supabase
+      .from("users")
+      .select(
+        "name, email, profile_type, verification_badge_id, discreet_mode, couple_single_device, experience_level, location_updated_at, bio, birth_date, gender, sexual_orientation, looking_for, partner_birth_date, partner_gender, partner_sexual_orientation, avatar_path",
+      )
+      .eq("id", user.id)
+      .single(),
+    supabase.from("subscriptions").select("plan, status").eq("user_id", user.id).maybeSingle(),
+    supabase
+      .from("profile_photos")
+      .select("id, category, storage_path")
+      .eq("user_id", user.id)
+      .order("position", { ascending: true }),
+    supabase
+      .from("photo_access_requests")
+      .select("id, requester_id, users!requester_id(name)")
+      .eq("owner_id", user.id)
+      .eq("status", "pending"),
+  ]);
 
+  // Depende do avatar_path vindo da consulta acima, não dá pra paralelizar.
   const avatarUrl = profile?.avatar_path
     ? (
         await supabase.storage
@@ -53,18 +75,6 @@ export default async function PerfilPage({
           .createSignedUrl(profile.avatar_path, 300)
       ).data?.signedUrl
     : undefined;
-
-  const { data: subscription } = await supabase
-    .from("subscriptions")
-    .select("plan, status")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  const { data: photos } = await supabase
-    .from("profile_photos")
-    .select("id, category, storage_path")
-    .eq("user_id", user.id)
-    .order("position", { ascending: true });
 
   const photosWithUrls = await Promise.all(
     (photos ?? []).map(async (photo) => {
@@ -119,12 +129,6 @@ export default async function PerfilPage({
       likedByMe: myLikedPhotoIds.has(id),
     };
   }
-
-  const { data: pendingRequests } = await supabase
-    .from("photo_access_requests")
-    .select("id, requester_id, users!requester_id(name)")
-    .eq("owner_id", user.id)
-    .eq("status", "pending");
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">

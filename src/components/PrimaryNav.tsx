@@ -24,8 +24,8 @@ export function PrimaryNav({ items }: { items: NavItem[] }) {
             href={item.href}
             className={`flex flex-col items-center gap-0.5 rounded-2xl px-3 py-1.5 text-xs font-medium no-underline transition-colors ${
               active
-                ? "bg-accent text-on-accent"
-                : "text-muted hover:bg-accent-soft hover:text-foreground"
+                ? "bg-accent/85 text-on-accent"
+                : "text-foreground hover:bg-accent-soft"
             }`}
           >
             <span className="relative">

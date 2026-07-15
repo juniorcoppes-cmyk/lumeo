@@ -4,15 +4,15 @@
    Ver memória project-lumeo-visual-identity para o racional da escolha. */
 :root {
   --background: #241512;
-  --surface: #2c1a16;
-  --line: #402a24;
+  --surface: #3a2420;
+  --line: #55362d;
   --foreground: #fbeee5;
   --muted: #c9a99c;
   --accent: #d6524f;
   --on-accent: #fff5ef;
   --accent-soft: #40241f;
   --on-accent-soft: #f2a15a;
-  --tag-bg: #3a221d;
+  --tag-bg: #4a2f27;
   --tag-ink: #f2a15a;
 }
 
@@ -48,10 +48,6 @@ h3,
   letter-spacing: -0.01em;
 }
 
-a {
-  color: var(--accent);
-}
-
 /* Feedback visual ao clicar em qualquer botão/link — sem isso os cliques
    pareciam não fazer nada até a página terminar de responder. */
 a,
@@ -67,13 +63,24 @@ button:active {
   opacity: 0.7;
 }
 
-/* Título de cada página em destaque. */
-main h1 {
-  display: inline-block;
-  background: var(--accent);
-  color: var(--on-accent);
-  padding: 0.4rem 0.9rem;
-  border-radius: 0.75rem;
+@layer base {
+  /* Cor padrão de link — na layer "base" para que qualquer utilitário
+     text-* do Tailwind (ex.: text-muted, text-on-accent no menu) continue
+     podendo sobrescrever. Sem isso, essa regra (fora de layer) vencia os
+     utilitários e "engolia" o texto/ícone do item ativo do menu (mesma cor
+     do fundo, ficava invisível) — bug real encontrado em produção. */
+  a {
+    color: var(--accent);
+  }
+
+  /* Título de cada página em destaque. */
+  main h1 {
+    display: inline-block;
+    background: var(--accent);
+    color: var(--on-accent);
+    padding: 0.4rem 0.9rem;
+    border-radius: 0.75rem;
+  }
 }
 
 /* Classes de componente na layer "components" — assim qualquer utilitário

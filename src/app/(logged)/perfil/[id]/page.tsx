@@ -91,20 +91,35 @@ export default async function OutroPerfilPage({
     );
   }
 
-  const avatarUrl = target.avatar_path
-    ? (
-        await supabase.storage
-          .from("profile-photos")
-          .createSignedUrl(target.avatar_path, 300)
-      ).data?.signedUrl
-    : undefined;
-
-  const { data: corpoPhotos } = await supabase
-    .from("profile_photos")
-    .select("id, storage_path")
-    .eq("user_id", id)
-    .eq("category", "corpo")
-    .order("position", { ascending: true });
+  // Nenhuma dessas 4 consultas depende do resultado de outra (todas só
+  // precisam de `target`/`id`, já resolvidos acima) — rodar em paralelo
+  // reduz o tempo de resposta da página.
+  const [avatarSigned, { data: corpoPhotos }, { data: accessRequest }, { data: connection }] =
+    await Promise.all([
+      target.avatar_path
+        ? supabase.storage.from("profile-photos").createSignedUrl(target.avatar_path, 300)
+        : Promise.resolve({ data: undefined }),
+      supabase
+        .from("profile_photos")
+        .select("id, storage_path")
+        .eq("user_id", id)
+        .eq("category", "corpo")
+        .order("position", { ascending: true }),
+      supabase
+        .from("photo_access_requests")
+        .select("status")
+        .eq("requester_id", user.id)
+        .eq("owner_id", id)
+        .maybeSingle(),
+      supabase
+        .from("user_connections")
+        .select("id, requester_id, target_id, connection_type, status")
+        .or(
+          `and(requester_id.eq.${user.id},target_id.eq.${id}),and(requester_id.eq.${id},target_id.eq.${user.id})`,
+        )
+        .maybeSingle(),
+    ]);
+  const avatarUrl = avatarSigned.data?.signedUrl;
 
   const corpoWithUrls = await Promise.all(
     (corpoPhotos ?? []).map(async (photo) => {
@@ -114,13 +129,6 @@ export default async function OutroPerfilPage({
       return { ...photo, url: data?.signedUrl };
     }),
   );
-
-  const { data: accessRequest } = await supabase
-    .from("photo_access_requests")
-    .select("status")
-    .eq("requester_id", user.id)
-    .eq("owner_id", id)
-    .maybeSingle();
 
   let rostoWithUrls: { id: string; storage_path: string; url?: string }[] = [];
   if (accessRequest?.status === "approved") {
@@ -140,12 +148,6 @@ export default async function OutroPerfilPage({
       }),
     );
   }
-
-  const { data: connection } = await supabase
-    .from("user_connections")
-    .select("id, requester_id, target_id, connection_type, status")
-    .or(`and(requester_id.eq.${user.id},target_id.eq.${id}),and(requester_id.eq.${id},target_id.eq.${user.id})`)
-    .maybeSingle();
 
   const isConnectionApproved = connection?.status === "approved";
   const targetRoles: { role: "self" | "man" | "woman"; label: string }[] =
