@@ -54,7 +54,7 @@ export default async function PerfilPage({
     supabase
       .from("users")
       .select(
-        "name, email, profile_type, verification_badge_id, discreet_mode, couple_single_device, experience_level, location_updated_at, bio, birth_date, gender, sexual_orientation, looking_for, partner_birth_date, partner_gender, partner_sexual_orientation, avatar_path",
+        "name, email, profile_type, verification_badge_id, is_admin, is_support_channel, discreet_mode, couple_single_device, experience_level, location_updated_at, bio, birth_date, gender, sexual_orientation, looking_for, partner_birth_date, partner_gender, partner_sexual_orientation, avatar_path",
       )
       .eq("id", user.id)
       .single(),
@@ -420,7 +420,7 @@ export default async function PerfilPage({
         </form>
       </section>
 
-      {profile?.verification_badge_id && (
+      {(profile?.verification_badge_id || profile?.is_admin || profile?.is_support_channel) && (
         <section className="mt-10 border-t border-line pt-6">
           <h2 className="text-lg">Convidar alguém pra Lumeo</h2>
           <p className="text-sm text-muted">

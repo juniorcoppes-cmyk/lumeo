@@ -698,6 +698,105 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
     mesma classe já corrigida antes. Testado ao vivo contra o banco real
     (5 cenários: sem isenção, sem prazo, prazo futuro, prazo vencido,
     isenção removida) via script descartável antes do commit.
+- Décima quinta rodada (2026-07-15): busca por nome na Comunidade.
+  `browse_verified_users` ganha `p_name_query` (ilike, case-insensitive),
+  reaproveitando as mesmas regras de privacidade (discreet_mode,
+  autoexclusão, exigência de verificação) — precisou dropar a versão de
+  3 parâmetros antes de recriar com 4 (mesma lição de sempre). Novo
+  endpoint `GET /api/comunidade/search` alimenta um dropdown de
+  sugestões com debounce de 300ms (`ComunidadeSearch.tsx`, client
+  component) conforme a pessoa digita; o mesmo campo também participa
+  do formulário de filtros pra busca completa via submit normal
+  (progressive enhancement). Testado contra o banco real com login
+  autêntico: busca parcial, case-insensitive, autoexclusão do próprio
+  usuário logado, busca vazia. Ver `20260715000001_comunidade_busca_por_nome.sql`.
+- Décima sexta rodada (2026-07-15): reestruturação completa do
+  cadastro — a mudança mais profunda no controle de acesso desde a
+  correção de segurança crítica original. **Decisão do fundador**:
+  cadastro direto sai do ar; só existe via convite geral gerado por um
+  usuário já verificado (o "padrinho"). Documento/vídeo de identidade
+  saem do fluxo — verificação vira social, em duas etapas.
+  - **Fluxo**: `/cadastro/dados` exige `?code=` de um convite válido
+    (RPC `get_platform_invite_preview`, nova tabela `platform_invites`
+    — distinta de `event_invites`, que continua existindo só pra
+    indicação de evento). Ganha campo de escolha de plano (armazena a
+    preferência em `users.preferred_plan`, a cobrança de fato continua
+    só acontecendo depois em `/assinatura` — não foi automatizada
+    nesta rodada, de propósito, pra não empurrar setup de pagamento
+    pro meio do cadastro). Perde as etapas `/cadastro/documento` e
+    `/cadastro/video` (páginas continuam existindo no código, só
+    ficaram órfãs — nada mais linka pra elas). Depois de enviar, cai
+    em `/cadastro/aguardando-padrinho`, sem nenhum acesso ainda.
+  - **Apadrinhamento**: `users.membership_status` (`pending_sponsor` →
+    `provisional` → `member`, ou `rejected_by_sponsor`/
+    `rejected_by_admin`) substitui a dependência de `verifications`
+    como gate — mas **reaproveita `verification_badge_id` como o
+    mesmo gate de acesso que já existia em toda a aplicação**
+    (Comunidade, timeline, eventos etc.), só muda quando/como ele é
+    concedido. Isso foi deliberado pra não precisar tocar nas ~10
+    páginas que já checavam esse campo. `SponsorGate.tsx` bloqueia o
+    padrinho inteiro (tela cheia, mesmo padrão do `PinLockGate`)
+    sempre que existe alguém com `referred_by` apontando pra ele e
+    `membership_status = 'pending_sponsor'` — ele precisa aceitar ou
+    recusar antes de usar o resto do app. Aceitar (RPC
+    `respond_sponsorship`) já concede o badge na hora (formato
+    `LUM-XXXXXXXX`, mesmo padrão do fluxo antigo) — acesso completo
+    imediato, ainda não é "membro efetivo". `/admin/verificacoes` virou
+    a fila de confirmação definitiva em até 48h (contadas a partir de
+    `sponsor_responded_at`): mostra perfil/bio/fotos do álbum em vez de
+    documento/vídeo (reaproveita `PhotoGallery` só pra visualização),
+    `admin_finalize_membership` aprova (`member`, `member_since = now()`)
+    ou reprova (revoga o badge).
+  - **Postura de compliance, decisão explícita e registrada**: isso
+    reverte a postura documentada em "Postura de compliance" abaixo —
+    o Lumeo deixou de exigir documento de identidade antes de liberar
+    acesso, substituindo por aval social (padrinho + revisão de perfil
+    da ADM). Fundador foi avisado da mudança de postura antes de
+    implementar e confirmou que era a decisão pretendida.
+  - **Dois bugs reais de SQL encontrados testando contra o banco de
+    verdade** (não na regra de negócio, na implementação): (1)
+    `gen_random_bytes()` chamado dentro de uma função com
+    `search_path = public` não encontra o pgcrypto, que fica no schema
+    `extensions` no Supabase — precisa qualificar
+    (`extensions.gen_random_bytes`). (2) mais sério: `respond_sponsorship`
+    e `admin_finalize_membership` são `security definer`, mas isso não
+    muda o que `auth.role()`/`is_admin()` enxergam dentro da trigger
+    `protect_sensitive_user_columns()` (ela olha o JWT de quem chamou,
+    não o dono da função) — as duas RPCs ficavam bloqueadas pelo
+    próprio guard-rail que deveriam conseguir atravessar. Corrigido com
+    uma flag de sessão (`set_config('lumeo.bypass_sensitive_guard',
+    'true', true)`, local à transação) que só essas duas funções ligam,
+    depois de já terem validado autorização própria — não abre brecha
+    nova. **Vale lembrar isso ao escrever qualquer RPC `security
+    definer` nova que precise escrever em coluna protegida por essa
+    trigger.** Ver `20260715000003_fix_apadrinhamento_bugs.sql`.
+  - **Guard-rail estendido**: `membership_status`, `sponsor_responded_at`
+    e `member_since` entraram em `protect_sensitive_user_columns()`
+    (mesma classe de vulnerabilidade de auto-promoção já corrigida
+    antes). `handle_new_user()` nega por padrão — sem código de convite
+    válido no metadata, a linha nasce `pending_sponsor` (bloqueada), não
+    `member`; contas administrativas criadas via script (como a conta
+    ADM) precisam setar `membership_status = 'member'` manualmente
+    depois, mesmo padrão já usado pra `is_admin`/`is_support_channel`.
+  - **Trial de 7 dias migrado**: `has_contact_access()` usava
+    `verifications.reviewed_at`, que o fluxo novo nunca preenche — passa
+    a contar a partir de `member_since`. `/assinatura` também atualizada
+    (calculava o mesmo trial localmente, de forma redundante).
+  - **21 cenários testados contra o banco real antes do commit**
+    (script descartável, deletado depois): caminho feliz completo
+    (convite → cadastro → aceite → acesso → confirmação da ADM), os
+    dois caminhos de rejeição, e 5 checagens de segurança (não-padrinho
+    não aceita em nome de outro, não-admin não confirma, autopromoção
+    bloqueada, autoatribuição de selo bloqueada, convite usado não pode
+    ser reaproveitado). **Achado durante o teste, não é bug**: dois
+    "usuários de teste órfãos" ficaram no banco depois de rodadas que
+    quebraram no meio (script sem `try/finally` na primeira versão) —
+    corrigido no próprio script, mas serve de lembrete: sempre envolver
+    scripts de teste descartáveis em `try/finally` pra garantir limpeza
+    mesmo se algo no meio explodir.
+  - Convites gerais gerados em `/perfil` (seção nova, só aparece pra
+    quem já é verificado) — `platform_invites`, RLS exige
+    `is_verified(auth.uid())` no insert.
 
 ## Correção de segurança crítica (2026-07-12)
 Durante a implementação do status de leitura de mensagens, percebi que
@@ -796,13 +895,19 @@ lembrar de criar as três policies (insert/select/update) desde o início.
 Tratamos o Lumeo como sujeito às regras de "conteúdo adulto" da Lei
 15.211/2025 (ECA Digital) **por garantia**, mesmo sem confirmação jurídica
 definitiva — decisão consciente de errar para o lado mais restritivo em vez
-de assumir que a plataforma está fora do escopo da lei. Na prática, hoje isso
-significa: documento/vídeo de verificação são apagados do Storage assim que
-aprovados (ver abaixo), nunca reutilizados para outra finalidade além da
-verificação em si. Ainda não implementado e digno de revisão se a postura
-mudar: verificação "a cada acesso" (a lei sugere isso para conteúdo adulto;
-o Lumeo verifica uma vez, na aprovação — mudar isso é uma decisão de UX
-grande, não fazer sem alinhar antes).
+de assumir que a plataforma está fora do escopo da lei. Documento/vídeo de
+verificação eram apagados do Storage assim que aprovados, nunca reutilizados
+para outra finalidade além da verificação em si.
+
+**Atualização (2026-07-15, décima sexta rodada)**: essa postura foi
+**revertida por decisão explícita do fundador** — o cadastro não pede mais
+documento/vídeo de identidade. A verificação virou social (padrinho +
+revisão de perfil da ADM em até 48h), ver detalhes na rodada 16 acima. O
+fundador foi avisado dessa mudança de postura antes da implementação e
+confirmou que era a decisão pretendida — não foi um descuido. Se a validade
+jurídica dessa abordagem (verificação sem documento, pra um app já tratado
+como sujeito à ECA Digital) precisar ser reavaliada, é uma conversa a se
+retomar antes de tráfego real de lançamento, não algo já resolvido aqui.
 
 ## Pontos sensíveis
 - `verifications.document_url` / `video_url` guardam paths no bucket privado
