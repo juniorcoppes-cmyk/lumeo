@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/get-user";
 import { contactSupport, startConversation } from "./actions";
 
 export default async function ChatListPage({
@@ -13,7 +14,7 @@ export default async function ChatListPage({
 
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getUser();
   if (!user) redirect("/login");
 
   const { data: conversations } = await supabase

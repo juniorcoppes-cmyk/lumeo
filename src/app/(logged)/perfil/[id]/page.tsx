@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/get-user";
 import { ExperienceBadge } from "@/components/ExperienceBadge";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import {
@@ -45,7 +46,7 @@ export default async function OutroPerfilPage({
 
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getUser();
   if (!user) redirect("/login");
 
   if (id === user.id) {

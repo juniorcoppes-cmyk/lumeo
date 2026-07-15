@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/get-user";
 import { sendMessage } from "./actions";
 
 export default async function ChatConversaPage({
@@ -17,7 +18,7 @@ export default async function ChatConversaPage({
 
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getUser();
   if (!user) redirect("/login");
 
   const deviceId = (await cookies()).get("lumeo_device_id")?.value;

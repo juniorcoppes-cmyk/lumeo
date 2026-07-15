@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/get-user";
 import { ExperienceBadge } from "@/components/ExperienceBadge";
 import { createTextPost, deleteTextPost, respondInvite } from "./actions";
 
@@ -25,7 +26,7 @@ export default async function InicioPage() {
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getUser();
   if (!user) redirect("/login");
 
   // As 3 consultas abaixo são independentes — rodar em paralelo em vez de

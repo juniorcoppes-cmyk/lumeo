@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/get-user";
 import { signOut } from "@/lib/auth-actions";
 import { PinLockGate } from "@/components/PinLockGate";
 import { PrimaryNav } from "@/components/PrimaryNav";
@@ -14,7 +15,7 @@ export default async function LoggedLayout({
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getUser();
 
   if (!user) redirect("/login");
 

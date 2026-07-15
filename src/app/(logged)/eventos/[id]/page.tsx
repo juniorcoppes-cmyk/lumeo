@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ExperienceBadge } from "@/components/ExperienceBadge";
 import { CopyLinkButton } from "@/components/CopyLinkButton";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/get-user";
 import { effectiveSubscriptionStatus } from "@/lib/subscription";
 import { convidarPorSelo, gerarLinkConvite, inscrever } from "./actions";
 
@@ -19,7 +20,7 @@ export default async function EventoDetalhePage({
 
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getUser();
   if (!user) redirect("/login");
 
   const { data: event } = await supabase

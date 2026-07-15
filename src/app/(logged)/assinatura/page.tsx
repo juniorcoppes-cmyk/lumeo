@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/get-user";
 import { getSubscriptionFirstPaymentUrl } from "@/lib/asaas";
 import { getPlans } from "@/lib/plans";
 import { effectiveSubscriptionStatus } from "@/lib/subscription";
@@ -14,7 +15,7 @@ export default async function AssinaturaPage({
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getUser();
   if (!user) redirect("/login");
 
   const { data: subscription } = await supabase
