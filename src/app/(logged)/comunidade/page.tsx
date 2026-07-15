@@ -42,8 +42,8 @@ export default async function ComunidadePage({
       <main className="mx-auto max-w-3xl px-6 py-16">
         <h1 className="text-2xl">Comunidade</h1>
         <p className="mt-2 text-muted">
-          Sua verificação de identidade ainda não foi aprovada — isso é
-          necessário para ver outros usuários da plataforma.
+          A comunidade abre assim que seu padrinho aceitar seu apadrinhamento.
+          Enquanto isso, você já pode explorar a página inicial e os eventos.
         </p>
       </main>
     );

@@ -60,5 +60,8 @@ export async function signUp(formData: FormData) {
     redirect(`/cadastro/confirme-email?email=${encodeURIComponent(email)}`);
   }
 
-  redirect("/cadastro/aguardando-padrinho");
+  // Já entra no app: cai no /inicio em modo limitado (vê a home e o "Comece
+  // por aqui", sem comunidade/chat) e aguarda ali o aceite do padrinho, que
+  // libera o resto automaticamente.
+  redirect("/inicio");
 }

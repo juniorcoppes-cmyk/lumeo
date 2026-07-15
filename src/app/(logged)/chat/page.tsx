@@ -17,6 +17,16 @@ export default async function ChatListPage({
   } = await getUser();
   if (!user) redirect("/login");
 
+  const { data: viewerProfile } = await supabase
+    .from("users")
+    .select("verification_badge_id, is_admin, is_support_channel")
+    .eq("id", user.id)
+    .single();
+  const canMessage =
+    !!viewerProfile?.verification_badge_id ||
+    !!viewerProfile?.is_admin ||
+    !!viewerProfile?.is_support_channel;
+
   const { data: conversations } = await supabase
     .from("conversations")
     .select("id, event_id, user_a_id, user_b_id")
@@ -90,6 +100,13 @@ export default async function ChatListPage({
         Suas conversas com outros usuários verificados.
       </p>
       {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+
+      {!canMessage && (
+        <div className="mt-4 rounded-2xl border border-on-accent-soft/40 bg-on-accent-soft/10 p-4 text-sm text-foreground/90">
+          Conversar com outros usuários abre assim que seu padrinho aceitar seu apadrinhamento.
+          Enquanto isso, você ainda pode falar com o suporte abaixo.
+        </div>
+      )}
 
       <form action={contactSupport} className="mt-4">
         <button type="submit" className="btn-secondary">

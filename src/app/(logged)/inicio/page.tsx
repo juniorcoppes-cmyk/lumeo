@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
 import { ExperienceBadge } from "@/components/ExperienceBadge";
 import { PlatformInviteLink } from "@/components/PlatformInviteLink";
+import { PendingAccessPoller } from "@/components/PendingAccessPoller";
 import { CalendarIcon, CheckCircleIcon } from "@/components/icons";
 import { createTextPost, deleteTextPost, generatePlatformInvite, respondInvite } from "./actions";
 
@@ -24,7 +25,12 @@ type TimelineRow = {
   event_title: string | null;
 };
 
-export default async function InicioPage() {
+export default async function InicioPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ apadrinhado?: string }>;
+}) {
+  const { apadrinhado } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -49,7 +55,7 @@ export default async function InicioPage() {
         .order("created_at", { ascending: false }),
       supabase
         .from("users")
-        .select("verification_badge_id, is_admin, is_support_channel")
+        .select("verification_badge_id, is_admin, is_support_channel, membership_status, sponsor:referred_by(name)")
         .eq("id", user.id)
         .single(),
       supabase
@@ -73,6 +79,12 @@ export default async function InicioPage() {
     !!viewerProfile?.verification_badge_id ||
     !!viewerProfile?.is_admin ||
     !!viewerProfile?.is_support_channel;
+
+  const membershipStatus = viewerProfile?.membership_status;
+  const sponsor = Array.isArray(viewerProfile?.sponsor)
+    ? viewerProfile?.sponsor[0]
+    : viewerProfile?.sponsor;
+  const sponsorName = (sponsor as { name: string } | null | undefined)?.name;
 
   let timelineRows: (TimelineRow & { photoUrl?: string; avatarUrl?: string })[] = [];
 
@@ -110,6 +122,38 @@ export default async function InicioPage() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-2xl">Início</h1>
+
+      {apadrinhado && (
+        <div className="mt-4 rounded-2xl border border-green-700/50 bg-green-900/25 p-4 text-sm text-green-200">
+          Você aceitou <strong className="text-green-100">{apadrinhado}</strong>! Avise que já pode
+          acessar o Lumeo — é só entrar em www.lumeo.app.br.
+        </div>
+      )}
+
+      {!canSeeTimeline && membershipStatus === "pending_sponsor" && (
+        <div className="mt-4 rounded-2xl border border-on-accent-soft/40 bg-on-accent-soft/10 p-4 text-sm text-foreground/90">
+          <strong className="text-foreground">Seu cadastro foi enviado!</strong> Assim que{" "}
+          {sponsorName ?? "seu padrinho"} aceitar seu apadrinhamento, a comunidade, o chat e o resto
+          do Lumeo abrem pra você — automaticamente, sem precisar recarregar. Por enquanto, dá uma
+          olhada no “Comece por aqui” e nos próximos eventos abaixo.
+          <PendingAccessPoller />
+        </div>
+      )}
+
+      {!canSeeTimeline && membershipStatus === "rejected_by_sponsor" && (
+        <div className="mt-4 rounded-2xl border border-red-800/50 bg-red-900/20 p-4 text-sm text-red-300">
+          {sponsorName ?? "Seu padrinho"} não aceitou apadrinhar seu perfil, então seu acesso não foi
+          liberado. Fale com quem te convidou ou peça um novo link de convite a outra pessoa da
+          comunidade.
+        </div>
+      )}
+
+      {!canSeeTimeline && membershipStatus === "rejected_by_admin" && (
+        <div className="mt-4 rounded-2xl border border-red-800/50 bg-red-900/20 p-4 text-sm text-red-300">
+          Seu perfil não foi confirmado pela administração. Fale com o suporte se quiser entender o
+          motivo.
+        </div>
+      )}
 
       <details className="card mt-4">
         <summary className="cursor-pointer text-sm font-medium text-accent no-underline">
@@ -260,8 +304,7 @@ export default async function InicioPage() {
 
         {!canSeeTimeline ? (
           <p className="mt-2 text-muted">
-            Sua verificação de identidade ainda não foi aprovada — isso é
-            necessário para ver e postar na linha do tempo.
+            A linha do tempo abre assim que seu padrinho aceitar seu apadrinhamento.
           </p>
         ) : (
           <>

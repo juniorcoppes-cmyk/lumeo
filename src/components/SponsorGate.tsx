@@ -20,6 +20,7 @@ export function SponsorGate({ items }: { items: PendingSponsorship[] }) {
             <div className="flex gap-2">
               <form action={respondSponsorship}>
                 <input type="hidden" name="user_id" value={p.id} />
+                <input type="hidden" name="name" value={p.name} />
                 <input type="hidden" name="decision" value="accept" />
                 <button type="submit" className="btn-primary">
                   Aceitar
