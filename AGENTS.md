@@ -212,12 +212,17 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
   e-mail padrão do Supabase (ver "Produção") se aplica aqui.
   **Atualização (2026-07-13)**: SMTP customizado (Resend, `smtp.resend.com`,
   remetente `onboarding@resend.dev` — domínio de teste do Resend, trocar
-  quando `lumeo.com.br` for registrado, ver pendência 2) configurado pelo
+  quando um domínio for registrado, ver pendência 2) configurado pelo
   fundador, o que desbloqueou a edição do template "Reset Password" no
   painel; o link já foi trocado para o formato acima. `resetPasswordForEmail`
   testado ao vivo em produção com e-mail real via Resend (demora ~15-20s, é
   uma chamada síncrona de SMTP dentro da server action) — o clique no e-mail
   em si ainda não foi confirmado ponta a ponta.
+  **Atualização (2026-07-15)**: domínio `lumeo.app.br` verificado no Resend
+  e sender trocado pra `noreply@lumeo.app.br` — ver "Correção crítica:
+  cadastro travado" abaixo, mesmo ajuste que desbloqueou o signup também
+  vale pra esse fluxo (o remetente de teste `onboarding@resend.dev` só
+  entrega pro dono da conta Resend, afetava os dois).
 - Conta ADM — duas idas e voltas de e-mail em 2026-07-13, resolvidas: a
   primeira tentativa (`admloumeo@gmail.com`, com "ou" a mais) foi corrigida
   para `amdlumeo@gmail.com` a pedido do fundador — só que essa também
@@ -570,6 +575,81 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
     texto dentro do desenho) num quadrado 40×40 antes do botão — antes era
     só texto, sem nenhum elemento visual ali.
 
+- Décima terceira rodada (2026-07-14/15): identidade visual "Calor",
+  redesenho de menu e correção crítica de cadastro.
+  - **Identidade visual "Calor"**: nova paleta (espresso `#3a2420` cards
+    sobre fundo `#241512`, coral `#d6524f` de acento, cantos grandes,
+    botões/tags em pill) aplicada em tokens no `globals.css` e em todas
+    as ~40 páginas do app (públicas, cadastro, logadas, admin),
+    substituindo o preto/branco/cinza original. Ver decisão completa e
+    spec de tokens na memória `project-lumeo-visual-identity` (fora do
+    repo). **Bug real encontrado em produção**: a regra `a { color:
+    var(--accent) }` estava fora de qualquer `@layer` do Tailwind v4 —
+    isso faz uma regra vencer QUALQUER utilitário (`text-*`, `pr-*`
+    etc.), inclusive em componentes próprios como `.btn-primary`/`.input`
+    que também foram escritos sem `@layer components` inicialmente.
+    Sintoma visual: o item ativo do menu ficava com texto/ícone da MESMA
+    cor do fundo (invisível), e um `pr-16` de um botão "Mostrar senha"
+    era ignorado. Corrigido movendo essas regras pra `@layer base` /
+    `@layer components` — é o padrão que o próprio Tailwind recomenda
+    exatamente pra isso, vale lembrar em qualquer CSS global novo.
+  - **Menu redesenhado**: ícones dos itens principais (Início, Eventos,
+    Comunidade, Chat, Perfil — e equivalentes do admin) no cabeçalho,
+    com destaque de página ativa via `PrimaryNav.tsx` (client component,
+    `usePathname()`); itens secundários (Notificações, Assinatura,
+    Regras, Admin, Sair) viraram uma faixa fixa no rodapé. Ícones em
+    `src/components/icons.tsx` (SVG inline, sem depender de lib nova).
+    Decisão de layout (o quê fica no topo vs. rodapé) só foi fechada
+    depois de uma pergunta de esclarecimento — "no rodapé" tinha duas
+    leituras possíveis (duas barras embaixo vs. primário em cima e
+    secundário embaixo) e o fundador queria a segunda.
+  - **Performance**: `/inicio`, `/perfil`, `/perfil/[id]` e
+    `/eventos/[id]` faziam de 4 a 6 consultas sequenciais ao Supabase
+    sem depender uma da outra — paralelizadas com `Promise.all`. Achado
+    mais impactante: o layout logado E cada página chamavam
+    `supabase.auth.getUser()` cada um por conta própria, dobrando as
+    idas e vindas até o servidor de Auth em toda navegação — novo
+    `src/lib/supabase/get-user.ts` usa `cache()` do React pra memoizar
+    por requisição (só a primeira chamada bate na rede). O middleware
+    (`src/lib/supabase/middleware.ts`) continua com sua própria
+    `getUser()` — necessária pra refresh de token, roda fora da árvore
+    React e não dá pra deduplicar com `cache()`. `loading.tsx` adicionado
+    nas áreas pública/logada/admin pra feedback visual imediato.
+  - **Correção crítica: cadastro travado (2026-07-15)** — dois usuários
+    reais e o próprio fundador não conseguiam se cadastrar; login dava
+    "senha ou e-mail errado" mesmo com credenciais certas. **Causa raiz
+    reproduzida com script** (`supabase.auth.signUp()` via anon key,
+    igual ao código de produção): retornava erro 500 opaco (`message:
+    "{}"`) e não criava nenhuma linha em `auth.users` — batia com a
+    restrição conhecida do domínio de teste do Resend
+    (`onboarding@resend.dev` só entrega pro dono da conta Resend, nunca
+    documentado como bloqueante até esse dia). Resolvido em 3 passos,
+    cada um confirmado por teste antes do próximo: (1) fundador
+    verificou o domínio `lumeo.app.br` no Resend, (2) trocou o "Sender
+    email" no Supabase pra `noreply@lumeo.app.br`, (3) atualizou o
+    template "Confirm signup" pro formato customizado (mesmo padrão já
+    usado no "Reset Password" — `{{ .SiteURL }}/auth/confirm?token_hash=
+    {{ .TokenHash }}&type=signup&next=/cadastro/documento`). Teste final
+    simulou o clique no link de confirmação de verdade (token gerado via
+    Admin API `generateLink`, sem depender de caixa de entrada real)
+    contra o servidor local e confirmou redirect + cookie de sessão
+    corretos. Mudanças de código, independentes da causa raiz: campo de
+    confirmar senha em `/cadastro/dados`, mensagens de erro do Supabase
+    normalizadas (`src/lib/auth-errors.ts` — evita mostrar `{}` cru pro
+    usuário), nova página `/cadastro/confirme-email` (pro caso de
+    `signUp()` retornar sem sessão, i.e., confirmação de e-mail exigida,
+    com botão de reenviar), e `/auth/confirm/route.ts` agora escolhe a
+    página de erro certa por `type` (antes, um link de signup que
+    falhasse caía em `/recuperar-senha`, sem sentido nenhum). **Scripts
+    de diagnóstico usados foram descartáveis** (deletados depois de cada
+    rodada de teste, seguindo o padrão já estabelecido do projeto) — se
+    esse tipo de bug voltar a acontecer, o roteiro é: (a) checar
+    `auth.admin.listUsers()` pra ver se `email_confirmed_at`/linhas
+    novas aparecem, (b) reproduzir `signUp()` via anon key isolado, (c)
+    se opaco, chamar o endpoint REST `/auth/v1/admin/generate_link`
+    direto com a service role pra pegar o erro cru (o SDK JS às vezes
+    engole o corpo do erro em `{}`).
+
 ## Correção de segurança crítica (2026-07-12)
 Durante a implementação do status de leitura de mensagens, percebi que
 `create policy "users update own" on users for update using (auth.uid() =
@@ -759,7 +839,9 @@ grande, não fazer sem alinhar antes).
    não totalmente confiável sem mais due diligence. Nenhum processador BR
    aceita esse nicho "por escrito"; Asaas foi a escolha pragmática (declarar
    a atividade de forma genérica, aceitar o risco de bloqueio se descoberto).
-2. Registro de `lumeo.com.br` e busca de marca no INPI.
+2. Registro de domínio: **`lumeo.app.br` comprado e verificado no Resend
+   em 2026-07-15** (ver rodada abaixo) — resolve o remetente de e-mail.
+   `lumeo.com.br` e busca de marca no INPI continuam pendentes.
 3. ~~Regra de tolerância para falha de pagamento recorrente~~ — 2 dias de
    carência (`overdue_since` + `effectiveSubscriptionStatus` em
    `src/lib/subscription.ts`; ver `src/app/api/webhooks/asaas/route.ts`).
