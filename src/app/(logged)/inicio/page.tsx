@@ -3,8 +3,9 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
 import { ExperienceBadge } from "@/components/ExperienceBadge";
-import { CalendarIcon } from "@/components/icons";
-import { createTextPost, deleteTextPost, respondInvite } from "./actions";
+import { CopyLinkButton } from "@/components/CopyLinkButton";
+import { CalendarIcon, CheckCircleIcon, CircleIcon } from "@/components/icons";
+import { createTextPost, deleteTextPost, generatePlatformInvite, respondInvite } from "./actions";
 
 type TimelineRow = {
   id: string;
@@ -30,27 +31,33 @@ export default async function InicioPage() {
   } = await getUser();
   if (!user) redirect("/login");
 
-  // As 3 consultas abaixo são independentes — rodar em paralelo em vez de
+  // As 4 consultas abaixo são independentes — rodar em paralelo em vez de
   // sequencial reduz o tempo de resposta da página.
-  const [{ data: eventsRaw }, { data: invites }, { data: viewerProfile }] = await Promise.all([
-    supabase
-      .from("events")
-      .select("id, title, event_date, location, description, photo_landscape_path")
-      .gte("event_date", new Date().toISOString())
-      .order("event_date", { ascending: true })
-      .limit(5),
-    supabase
-      .from("event_invites")
-      .select("id, status, event_id, events(title, event_date)")
-      .eq("invitee_id", user.id)
-      .neq("status", "declined")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("users")
-      .select("verification_badge_id, is_admin, is_support_channel")
-      .eq("id", user.id)
-      .single(),
-  ]);
+  const [{ data: eventsRaw }, { data: invites }, { data: viewerProfile }, { data: platformInvites }] =
+    await Promise.all([
+      supabase
+        .from("events")
+        .select("id, title, event_date, location, description, photo_landscape_path")
+        .gte("event_date", new Date().toISOString())
+        .order("event_date", { ascending: true })
+        .limit(5),
+      supabase
+        .from("event_invites")
+        .select("id, status, event_id, events(title, event_date)")
+        .eq("invitee_id", user.id)
+        .neq("status", "declined")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("users")
+        .select("verification_badge_id, is_admin, is_support_channel")
+        .eq("id", user.id)
+        .single(),
+      supabase
+        .from("platform_invites")
+        .select("id, invite_code, used_at, users:used_by(name)")
+        .eq("inviter_id", user.id)
+        .order("created_at", { ascending: false }),
+    ]);
 
   const events = await Promise.all(
     (eventsRaw ?? []).map(async (event) => {
@@ -122,6 +129,48 @@ export default async function InicioPage() {
           </p>
         </div>
       </details>
+
+      {canSeeTimeline && (
+        <section className="card mt-4">
+          <h2 className="text-lg">Convidar alguém pra Lumeo</h2>
+          <p className="text-sm text-muted">
+            O cadastro só acontece através de convite — ao gerar um link, você vira o padrinho
+            de quem se cadastrar por ele, e vai precisar aceitar ou recusar apadrinhar antes de
+            continuar usando o app. Cada link só funciona uma vez — depois de usado, gere um
+            link novo pra cada próxima pessoa que for convidar.
+          </p>
+          <form action={generatePlatformInvite} className="mt-3">
+            <button type="submit" className="btn-primary">
+              Gerar link de convite
+            </button>
+          </form>
+          {platformInvites && platformInvites.length > 0 && (
+            <ul className="mt-4 flex flex-col gap-2 text-sm">
+              {platformInvites.map((invite) => {
+                const usedByUser = Array.isArray(invite.users) ? invite.users[0] : invite.users;
+                return (
+                  <li key={invite.id} className="flex flex-wrap items-center gap-2">
+                    {invite.used_at ? (
+                      <>
+                        <CheckCircleIcon className="h-4 w-4 shrink-0 text-green-400" />
+                        <span className="text-muted">
+                          Usado por <span className="text-foreground">{usedByUser?.name}</span>
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <CircleIcon className="h-4 w-4 shrink-0 text-muted" />
+                        <span className="text-muted">/cadastro/dados?code={invite.invite_code}</span>
+                        <CopyLinkButton path={`/cadastro/dados?code=${invite.invite_code}`} />
+                      </>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      )}
 
       <section className="mt-8">
         <h2 className="text-lg">Próximos eventos</h2>

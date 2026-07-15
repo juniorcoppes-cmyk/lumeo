@@ -249,20 +249,6 @@ export async function deletePhoto(formData: FormData) {
   revalidatePath("/perfil");
 }
 
-export async function generatePlatformInvite(formData: FormData) {
-  void formData;
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  await supabase.from("platform_invites").insert({ inviter_id: user.id });
-
-  revalidatePath("/perfil");
-}
-
 export async function respondPhotoRequest(formData: FormData) {
   const requestId = formData.get("request_id") as string;
   const decision = formData.get("decision") as string;

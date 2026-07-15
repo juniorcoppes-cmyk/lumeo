@@ -89,3 +89,20 @@ export function SearchIcon(props: IconProps) {
     </Svg>
   );
 }
+
+export function CheckCircleIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8.5 12.5 2.3 2.3L15.5 9.5" />
+    </Svg>
+  );
+}
+
+export function CircleIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="12" cy="12" r="9" />
+    </Svg>
+  );
+}

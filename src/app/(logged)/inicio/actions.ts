@@ -42,6 +42,20 @@ export async function deleteTextPost(formData: FormData) {
   revalidatePath("/inicio");
 }
 
+export async function generatePlatformInvite(formData: FormData) {
+  void formData;
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  await supabase.from("platform_invites").insert({ inviter_id: user.id });
+
+  revalidatePath("/inicio");
+}
+
 export async function respondInvite(formData: FormData) {
   const inviteId = formData.get("invite_id") as string;
   const status = formData.get("status") as string;
