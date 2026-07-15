@@ -13,8 +13,8 @@ export default async function ConfirmeEmailPage({
       <p className="mt-2 text-sm text-foreground/90">
         Cadastro recebido! Enviamos um link de confirmação para{" "}
         {email ? <strong className="text-foreground">{email}</strong> : "o seu e-mail"}. Abra
-        essa mensagem e clique no link para liberar o acesso e continuar o cadastro (envio de
-        documento e vídeo de verificação).
+        essa mensagem e clique no link para confirmar seu e-mail. Depois disso, seu acesso é
+        liberado assim que seu padrinho aprovar o convite.
       </p>
       <p className="mt-2 text-xs text-muted">
         Não chegou em alguns minutos? Confira a caixa de spam antes de pedir um novo envio.

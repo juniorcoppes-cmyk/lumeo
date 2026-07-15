@@ -955,9 +955,31 @@ retomar antes de tráfego real de lançamento, não algo já resolvido aqui.
   lançamento público, isso pode exigir mudar o fluxo de verificação.
 
 ## Produção
-- Deploy: [lumeo-alpha.vercel.app](https://lumeo-alpha.vercel.app) (Vercel,
-  conectado a `github.com/juniorcoppes-cmyk/lumeo`, branch `master`, deploy
-  automático a cada push).
+- Deploy: Vercel, conectado a `github.com/juniorcoppes-cmyk/lumeo`, branch
+  `master`, deploy automático a cada push. Ainda acessível por
+  [lumeo-alpha.vercel.app](https://lumeo-alpha.vercel.app), mas o **domínio
+  principal agora é `https://www.lumeo.app.br`** (configurado 2026-07-15).
+- **Domínio principal `www.lumeo.app.br` (2026-07-15)**: `lumeo.com.br` está
+  registrado por um terceiro (ver [Pendências](#) item 2), então o fundador
+  adotou o `lumeo.app.br` (que já era dele, usado pro remetente de e-mail)
+  como domínio do app — ver Pendências item 2. Config: Vercel (domínio +
+  records), registro.br
+  (A `lumeo.app.br` → `216.198.79.1`, CNAME `www` → vercel-dns; os records
+  de e-mail do Resend — DKIM/MX/SPF/DMARC — ficaram intactos), e Supabase
+  (Site URL → `https://www.lumeo.app.br`; Redirect URLs incluem
+  `https://www.lumeo.app.br/**`, `https://lumeo.app.br/**` e o antigo
+  `https://lumeo-alpha.vercel.app/**`). **A forma canônica é o `www`** — o
+  apex `lumeo.app.br` faz 308 redirect pro `www`. O código não tem domínio
+  hardcoded (URLs montadas via `window.location.origin`/`headers().origin`),
+  então nada precisou mudar no app. Verificado ao vivo: DNS propagado nos 3
+  resolvers, app servindo com TLS válido, `origin` = `https://www.lumeo.app.br`,
+  `/auth/confirm` roteando certo por tipo, e a Admin API `generate_link`
+  confirmando `redirect_to = https://www.lumeo.app.br` (ou seja, os e-mails de
+  confirmação/reset já apontam pro domínio novo, sem editar template, pois
+  usam `{{ .SiteURL }}`). **Nota de diagnóstico**: a máquina do dev tem Avast
+  interceptando TLS (MITM de antivírus) — se um cert vier com issuer "Avast
+  Web/Mail Shield", é artefato local, não da Vercel; validar pelo navegador
+  remoto/externo.
 - Webhook do Asaas de produção já registrado apontando para
   `https://lumeo-alpha.vercel.app/api/webhooks/asaas` (nome "Lumeo -
   Pagamentos" no painel do Asaas), mesmos 5 eventos do sandbox.
@@ -993,9 +1015,21 @@ retomar antes de tráfego real de lançamento, não algo já resolvido aqui.
    não totalmente confiável sem mais due diligence. Nenhum processador BR
    aceita esse nicho "por escrito"; Asaas foi a escolha pragmática (declarar
    a atividade de forma genérica, aceitar o risco de bloqueio se descoberto).
-2. Registro de domínio: **`lumeo.app.br` comprado e verificado no Resend
-   em 2026-07-15** (ver rodada abaixo) — resolve o remetente de e-mail.
-   `lumeo.com.br` e busca de marca no INPI continuam pendentes.
+2. Registro de domínio: **`www.lumeo.app.br` é o domínio principal do app
+   desde 2026-07-15** (Vercel + registro.br + Supabase configurados — ver
+   "Produção"). `lumeo.app.br` já era do fundador (usado pro remetente de
+   e-mail no Resend). **`lumeo.com.br` está registrado por um terceiro**
+   (Antonio Rafael Dias da Silva, criado 20/03/2026, válido até 20/03/2028,
+   e-mail rafael.cdc97@gmail.com) — só obtível via compra negociada; por isso
+   o fundador optou pelo `.app.br`. **Busca de marca no INPI feita 2026-07-15**
+   (informativa, não é parecer jurídico): a marca nominativa "LUMEO" está
+   LIVRE na classe 45 (namoro/rede social — a mais relevante), mas há um
+   pedido pendente recente na classe 41 (eventos) da JET Soluções Educacionais
+   (dep. 14/05/2026) e a Alcon tem "LUMEO" registrado vivo na classe 10
+   (médico, ramo distinto). Depósito de marca ainda não feito — exige conta
+   gov.br + GRU e, idealmente, um agente de PI; classes-alvo sugeridas: 45
+   (core), 41 (eventos), 9/42 (software). Detalhes na memória
+   `project-lumeo-domain-trademark` (fora do repo).
 3. ~~Regra de tolerância para falha de pagamento recorrente~~ — 2 dias de
    carência (`overdue_since` + `effectiveSubscriptionStatus` em
    `src/lib/subscription.ts`; ver `src/app/api/webhooks/asaas/route.ts`).
