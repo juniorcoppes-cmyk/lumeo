@@ -98,17 +98,13 @@ export default async function AssinaturaPage({
         </p>
       )}
 
-      {paymentUrl && (
-        <p className="mt-2 text-sm">
-          <a href={paymentUrl} target="_blank" rel="noreferrer">
-            Finalizar pagamento
-          </a>
-        </p>
-      )}
-
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {plans.map((plan) => {
           const isCurrentActivePlan = subscription?.plan === plan.id && displayStatus === "active";
+          const isPendingPaymentPlan =
+            subscription?.plan === plan.id &&
+            subscription?.status === "pending_payment" &&
+            !!paymentUrl;
           return (
             <form key={plan.id} action={choosePlan} className="card">
               <input type="hidden" name="plan" value={plan.id} />
@@ -126,6 +122,15 @@ export default async function AssinaturaPage({
                 <p className="mt-4 rounded-full border border-line px-4 py-2 text-center text-sm text-muted">
                   Seu plano atual
                 </p>
+              ) : isPendingPaymentPlan ? (
+                <a
+                  href={paymentUrl!}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-4 block rounded-full bg-green-600 px-4 py-2 text-center font-medium text-white no-underline hover:bg-green-500"
+                >
+                  Finalizar pagamento
+                </a>
               ) : (
                 <>
                   {!billing?.cpf_cnpj && (
