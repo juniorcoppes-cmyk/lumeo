@@ -649,6 +649,26 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
     se opaco, chamar o endpoint REST `/auth/v1/admin/generate_link`
     direto com a service role pra pegar o erro cru (o SDK JS às vezes
     engole o corpo do erro em `{}`).
+  - **Continuação do mesmo incidente, mesmo dia**: com os 3 passos acima
+    resolvidos, o e-mail de confirmação passou a chegar de verdade — mas
+    o link dava "Safari não pôde se conectar ao servidor". Causa: Site
+    URL do projeto no Supabase (Authentication → URL Configuration)
+    ainda estava em `http://localhost:3000` (valor padrão de
+    desenvolvimento), e é isso que `{{ .SiteURL }}` no template resolve
+    — o link mandava o celular do usuário tentar abrir `localhost`, que
+    só existe na máquina de quem desenvolveu. Confirmado chamando
+    `generate_link` e lendo o campo `redirect_to` da resposta antes e
+    depois da correção. Fundador trocou Site URL pra
+    `https://lumeo-alpha.vercel.app` e adicionou
+    `https://lumeo-alpha.vercel.app/**` em Redirect URLs. Teste final
+    desta vez bateu direto em produção (não só localhost): gerou um
+    link de verdade via `generate_link`, fez o `GET` no
+    `/auth/confirm` de `lumeo-alpha.vercel.app` e confirmou redirect +
+    cookie de sessão — cadastro funcionando ponta a ponta em produção.
+    **Lição pro futuro**: sempre que o SMTP/domínio de e-mail for
+    trocado ou o projeto for promovido de local pra produção, checar
+    Site URL e Redirect URLs no painel — não é algo que o deploy ou a
+    troca de sender ajusta sozinho.
 - Décima quarta rodada (2026-07-15): ajustes de mobile, destaque visual
   no admin, foto de evento na home e isenção de assinatura com prazo.
   - **Cortes de tela no mobile** (achado real, reportado pelo fundador):
