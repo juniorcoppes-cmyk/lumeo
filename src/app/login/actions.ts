@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { friendlyAuthError } from "@/lib/auth-errors";
 
 export async function login(formData: FormData) {
   const email = formData.get("email") as string;
@@ -13,7 +14,11 @@ export async function login(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    redirect(`/login?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(next)}`);
+    const message =
+      error.code === "email_not_confirmed"
+        ? "Seu e-mail ainda não foi confirmado — confira sua caixa de entrada ou peça um novo link de confirmação."
+        : friendlyAuthError(error.message, error.status);
+    redirect(`/login?error=${encodeURIComponent(message)}&next=${encodeURIComponent(next)}`);
   }
 
   redirect(next);

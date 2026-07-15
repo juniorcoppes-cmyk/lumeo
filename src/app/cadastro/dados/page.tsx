@@ -37,6 +37,13 @@ export default async function CadastroDadosPage({
           minLength={6}
           className="input"
         />
+        <PasswordInput
+          name="password_confirmation"
+          placeholder="Confirmar senha"
+          required
+          minLength={6}
+          className="input"
+        />
         <select name="profile_type" required className="input">
           <option value="individual">Individual</option>
           <option value="casal">Casal</option>
