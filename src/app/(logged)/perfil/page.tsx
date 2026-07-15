@@ -13,10 +13,12 @@ import {
 } from "@/lib/profile-options";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { PinSettings } from "@/components/PinSettings";
+import { CopyLinkButton } from "@/components/CopyLinkButton";
 import { LocationShareButton } from "./LocationShareButton";
 import {
   clearLocation,
   deletePhoto,
+  generatePlatformInvite,
   removeAvatar,
   respondPhotoRequest,
   toggleCoupleSingleDevice,
@@ -47,6 +49,7 @@ export default async function PerfilPage({
     { data: subscription },
     { data: photos },
     { data: pendingRequests },
+    { data: platformInvites },
   ] = await Promise.all([
     supabase
       .from("users")
@@ -66,6 +69,11 @@ export default async function PerfilPage({
       .select("id, requester_id, users!requester_id(name)")
       .eq("owner_id", user.id)
       .eq("status", "pending"),
+    supabase
+      .from("platform_invites")
+      .select("id, invite_code, used_at, users:used_by(name)")
+      .eq("inviter_id", user.id)
+      .order("created_at", { ascending: false }),
   ]);
 
   // Depende do avatar_path vindo da consulta acima, não dá pra paralelizar.
@@ -411,6 +419,43 @@ export default async function PerfilPage({
           </button>
         </form>
       </section>
+
+      {profile?.verification_badge_id && (
+        <section className="mt-10 border-t border-line pt-6">
+          <h2 className="text-lg">Convidar alguém pra Lumeo</h2>
+          <p className="text-sm text-muted">
+            O cadastro só acontece através de convite — ao gerar um link, você vira o padrinho
+            de quem se cadastrar por ele, e vai precisar aceitar ou recusar apadrinhar antes de
+            continuar usando o app.
+          </p>
+          <form action={generatePlatformInvite} className="mt-3">
+            <button type="submit" className="btn-secondary">
+              Gerar link de convite
+            </button>
+          </form>
+          {platformInvites && platformInvites.length > 0 && (
+            <ul className="mt-4 flex flex-col gap-2 text-sm">
+              {platformInvites.map((invite) => {
+                const usedByUser = Array.isArray(invite.users) ? invite.users[0] : invite.users;
+                return (
+                  <li key={invite.id} className="flex flex-wrap items-center gap-2">
+                    {invite.used_at ? (
+                      <span className="text-muted">
+                        Usado por <span className="text-foreground">{usedByUser?.name}</span>
+                      </span>
+                    ) : (
+                      <>
+                        <span className="text-muted">/cadastro/dados?code={invite.invite_code}</span>
+                        <CopyLinkButton path={`/cadastro/dados?code=${invite.invite_code}`} />
+                      </>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      )}
 
       {pendingRequests && pendingRequests.length > 0 && (
         <section className="mt-10 border-t border-line pt-6">

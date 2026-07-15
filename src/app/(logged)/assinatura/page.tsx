@@ -30,24 +30,13 @@ export default async function AssinaturaPage({
 
   const { data: profile } = await supabase
     .from("users")
-    .select("is_admin, is_support_channel")
+    .select("is_admin, is_support_channel, member_since")
     .eq("id", user.id)
     .single();
 
-  const { data: approvedVerification } = await supabase
-    .from("verifications")
-    .select("reviewed_at")
-    .eq("user_id", user.id)
-    .eq("status", "approved")
-    .order("reviewed_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const trialDaysLeft = approvedVerification?.reviewed_at
+  const trialDaysLeft = profile?.member_since
     ? Math.ceil(
-        7 -
-          (Date.now() - new Date(approvedVerification.reviewed_at).getTime()) /
-            (24 * 60 * 60 * 1000),
+        7 - (Date.now() - new Date(profile.member_since).getTime()) / (24 * 60 * 60 * 1000),
       )
     : null;
 

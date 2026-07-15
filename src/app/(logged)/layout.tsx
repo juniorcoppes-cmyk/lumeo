@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
 import { signOut } from "@/lib/auth-actions";
 import { PinLockGate } from "@/components/PinLockGate";
+import { SponsorGate } from "@/components/SponsorGate";
 import { PrimaryNav } from "@/components/PrimaryNav";
 import { CalendarIcon, HomeIcon, MessageIcon, UserIcon, UsersIcon } from "@/components/icons";
 
@@ -32,6 +33,20 @@ export default async function LoggedLayout({
     const code = profile.pending_invite_code;
     await supabase.from("users").update({ pending_invite_code: null }).eq("id", user.id);
     redirect(`/convite/${code}`);
+  }
+
+  const { data: pendingSponsorships } = await supabase
+    .from("users")
+    .select("id, name")
+    .eq("referred_by", user.id)
+    .eq("membership_status", "pending_sponsor");
+
+  if (pendingSponsorships && pendingSponsorships.length > 0) {
+    return (
+      <PinLockGate>
+        <SponsorGate items={pendingSponsorships} />
+      </PinLockGate>
+    );
   }
 
   const { count: unreadNotifications } = await supabase

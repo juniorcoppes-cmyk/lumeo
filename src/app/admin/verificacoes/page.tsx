@@ -1,28 +1,44 @@
 import { createClient } from "@/lib/supabase/server";
-import { approveVerification, rejectVerification } from "./actions";
+import { PhotoGallery } from "@/components/PhotoGallery";
+import { finalizeMembership } from "./actions";
 
 const MIN_TOTAL_PHOTOS = 6;
 const MIN_CORPO_PHOTOS_CASAL = 2;
+const REVIEW_WINDOW_HOURS = 48;
 
 export default async function AdminVerificacoesPage() {
   const supabase = await createClient();
 
-  const { data: verifications } = await supabase
-    .from("verifications")
-    .select("id, user_id, document_url, video_url, created_at, users(name, email, profile_type)")
-    .eq("status", "pending")
-    .order("created_at", { ascending: true });
+  const { data: pending } = await supabase
+    .from("users")
+    .select("id, name, email, profile_type, bio, sponsor_responded_at, users:referred_by(name)")
+    .eq("membership_status", "provisional")
+    .order("sponsor_responded_at", { ascending: true });
 
   const withDetails = await Promise.all(
-    (verifications ?? []).map(async (v) => {
-      const [{ data: doc }, { data: video }, { data: photos }] = await Promise.all([
-        supabase.storage.from("verifications").createSignedUrl(v.document_url, 300),
-        supabase.storage.from("verifications").createSignedUrl(v.video_url, 300),
-        supabase.from("profile_photos").select("category").eq("user_id", v.user_id),
-      ]);
-      const totalPhotos = photos?.length ?? 0;
-      const corpoPhotos = photos?.filter((p) => p.category === "corpo").length ?? 0;
-      return { ...v, documentUrl: doc?.signedUrl, videoUrl: video?.signedUrl, totalPhotos, corpoPhotos };
+    (pending ?? []).map(async (p) => {
+      const { data: photos } = await supabase
+        .from("profile_photos")
+        .select("id, category, storage_path")
+        .eq("user_id", p.id)
+        .order("position", { ascending: true });
+
+      const photosWithUrls = await Promise.all(
+        (photos ?? []).map(async (photo) => {
+          const { data } = await supabase.storage
+            .from("profile-photos")
+            .createSignedUrl(photo.storage_path, 300);
+          return { ...photo, url: data?.signedUrl };
+        }),
+      );
+
+      const totalPhotos = photosWithUrls.length;
+      const corpoPhotos = photosWithUrls.filter((ph) => ph.category === "corpo").length;
+      const deadline = p.sponsor_responded_at
+        ? new Date(new Date(p.sponsor_responded_at).getTime() + REVIEW_WINDOW_HOURS * 60 * 60 * 1000)
+        : null;
+
+      return { ...p, photosWithUrls, totalPhotos, corpoPhotos, deadline };
     }),
   );
 
@@ -30,40 +46,43 @@ export default async function AdminVerificacoesPage() {
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-2xl">Verificações</h1>
       <p className="mt-2 text-muted">
-        Fila de aprovação de documento e vídeo dos usuários. Mínimo pra
-        aprovar: 6 fotos no álbum no total; perfil casal precisa de pelo
-        menos 2 fotos de corpo inteiro — confirme visualmente que são as
-        duas pessoas do casal, o sistema não consegue checar isso sozinho.
+        Perfis com apadrinhamento aceito, já com acesso liberado, esperando a
+        confirmação definitiva em até {REVIEW_WINDOW_HOURS}h. Mínimo pra
+        confirmar: {MIN_TOTAL_PHOTOS} fotos no álbum no total; perfil casal
+        precisa de pelo menos {MIN_CORPO_PHOTOS_CASAL} fotos de corpo inteiro
+        — confirme visualmente que são as duas pessoas do casal, o sistema
+        não consegue checar isso sozinho.
       </p>
 
       <ul className="mt-6 flex flex-col gap-6">
-        {withDetails.map((v) => {
-          const user = Array.isArray(v.users) ? v.users[0] : v.users;
-          const isCasal = user?.profile_type === "casal";
-          const meetsTotal = v.totalPhotos >= MIN_TOTAL_PHOTOS;
-          const meetsCorpo = !isCasal || v.corpoPhotos >= MIN_CORPO_PHOTOS_CASAL;
+        {withDetails.map((p) => {
+          const isCasal = p.profile_type === "casal";
+          const meetsTotal = p.totalPhotos >= MIN_TOTAL_PHOTOS;
+          const meetsCorpo = !isCasal || p.corpoPhotos >= MIN_CORPO_PHOTOS_CASAL;
           const meetsMinimum = meetsTotal && meetsCorpo;
+          const sponsor = Array.isArray(p.users) ? p.users[0] : p.users;
+          const overdue = p.deadline ? p.deadline.getTime() < Date.now() : false;
 
           return (
-            <li key={v.id} className="card">
-              <p className="font-medium text-foreground">{user?.name}</p>
-              <p className="text-sm text-muted">{user?.email}</p>
-              <div className="mt-2 flex gap-4 text-sm">
-                {v.documentUrl && (
-                  <a href={v.documentUrl} target="_blank" rel="noreferrer">
-                    Ver documento
-                  </a>
-                )}
-                {v.videoUrl && (
-                  <a href={v.videoUrl} target="_blank" rel="noreferrer">
-                    Ver vídeo
-                  </a>
+            <li key={p.id} className="card">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="font-medium text-foreground">{p.name}</p>
+                  <p className="text-sm text-muted">{p.email}</p>
+                  <p className="text-sm text-muted">Padrinho: {sponsor?.name ?? "—"}</p>
+                </div>
+                {p.deadline && (
+                  <span className={`tag ${overdue ? "!bg-red-900/40 !text-red-300" : ""}`}>
+                    {overdue ? "Prazo vencido" : "Prazo"}: {p.deadline.toLocaleString("pt-BR")}
+                  </span>
                 )}
               </div>
 
+              {p.bio && <p className="mt-2 text-sm text-foreground/90">{p.bio}</p>}
+
               <p className={`mt-2 text-sm ${meetsMinimum ? "text-muted" : "text-red-400"}`}>
-                Álbum: {v.totalPhotos} foto(s) no total
-                {isCasal && ` · ${v.corpoPhotos} de corpo inteiro`}
+                Álbum: {p.totalPhotos} foto(s) no total
+                {isCasal && ` · ${p.corpoPhotos} de corpo inteiro`}
                 {!meetsMinimum && (
                   <>
                     {" "}
@@ -73,24 +92,30 @@ export default async function AdminVerificacoesPage() {
                 )}
               </p>
 
+              <div className="mt-3">
+                <PhotoGallery
+                  photos={p.photosWithUrls}
+                  commentsByPhoto={{}}
+                  likesByPhoto={{}}
+                  currentUserId={p.id}
+                  photoOwnerId={p.id}
+                  revalidatePath="/admin/verificacoes"
+                />
+              </div>
+
               <div className="mt-4 flex flex-wrap items-center gap-2">
-                <form action={approveVerification}>
-                  <input type="hidden" name="verification_id" value={v.id} />
+                <form action={finalizeMembership}>
+                  <input type="hidden" name="user_id" value={p.id} />
+                  <input type="hidden" name="decision" value="approve" />
                   <button type="submit" className="btn-primary">
-                    Aprovar
+                    Confirmar associação
                   </button>
                 </form>
-                <form action={rejectVerification} className="flex items-center gap-2">
-                  <input type="hidden" name="verification_id" value={v.id} />
-                  <input
-                    type="text"
-                    name="rejection_reason"
-                    placeholder="Motivo da reprovação"
-                    required
-                    className="input !py-1 text-sm"
-                  />
+                <form action={finalizeMembership}>
+                  <input type="hidden" name="user_id" value={p.id} />
+                  <input type="hidden" name="decision" value="reject" />
                   <button type="submit" className="btn-secondary">
-                    Reprovar
+                    Reprovar (revoga acesso)
                   </button>
                 </form>
               </div>
@@ -98,7 +123,7 @@ export default async function AdminVerificacoesPage() {
           );
         })}
         {withDetails.length === 0 && (
-          <p className="text-muted">Nenhuma verificação pendente.</p>
+          <p className="text-muted">Nenhum perfil esperando confirmação no momento.</p>
         )}
       </ul>
     </main>

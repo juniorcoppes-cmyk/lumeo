@@ -26,14 +26,22 @@ export default async function AdminLayout({
 
   if (!profile?.is_admin) redirect("/inicio");
 
-  const { count: pendingReports } = await supabase
-    .from("user_reports")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "pending");
+  const [{ count: pendingReports }, { count: pendingVerifications }] = await Promise.all([
+    supabase.from("user_reports").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    supabase
+      .from("users")
+      .select("id", { count: "exact", head: true })
+      .eq("membership_status", "provisional"),
+  ]);
 
   const primaryItems = [
     { href: "/admin/eventos", label: "Eventos", icon: <CalendarIcon /> },
-    { href: "/admin/verificacoes", label: "Verificações", icon: <ShieldCheckIcon /> },
+    {
+      href: "/admin/verificacoes",
+      label: "Verificações",
+      icon: <ShieldCheckIcon />,
+      badge: pendingVerifications ?? 0,
+    },
     { href: "/admin/usuarios", label: "Usuários", icon: <UsersIcon /> },
     {
       href: "/admin/denuncias",

@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const rawNext = searchParams.get("next");
-  const defaultNext = type === "signup" ? "/cadastro/documento" : "/inicio";
+  const defaultNext = type === "signup" ? "/cadastro/aguardando-padrinho" : "/inicio";
   const next = rawNext?.startsWith("/") && !rawNext.startsWith("//") ? rawNext : defaultNext;
 
   if (token_hash && type) {

@@ -11,13 +11,29 @@ export async function signUp(formData: FormData) {
   const passwordConfirmation = formData.get("password_confirmation") as string;
   const profileType = formData.get("profile_type") as string;
   const experienceLevel = formData.get("experience_level") as string;
-  const inviteCode = (formData.get("invite_code") as string) || undefined;
+  const preferredPlan = (formData.get("preferred_plan") as string) || undefined;
+  const platformInviteCode = formData.get("platform_invite_code") as string;
 
   if (password !== passwordConfirmation) {
-    redirect(`/cadastro/dados?error=${encodeURIComponent("As senhas não coincidem.")}`);
+    redirect(
+      `/cadastro/dados?code=${encodeURIComponent(platformInviteCode)}&error=${encodeURIComponent("As senhas não coincidem.")}`,
+    );
   }
 
   const supabase = await createClient();
+
+  // Revalida o convite no servidor (defesa em profundidade — a página já
+  // checa antes de mostrar o formulário, mas o form em si não tem como
+  // impedir uma chamada direta à action sem passar pela página).
+  const { data: previewRows } = await supabase.rpc("get_platform_invite_preview", {
+    p_code: platformInviteCode,
+  });
+  if (!previewRows?.[0]?.valid) {
+    redirect(
+      `/cadastro/dados?code=${encodeURIComponent(platformInviteCode)}&error=${encodeURIComponent("Esse link de convite não é mais válido.")}`,
+    );
+  }
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -26,14 +42,15 @@ export async function signUp(formData: FormData) {
         name,
         profile_type: profileType,
         experience_level: experienceLevel,
-        invite_code: inviteCode,
+        platform_invite_code: platformInviteCode,
+        preferred_plan: preferredPlan,
       },
     },
   });
 
   if (error) {
     redirect(
-      `/cadastro/dados?error=${encodeURIComponent(friendlyAuthError(error.message, error.status))}`,
+      `/cadastro/dados?code=${encodeURIComponent(platformInviteCode)}&error=${encodeURIComponent(friendlyAuthError(error.message, error.status))}`,
     );
   }
 
@@ -43,5 +60,5 @@ export async function signUp(formData: FormData) {
     redirect(`/cadastro/confirme-email?email=${encodeURIComponent(email)}`);
   }
 
-  redirect("/cadastro/documento");
+  redirect("/cadastro/aguardando-padrinho");
 }
