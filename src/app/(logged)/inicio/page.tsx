@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
 import { ExperienceBadge } from "@/components/ExperienceBadge";
-import { CopyLinkButton } from "@/components/CopyLinkButton";
-import { CalendarIcon, CheckCircleIcon, CircleIcon } from "@/components/icons";
+import { PlatformInviteLink } from "@/components/PlatformInviteLink";
+import { CalendarIcon, CheckCircleIcon } from "@/components/icons";
 import { createTextPost, deleteTextPost, generatePlatformInvite, respondInvite } from "./actions";
 
 type TimelineRow = {
@@ -101,6 +101,12 @@ export default async function InicioPage() {
     );
   }
 
+  // Só o convite pendente mais recente vira link copiável (platformInvites já
+  // vem ordenado por created_at desc), pra página não acumular links. Os já
+  // usados viram histórico ("Usado por X").
+  const pendingInvite = platformInvites?.find((invite) => !invite.used_at);
+  const usedInvites = (platformInvites ?? []).filter((invite) => invite.used_at);
+
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-2xl">Início</h1>
@@ -132,38 +138,31 @@ export default async function InicioPage() {
 
       {canSeeTimeline && (
         <section className="card mt-4">
-          <h2 className="text-lg">Convidar alguém pra Lumeo</h2>
+          <h2 className="text-lg text-green-400">Convidar alguém pra Lumeo</h2>
           <p className="text-sm text-muted">
             O cadastro só acontece através de convite — ao gerar um link, você vira o padrinho
             de quem se cadastrar por ele, e vai precisar aceitar ou recusar apadrinhar antes de
-            continuar usando o app. Cada link só funciona uma vez — depois de usado, gere um
-            link novo pra cada próxima pessoa que for convidar.
+            continuar usando o app. Cada link só funciona uma vez — gere um link novo pra cada
+            próxima pessoa que for convidar.
           </p>
           <form action={generatePlatformInvite} className="mt-3">
             <button type="submit" className="btn-primary">
               Gerar link de convite
             </button>
           </form>
-          {platformInvites && platformInvites.length > 0 && (
+
+          {pendingInvite && <PlatformInviteLink code={pendingInvite.invite_code} />}
+
+          {usedInvites.length > 0 && (
             <ul className="mt-4 flex flex-col gap-2 text-sm">
-              {platformInvites.map((invite) => {
+              {usedInvites.map((invite) => {
                 const usedByUser = Array.isArray(invite.users) ? invite.users[0] : invite.users;
                 return (
                   <li key={invite.id} className="flex flex-wrap items-center gap-2">
-                    {invite.used_at ? (
-                      <>
-                        <CheckCircleIcon className="h-4 w-4 shrink-0 text-green-400" />
-                        <span className="text-muted">
-                          Usado por <span className="text-foreground">{usedByUser?.name}</span>
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <CircleIcon className="h-4 w-4 shrink-0 text-muted" />
-                        <span className="text-muted">/cadastro/dados?code={invite.invite_code}</span>
-                        <CopyLinkButton path={`/cadastro/dados?code=${invite.invite_code}`} />
-                      </>
-                    )}
+                    <CheckCircleIcon className="h-4 w-4 shrink-0 text-green-400" />
+                    <span className="text-muted">
+                      Usado por <span className="text-foreground">{usedByUser?.name}</span>
+                    </span>
                   </li>
                 );
               })}
