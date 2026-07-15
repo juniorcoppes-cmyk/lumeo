@@ -146,28 +146,31 @@ export default async function ComunidadePage({
             distance_bucket: string | null;
             avatarUrl?: string;
           }) => (
-            <li key={p.id} className="card flex items-center gap-3">
+            <li key={p.id} className="card flex flex-wrap items-center gap-3">
               {p.avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={p.avatarUrl}
                   alt=""
-                  className="h-10 w-10 rounded-full object-cover"
+                  className="h-10 w-10 shrink-0 rounded-full object-cover"
                 />
               ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft text-[10px] text-muted">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[10px] text-muted">
                   Sem foto
                 </div>
               )}
-              <Link href={`/perfil/${p.id}`} className="font-medium no-underline text-foreground hover:text-accent">
-                {p.name}
-              </Link>
-              <span className="text-sm text-muted">{p.profile_type}</span>
-              <ExperienceBadge level={p.experience_level} />
-              {p.distance_bucket && (
-                <span className="tag">{p.distance_bucket}</span>
-              )}
-              <form action={startGeneralConversation} className="ml-auto">
+              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+                <Link
+                  href={`/perfil/${p.id}`}
+                  className="min-w-0 max-w-full truncate font-medium no-underline text-foreground hover:text-accent"
+                >
+                  {p.name}
+                </Link>
+                <span className="text-sm text-muted">{p.profile_type}</span>
+                <ExperienceBadge level={p.experience_level} />
+                {p.distance_bucket && <span className="tag">{p.distance_bucket}</span>}
+              </div>
+              <form action={startGeneralConversation} className="shrink-0">
                 <input type="hidden" name="other_user_id" value={p.id} />
                 <button type="submit" className="btn-secondary">
                   Conversar

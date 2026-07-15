@@ -137,23 +137,23 @@ export default async function PerfilPage({
 
       {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 
-      <div className="mt-4 flex items-center gap-4">
+      <div className="mt-4 flex flex-wrap items-center gap-4">
         {avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={avatarUrl}
             alt=""
-            className="h-20 w-20 rounded-full object-cover"
+            className="h-20 w-20 shrink-0 rounded-full object-cover"
           />
         ) : (
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-accent-soft text-xs text-muted">
+          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-accent-soft text-xs text-muted">
             Sem foto
           </div>
         )}
-        <div className="flex flex-col gap-2">
-          <form action={updateAvatar} className="flex items-center gap-2">
-            <input type="file" name="avatar" accept="image/*" required className="text-sm" />
-            <button type="submit" className="btn-secondary">
+        <div className="flex min-w-0 max-w-full flex-1 flex-col gap-2">
+          <form action={updateAvatar} className="flex flex-wrap items-center gap-2">
+            <input type="file" name="avatar" accept="image/*" required className="min-w-0 max-w-full text-sm" />
+            <button type="submit" className="btn-secondary shrink-0">
               {avatarUrl ? "Trocar" : "Adicionar"}
             </button>
           </form>
@@ -259,7 +259,7 @@ export default async function PerfilPage({
         </button>
       </form>
 
-      <div className="mt-4 flex items-center gap-3">
+      <div className="mt-4 flex flex-wrap items-center gap-3">
         <span className="text-sm text-muted">
           {profile?.location_updated_at
             ? `Localização compartilhada (atualizada em ${new Date(
@@ -464,10 +464,10 @@ export default async function PerfilPage({
             deletePhotoAction={deletePhoto}
           />
         </div>
-        <form action={uploadPhoto} className="mt-3 flex items-center gap-2">
+        <form action={uploadPhoto} className="mt-3 flex flex-wrap items-center gap-2">
           <input type="hidden" name="category" value="rosto" />
-          <input type="file" name="photo" accept="image/*" required />
-          <button type="submit" className="btn-secondary">
+          <input type="file" name="photo" accept="image/*" required className="min-w-0 max-w-full" />
+          <button type="submit" className="btn-secondary shrink-0">
             Adicionar
           </button>
         </form>
@@ -489,10 +489,10 @@ export default async function PerfilPage({
             deletePhotoAction={deletePhoto}
           />
         </div>
-        <form action={uploadPhoto} className="mt-3 flex items-center gap-2">
+        <form action={uploadPhoto} className="mt-3 flex flex-wrap items-center gap-2">
           <input type="hidden" name="category" value="corpo" />
-          <input type="file" name="photo" accept="image/*" required />
-          <button type="submit" className="btn-secondary">
+          <input type="file" name="photo" accept="image/*" required className="min-w-0 max-w-full" />
+          <button type="submit" className="btn-secondary shrink-0">
             Adicionar
           </button>
         </form>

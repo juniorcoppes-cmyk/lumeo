@@ -217,7 +217,16 @@ export default async function AdminEventosPage() {
                   : user?.subscriptions;
                 const plus = isPlusActive(subscription);
                 return (
-                  <li key={reg.id} className="flex items-center justify-between text-sm">
+                  <li
+                    key={reg.id}
+                    className={`flex flex-wrap items-center justify-between gap-2 rounded-xl border p-2 text-sm ${
+                      reg.status === "confirmed"
+                        ? "border-green-700/40 bg-green-900/20"
+                        : reg.status === "cancelled"
+                          ? "border-line opacity-60"
+                          : "border-line"
+                    }`}
+                  >
                     <span>
                       {user?.name} ({user?.email}) — {reg.status}
                       {plus && (
@@ -230,14 +239,28 @@ export default async function AdminEventosPage() {
                       <form action={updateRegistrationStatus}>
                         <input type="hidden" name="registration_id" value={reg.id} />
                         <input type="hidden" name="status" value="confirmed" />
-                        <button type="submit" className="btn-secondary !px-2.5 !py-1 !text-xs">
+                        <button
+                          type="submit"
+                          className={
+                            reg.status === "confirmed"
+                              ? "btn-primary !bg-green-700 !px-2.5 !py-1 !text-xs"
+                              : "btn-secondary !px-2.5 !py-1 !text-xs"
+                          }
+                        >
                           Confirmar
                         </button>
                       </form>
                       <form action={updateRegistrationStatus}>
                         <input type="hidden" name="registration_id" value={reg.id} />
                         <input type="hidden" name="status" value="cancelled" />
-                        <button type="submit" className="btn-secondary !px-2.5 !py-1 !text-xs">
+                        <button
+                          type="submit"
+                          className={
+                            reg.status === "cancelled"
+                              ? "btn-primary !bg-red-800 !px-2.5 !py-1 !text-xs"
+                              : "btn-secondary !px-2.5 !py-1 !text-xs"
+                          }
+                        >
                           Cancelar
                         </button>
                       </form>

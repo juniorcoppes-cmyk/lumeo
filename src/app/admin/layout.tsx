@@ -52,9 +52,9 @@ export default async function AdminLayout({
         </div>
       </header>
 
-      <div className="pb-16">{children}</div>
+      <div className="pb-24">{children}</div>
 
-      <footer className="fixed inset-x-0 bottom-0 z-40 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line bg-surface px-3 py-2 text-xs">
+      <footer className="fixed inset-x-0 bottom-0 z-40 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 border-t border-line bg-surface px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2 text-xs">
         <Link href="/inicio" className="text-foreground no-underline hover:text-accent">
           Início
         </Link>

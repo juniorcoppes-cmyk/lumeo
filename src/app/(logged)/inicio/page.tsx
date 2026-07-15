@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
 import { ExperienceBadge } from "@/components/ExperienceBadge";
+import { CalendarIcon } from "@/components/icons";
 import { createTextPost, deleteTextPost, respondInvite } from "./actions";
 
 type TimelineRow = {
@@ -31,10 +32,10 @@ export default async function InicioPage() {
 
   // As 3 consultas abaixo são independentes — rodar em paralelo em vez de
   // sequencial reduz o tempo de resposta da página.
-  const [{ data: events }, { data: invites }, { data: viewerProfile }] = await Promise.all([
+  const [{ data: eventsRaw }, { data: invites }, { data: viewerProfile }] = await Promise.all([
     supabase
       .from("events")
-      .select("id, title, event_date, location")
+      .select("id, title, event_date, location, description, photo_landscape_path")
       .gte("event_date", new Date().toISOString())
       .order("event_date", { ascending: true })
       .limit(5),
@@ -50,6 +51,16 @@ export default async function InicioPage() {
       .eq("id", user.id)
       .single(),
   ]);
+
+  const events = await Promise.all(
+    (eventsRaw ?? []).map(async (event) => {
+      if (!event.photo_landscape_path) return { ...event, thumbUrl: undefined };
+      const { data } = await supabase.storage
+        .from("event-photos")
+        .createSignedUrl(event.photo_landscape_path, 300);
+      return { ...event, thumbUrl: data?.signedUrl };
+    }),
+  );
 
   const canSeeTimeline =
     !!viewerProfile?.verification_badge_id ||
@@ -114,19 +125,37 @@ export default async function InicioPage() {
 
       <section className="mt-8">
         <h2 className="text-lg">Próximos eventos</h2>
-        <ul className="mt-3 flex flex-col gap-2">
-          {events?.map((event) => (
+        <ul className="mt-3 flex flex-col gap-3">
+          {events.map((event) => (
             <li key={event.id}>
-              <Link href={`/eventos/${event.id}`} className="card block no-underline hover:bg-accent-soft">
-                <span className="font-medium text-foreground">{event.title}</span>
-                <span className="text-sm text-muted">
-                  {" "}
-                  · {new Date(event.event_date).toLocaleString("pt-BR")} · {event.location}
-                </span>
+              <Link
+                href={`/eventos/${event.id}`}
+                className="card block overflow-hidden !p-0 no-underline hover:bg-accent-soft"
+              >
+                {event.thumbUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={event.thumbUrl}
+                    alt=""
+                    className="aspect-[16/9] w-full object-cover"
+                  />
+                )}
+                <div className="p-4">
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4 shrink-0 text-accent" />
+                    <span className="font-medium text-foreground">{event.title}</span>
+                  </div>
+                  <span className="text-sm text-muted">
+                    {new Date(event.event_date).toLocaleString("pt-BR")} · {event.location}
+                  </span>
+                  {event.description && (
+                    <p className="mt-1 line-clamp-2 text-sm text-muted">{event.description}</p>
+                  )}
+                </div>
               </Link>
             </li>
           ))}
-          {events?.length === 0 && <p className="text-muted">Nenhum evento agendado.</p>}
+          {events.length === 0 && <p className="text-muted">Nenhum evento agendado.</p>}
         </ul>
       </section>
 
