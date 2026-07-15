@@ -5,13 +5,18 @@ import { login } from "./actions";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; next?: string }>;
+  searchParams: Promise<{ error?: string; next?: string; confirmed?: string }>;
 }) {
-  const { error, next } = await searchParams;
+  const { error, next, confirmed } = await searchParams;
 
   return (
     <main className="mx-auto max-w-sm px-6 py-16">
       <h1 className="text-2xl">Entrar</h1>
+      {confirmed && (
+        <p className="mt-4 text-sm text-green-400">
+          E-mail confirmado! Faça login com seu e-mail e senha para continuar.
+        </p>
+      )}
       {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
       <form action={login} className="mt-6 flex flex-col gap-4">
         {next && <input type="hidden" name="next" value={next} />}

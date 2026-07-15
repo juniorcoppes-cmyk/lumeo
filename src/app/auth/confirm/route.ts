@@ -9,13 +9,19 @@ export async function GET(request: NextRequest) {
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const rawNext = searchParams.get("next");
-  const defaultNext = type === "signup" ? "/cadastro/aguardando-padrinho" : "/inicio";
-  const next = rawNext?.startsWith("/") && !rawNext.startsWith("//") ? rawNext : defaultNext;
 
   if (token_hash && type) {
     const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({ type, token_hash });
     if (!error) {
+      // Confirmação de cadastro: manda direto pra tela de login (ignora
+      // qualquer next= do template, que podia apontar pra página órfã e
+      // deixar o usuário perdido). Demais tipos (recuperação de senha etc.)
+      // seguem o next= informado.
+      if (type === "signup") {
+        redirect("/login?confirmed=1");
+      }
+      const next = rawNext?.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/inicio";
       redirect(next);
     }
   }
