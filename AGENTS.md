@@ -10,6 +10,12 @@ Plataforma de eventos presenciais e curadoria/verificação para o público
 liberal/lifestyle brasileiro. Ver `docs/especificacao-mvp.md` para a
 especificação completa (visão de produto, sitemap, fluxos, modelo de dados).
 
+> **⚠️ Isto aqui está em produção com usuários reais desde 16/07/2026.**
+> Antes de mexer em qualquer coisa, leia **"Estado do lançamento"**, a
+> última seção deste arquivo: quem são os usuários de verdade, o que está
+> aberto e o que tem prazo. Mexer no banco afeta gente real, não dado de
+> teste.
+
 ## Stack
 - Next.js (App Router) + TypeScript + Tailwind
 - Supabase (Postgres + Auth + Storage), cliente em `src/lib/supabase/`
@@ -809,7 +815,113 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
     mesmo se algo no meio explodir.
   - Convites gerais gerados em `/perfil` (seção nova, só aparece pra
     quem já é verificado) — `platform_invites`, RLS exige
-    `is_verified(auth.uid())` no insert.
+    `is_verified(auth.uid())` no insert. **Desatualizado: mudou de
+    lugar na décima sétima rodada — hoje fica em `/inicio`.**
+- Décima sétima rodada (2026-07-16): preparação pro lançamento — 18
+  commits, um incidente de produção real e a primeira prova ponta a
+  ponta de pagamento de verdade. A parte de **segurança** desta rodada
+  (senha da `admlumeo` vazada em texto puro neste arquivo num repo
+  público, conta apagada, contas consolidadas numa só) está documentada
+  lá em cima, na "Atualização (2026-07-16)" onde a conta ADM é
+  descrita — não repito aqui.
+  - **Webhook de produção estava QUEBRADO — consertado. É o item mais
+    importante da rodada.** Sintoma: pagamento real entrava no Asaas e
+    sumia, sem nunca chegar no banco. Causa raiz: a
+    `SUPABASE_SERVICE_ROLE_KEY` chegava no runtime da Vercel primeiro
+    **vazia** e depois **corrompida** — um caractere invisível de
+    copiar/colar deixou a chave com 220 caracteres em vez de 219. Com
+    isso `createServiceClient()` estourava ("supabaseKey is required",
+    500) ou o cliente subia sem privilégio, e o insert em
+    `payment_webhook_events` falhava.
+  - **Um segundo bug escondia o primeiro**: o handler tratava
+    QUALQUER erro de insert como `{ok: true, duplicate: true}`. O Asaas
+    recebia 200, entendia que estava tudo certo e **nunca reenviava** —
+    o pagamento sumia em silêncio. Corrigido: só o código `23505` do
+    Postgres (violação de unicidade) conta como duplicata; qualquer
+    outro erro devolve 500 e loga, pro Asaas reenviar (`9c1a782`).
+    **Lição geral, vale pra qualquer webhook: "erro genérico =
+    duplicata" transforma falha em sucesso falso e desliga o retry de
+    quem está chamando.** Checar sempre o código específico.
+  - **Como foi diagnosticado, e a armadilha que custou tempo**: o campo
+    "Value" no painel da Vercel mostra um **placeholder, não o valor
+    real** — inspecionar o painel estava enganando o diagnóstico o tempo
+    inteiro. Só deu pra enxergar o problema **observando o env do
+    runtime**, com um endpoint temporário `?diag=env` protegido por
+    token, que expunha só nome/tamanho da variável e depois as claims
+    (`role`/`ref`) decodificadas do JWT — nunca o segredo em si
+    (`bf948ee`, `7c145ff`, removido em `9c1a782`; erro claro quando a
+    chave falta ficou em `80d1b2a`). **Se uma env var parecer certa no
+    painel da Vercel e o runtime discordar, acredite no runtime.**
+  - **Pipeline de pagamento real PROVADO ponta a ponta**: com o ok do
+    fundador, o `PAYMENT_RECEIVED` perdido da `sub_5wuolsmy545pur4t` foi
+    reenviado pelo webhook de produção → assinatura foi de
+    `pending_payment` → **`active`** (`renewed_at` preenchido). Ou seja:
+    pagamento real no Asaas → webhook → assinatura ativa. Era a última
+    incógnita grande antes do lançamento, e caiu.
+  - **Asaas: Pix NÃO tem débito automático.** O app cria assinatura com
+    `billingType: "UNDEFINED"` e só CREDIT_CARD debita sozinho —
+    portanto uma assinatura paga via Pix não recobra ninguém. (Claude
+    errou isso primeiro e o fundador corrigiu.) Pendência só de higiene:
+    a assinatura de teste `sub_5wuolsmy545pur4t` segue ATIVA no painel
+    do Asaas gerando cobrança nova todo mês e e-mail pro
+    `territoriodadanca@gmail.com` (conta já apagada do app), empilhando
+    cobrança fantasma. Inofensivo do lado do app — a linha de
+    `subscriptions` caiu junto com a conta, então `PAYMENT_OVERDUE` vira
+    no-op. Cancelar no painel do Asaas quando der.
+  - **Ocultar e excluir perfil** (`20260716000000_ocultar_e_excluir_perfil.sql`
+    + `20260716000001_hardening_hidden.sql`, commit `4050b62`):
+    `users.hidden` + função `is_hidden()`. O hardening fecha leitura
+    direta de fotos e da lista de presença — sem ele dava pra ver um
+    perfil oculto contornando a UI. Mesma classe de cuidado do
+    guard-rail de auto-promoção: esconder na consulta não esconde no
+    banco.
+  - **Limpeza de dados de teste pro lançamento**: todos os eventos de
+    teste apagados; `admlumeo`, `territoriodadanca` ("Ju teste") e a
+    Myrian não existem mais. **A Myrian se apagou sozinha**, muito
+    provavelmente pelo "Excluir meu perfil" lançado no mesmo dia (não
+    foi o Claude que apagou). **Arquivos órfãos no Storage dos usuários
+    apagados NÃO foram limpos** — fica de pendência.
+  - **Convite de plataforma saiu de `/perfil` e foi pro `/inicio`**
+    (pedido do fundador: "precisa ser muito prático"), com título verde,
+    mostrando só o último link pendente e sumindo quando é copiado
+    (`5f1f974`). Corrige o texto da rodada 16 acima.
+  - **Usuário pendente ganhou acesso limitado ao `/inicio`** + poller de
+    auto-liberação (a tela destrava sozinha quando o padrinho aceita,
+    sem precisar recarregar) + cutucada no padrinho. **O e-mail de
+    aceite (Resend) NÃO foi construído** — depende de uma
+    `RESEND_API_KEY` que o fundador precisa criar; o auto-refresh
+    in-app entrou no lugar.
+  - **Fuso horário** (`1d3a471`): datas passam a ser sempre renderizadas
+    no fuso de Brasília, não no fuso do servidor. **Atenção — o commit
+    só conserta evento criado dali pra frente.** O evento que já existia
+    ("Social Secret 285") continuava gravado 3h adiantado e sumiria da
+    home às 18:00 do dia 24/07; corrigido depois **no dado**, via
+    `update` direto (`event_date` de `2026-07-24T21:00:00+00` para
+    `2026-07-25T00:00:00+00` = 21:00 de Brasília). Se aparecer outro
+    evento antigo com horário estranho, é a mesma causa.
+  - **Motivo do bloqueio de contato** (`9240498`,
+    `20260716000003_motivo_do_bloqueio_de_contato.sql`): a mensagem
+    passa a dizer a verdade sobre por que o contato está bloqueado, em
+    vez de sempre culpar o fim do teste grátis. **Lacuna conhecida, de
+    baixa prioridade**: não existe ramo pro `rejected_by_sponsor`, então
+    quem foi rejeitado cai no `else` e ouve "seu teste acabou,
+    assine" — exatamente a classe de mentira que a função foi escrita
+    pra matar. Na prática o rejeitado provavelmente nem alcança o chat.
+    Resolve com um `CASE` a mais.
+  - Menores, todos pedidos/achados do fundador testando no celular:
+    cards do `/admin/usuarios` com o botão de isentar fora da tela
+    (`201d217`); aviso de vencimento com contagem regressiva no login
+    (`6a6a7c5`) e a contagem passando a cobrir isenção com prazo
+    (`ccf3baf`); editor de foto com cortar/borrar antes de enviar
+    (`c96beca`) e o conserto do botão de confirmar sumido/inerte
+    (`c35bf7c`); compressão de foto no cliente + limite de corpo das
+    server actions aumentado (`37ce15a`, resolve upload de foto grande
+    falhando); card de evento com ícones e campo Endereço (`8e7630f`,
+    `20260716000002_event_address.sql`); cadastro deixando claro que o
+    nome digitado é o nome do perfil (`94b27d2`); explicação pro casal
+    de que a conta é uma só e como entrar no segundo aparelho
+    (`ad2d5ff`); máscara de barra automática na data de nascimento;
+    `InstallAppButton` (PWA).
 
 ## Correção de segurança crítica (2026-07-12)
 Durante a implementação do status de leitura de mensagens, percebi que
@@ -996,14 +1108,22 @@ retomar antes de tráfego real de lançamento, não algo já resolvido aqui.
 - Webhook do Asaas de produção já registrado apontando para
   `https://lumeo-alpha.vercel.app/api/webhooks/asaas` (nome "Lumeo -
   Pagamentos" no painel do Asaas), mesmos 5 eventos do sandbox.
-- **Nunca testado com pagamento real** — só verificado que o deploy sobe sem
-  erro e as rotas renderizam. Antes de aceitar o primeiro pagamento de
-  verdade, validar o fluxo completo (talvez com um valor simbólico).
+- **Testado com pagamento real e FUNCIONA (2026-07-16)** — pagamento real
+  no Asaas → webhook → assinatura `active`. Substitui o "nunca testado com
+  pagamento real" que ficou aqui até 16/07. Mas chegou lá quebrado: o
+  webhook de produção esteve fora do ar engolindo pagamento em silêncio —
+  ver a **décima sétima rodada** acima pra causa raiz (service_role key
+  corrompida no runtime da Vercel + erro de insert mascarado como
+  duplicata) e pro método de diagnóstico, que é reaproveitável.
 - Armadilha real encontrada no primeiro deploy: variáveis de ambiente somem
   se a página da Vercel for recarregada/trocada de projeto no meio do
   preenchimento — sempre confirmar as 6 variáveis existem de fato (não só
   "parece que salvei") antes de rodar o deploy. Mudar env vars não rebuilda
-  sozinho — precisa de um redeploy manual depois.
+  sozinho — precisa de um redeploy manual depois. **Pior que isso
+  (2026-07-16): o campo "Value" do painel mostra um placeholder, não o
+  valor real — a variável pode estar vazia ou corrompida no runtime
+  parecendo perfeita no painel. Conferir observando o runtime, não o
+  painel.**
 - Erro visto: `MIDDLEWARE_INVOCATION_FAILED` / "Your project's URL and Key
   are required to create a Supabase client" — sintoma direto de
   `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` ausentes no
@@ -1056,3 +1176,42 @@ retomar antes de tráfego real de lançamento, não algo já resolvido aqui.
    já que o path é fixo por usuário e pode ter sido sobrescrito por um
    reenvio). Protegido por `CRON_SECRET` (`.env.example`) — Vercel injeta
    esse token automaticamente no header `Authorization` das chamadas de cron.
+
+## Estado do lançamento (2026-07-16) — ler primeiro numa sessão nova
+O app saiu do "MVP em teste" e entrou em operação real: existem usuários de
+verdade e um evento de verdade marcado. O que isso muda na prática: **mexer
+no banco agora afeta gente real**, não dados de teste.
+
+- **Primeiro evento real: "Social Secret 285", 24/07/2026 21:00 (Brasília)**,
+  Territorio da Dança Lounge, Av. Vereador José Diniz 285, capacidade 50,
+  gratuito.
+- **Usuários reais** (só 4 contas no banco): `junior.coppes@gmail.com` →
+  perfil "Casalrssp", o fundador e a esposa, **admin + canal de suporte**
+  (a esposa ter admin junto é decisão dele, não descuido);
+  `rodrigo_mvargas@yahoo.com.br` → "Rodrigo", primeiro testador convidado,
+  `member`; `lm.containershop@gmail.com` → "Casal Bagunça", `member`;
+  `rodrigo.bailar@gmail.com` → `rejected_by_sponsor` (rejeitado porque
+  tinha digitado o e-mail errado). **Ninguém está `subscription_exempt`.**
+- **⏰ COM PRAZO — isentar os dois testadores antes de 23/07**, via
+  `/admin/usuarios` → "Isentar 30 dias" no Rodrigo e no Casal Bagunça. Os
+  testes grátis de 7 dias deles vencem **23/07, um dia antes do evento** —
+  se ninguém isentar, os dois perdem acesso justo na véspera. Colunas:
+  `subscription_exempt` + `subscription_exempt_until` na tabela `users`.
+  **Nunca foi possível testar essa tela ao vivo** (exige o login do
+  fundador) — se o botão não estiver aparecendo, é
+  `src/app/admin/usuarios/page.tsx`.
+- **E-mail de aceite de apadrinhamento (Resend) NÃO existe** — trava numa
+  `RESEND_API_KEY` que o fundador precisa criar no painel do Resend (+
+  `.env.local` + Vercel). Enquanto não existe, o que segura a experiência é
+  o poller de auto-liberação in-app da rodada 17.
+- Menores, sem prazo: arquivos órfãos no Storage dos usuários apagados
+  nunca foram limpos; `contact_block_reason` sem ramo pro
+  `rejected_by_sponsor`; assinatura de teste `sub_5wuolsmy545pur4t` ainda
+  ativa no painel do Asaas gerando cobrança fantasma (inofensiva) — as três
+  detalhadas na décima sétima rodada.
+
+**Nota de método, vale pra quem vier depois**: a tabela de usuários é
+`users` (não existe `profiles` — é um erro fácil de cometer). Boa parte do
+diagnóstico deste projeto foi feito com script Node descartável lendo
+`.env.local` e batendo na REST API do Supabase com a `service_role` —
+apagar o script depois, e nunca escrever segredo dentro dele.
