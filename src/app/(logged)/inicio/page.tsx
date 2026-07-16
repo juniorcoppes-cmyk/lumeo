@@ -101,20 +101,18 @@ export default async function InicioPage({
     : viewerProfile?.sponsor;
   const sponsorName = (sponsor as { name: string } | null | undefined)?.name;
 
-  // Aviso de vencimento (fim do teste ou mensalidade), só quando faltam 0 a 3
-  // dias. Admin/suporte e isentos de assinatura não recebem.
-  const exemptUntil = viewerProfile?.subscription_exempt_until as string | null | undefined;
+  // Aviso de vencimento, só quando faltam 0 a 3 dias. Cobre isenção com prazo
+  // (testers), fim do teste grátis e mensalidade — quem decide qual é o caso é
+  // o próprio computeAccessExpiry.
   const accessExpiry = computeAccessExpiry({
+    isAdminOrSupport: !!viewerProfile?.is_admin || !!viewerProfile?.is_support_channel,
+    subscriptionExempt: !!viewerProfile?.subscription_exempt,
+    subscriptionExemptUntil: viewerProfile?.subscription_exempt_until as string | null | undefined,
     memberSince: viewerProfile?.member_since as string | null | undefined,
     subscription: subscription as
       | { status: string; renewed_at: string | null; overdue_since: string | null }
       | null
       | undefined,
-    exempt:
-      !!viewerProfile?.is_admin ||
-      !!viewerProfile?.is_support_channel ||
-      (!!viewerProfile?.subscription_exempt &&
-        (!exemptUntil || new Date(exemptUntil) > new Date())),
   });
 
   let timelineRows: (TimelineRow & { photoUrl?: string; avatarUrl?: string })[] = [];

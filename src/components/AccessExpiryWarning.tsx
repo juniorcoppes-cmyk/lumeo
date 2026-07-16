@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import type { AccessExpiryKind } from "@/lib/access-expiry";
 
 // Guarda a data (AAAA-MM-DD) em que o aviso já apareceu neste aparelho, pra
 // mostrar só no primeiro acesso do dia — no dia seguinte aparece de novo, já
@@ -12,7 +13,7 @@ export function AccessExpiryWarning({
   kind,
   daysLeft,
 }: {
-  kind: "trial" | "subscription";
+  kind: AccessExpiryKind;
   daysLeft: number;
 }) {
   const [show, setShow] = useState(false);
@@ -27,14 +28,21 @@ export function AccessExpiryWarning({
   if (!show) return null;
 
   const quando = daysLeft === 0 ? "hoje" : daysLeft === 1 ? "amanhã" : `em ${daysLeft} dias`;
-  const titulo =
-    kind === "trial"
-      ? `Seu período de teste grátis termina ${quando}.`
-      : `Sua mensalidade vence ${quando}.`;
-  const detalhe =
-    kind === "trial"
-      ? "Depois disso, conversar com outros perfis exige um plano ativo."
-      : "Confira se está tudo certo pra não perder o acesso.";
+  const TEXTOS: Record<AccessExpiryKind, { titulo: string; detalhe: string }> = {
+    trial: {
+      titulo: `Seu período de teste grátis termina ${quando}.`,
+      detalhe: "Depois disso, conversar com outros perfis exige um plano ativo.",
+    },
+    exemption: {
+      titulo: `Seu acesso de cortesia termina ${quando}.`,
+      detalhe: "Depois disso, conversar com outros perfis exige um plano ativo.",
+    },
+    subscription: {
+      titulo: `Sua mensalidade vence ${quando}.`,
+      detalhe: "Confira se está tudo certo pra não perder o acesso.",
+    },
+  };
+  const { titulo, detalhe } = TEXTOS[kind];
 
   return (
     <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-on-accent-soft/50 bg-on-accent-soft/10 p-4 text-sm">
