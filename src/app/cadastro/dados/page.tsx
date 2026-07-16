@@ -84,6 +84,14 @@ export default async function CadastroDadosPage({
           inteiro de cada um dos dois — perfil com foto de só uma pessoa
           não é aceito como casal.
         </p>
+        <p className="-mt-2 text-xs text-muted">
+          <strong className="text-foreground">Perfil casal é uma conta só:</strong> vocês
+          dois entram com este mesmo e-mail e senha, cada um no seu celular — e podem usar
+          ao mesmo tempo. O link de convite vale só para este cadastro, agora; no segundo
+          aparelho é só abrir{" "}
+          <strong className="text-foreground">www.lumeo.app.br</strong> e clicar em “Entrar”,
+          sem precisar de link.
+        </p>
         <select
           name="experience_level"
           required
