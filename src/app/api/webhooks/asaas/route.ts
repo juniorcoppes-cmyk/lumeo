@@ -21,34 +21,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "invalid token" }, { status: 401 });
   }
 
-  // DIAGNÓSTICO TEMPORÁRIO (remover depois): mostra quais env vars a função
-  // enxerga em runtime — só nomes e tamanhos, nunca valores. Protegido pelo
-  // token acima. Serve pra achar por que SUPABASE_SERVICE_ROLE_KEY chega
-  // undefined apesar de estar no dashboard da Vercel.
-  if (new URL(request.url).searchParams.get("diag") === "env") {
-    const info = (v?: string) => ({ defined: v !== undefined && v !== "", len: (v ?? "").length });
-    // Decodifica SÓ os claims do payload da JWT (role/ref/exp) — nunca a
-    // assinatura/segredo. Serve pra saber se a chave é mesmo service_role.
-    const claims = (jwt?: string) => {
-      try {
-        const p = JSON.parse(Buffer.from((jwt ?? "").split(".")[1], "base64").toString("utf8"));
-        return { role: p.role, ref: p.ref, iss: p.iss, exp: p.exp };
-      } catch {
-        return "não é JWT decodificável";
-      }
-    };
-    const sk = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    return NextResponse.json({
-      matchingKeys: Object.keys(process.env).filter((k) => /SUPABASE|ASAAS/.test(k)).sort(),
-      SUPABASE_SERVICE_ROLE_KEY: info(sk),
-      SUPABASE_SERVICE_ROLE_KEY_claims: claims(sk),
-      hasTrailingWhitespace: sk !== undefined && sk !== sk.trim(),
-      NEXT_PUBLIC_SUPABASE_URL: info(process.env.NEXT_PUBLIC_SUPABASE_URL),
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: info(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
-      ASAAS_WEBHOOK_TOKEN: info(process.env.ASAAS_WEBHOOK_TOKEN),
-    });
-  }
-
   const payload = (await request.json()) as AsaasWebhookPayload;
   const supabase = createServiceClient();
 
@@ -57,8 +29,16 @@ export async function POST(request: NextRequest) {
     .insert({ id: payload.id, event_type: payload.event });
 
   if (insertError) {
-    // Já processado (chave duplicada) — Asaas garante "at least once".
-    return NextResponse.json({ ok: true, duplicate: true });
+    // Chave duplicada (23505) = evento já processado (Asaas garante "at least
+    // once") — idempotente, pode ignorar. Qualquer OUTRO erro (ex.: service
+    // role mal configurada) NÃO pode ser mascarado como sucesso: retorna 500
+    // pro Asaas reenviar, e loga — senão o pagamento some silenciosamente
+    // (foi exatamente o que mascarou o bug da SUPABASE_SERVICE_ROLE_KEY).
+    if (insertError.code === "23505") {
+      return NextResponse.json({ ok: true, duplicate: true });
+    }
+    console.error("Webhook Asaas: falha ao registrar evento", insertError);
+    return NextResponse.json({ error: "internal error" }, { status: 500 });
   }
 
   const payment = payload.payment;
