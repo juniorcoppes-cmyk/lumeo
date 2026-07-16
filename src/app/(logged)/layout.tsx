@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
 import { signOut } from "@/lib/auth-actions";
+import { AutoRefresh } from "@/components/AutoRefresh";
 import { PinLockGate } from "@/components/PinLockGate";
 import { SponsorGate } from "@/components/SponsorGate";
 import { PrimaryNav } from "@/components/PrimaryNav";
@@ -80,6 +81,10 @@ export default async function LoggedLayout({
 
   return (
     <PinLockGate>
+      {/* O badge de mensagem não lida é calculado aqui, no servidor, e neste
+          framework o layout não recalcula quando se navega entre telas — sem
+          isto o contador congela no número de quando o app foi aberto. */}
+      <AutoRefresh intervalMs={20000} />
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-3xl flex-col items-center gap-2 px-3 py-3">
           <span className="font-display text-lg text-accent">Lumeo</span>

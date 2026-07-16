@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
 import { MessageBubble } from "@/components/MessageBubble";
-import { sendMessage } from "./actions";
+import { MessageComposer } from "@/components/MessageComposer";
 
 export default async function ChatConversaPage({
   params,
@@ -131,19 +131,7 @@ export default async function ChatConversaPage({
 
       {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 
-      <form action={sendMessage} className="mt-6 flex gap-2">
-        <input type="hidden" name="conversation_id" value={id} />
-        <input
-          type="text"
-          name="content"
-          placeholder="Escreva uma mensagem"
-          required
-          className="input flex-1"
-        />
-        <button type="submit" className="btn-primary">
-          Enviar
-        </button>
-      </form>
+      <MessageComposer conversationId={id} />
     </main>
   );
 }

@@ -977,11 +977,45 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
     pasta `migrations`), então migração é colada à mão no SQL Editor e
     rodar duas vezes por engano é risco real. Aplicada em produção dentro
     de `begin;/commit;`.
+  - **Correção no mesmo dia, achada pelo fundador testando com o Rodrigo**
+    — o badge não aparecia. Duas causas, e a primeira é uma pegadinha do
+    framework que vale pra qualquer badge/contador futuro:
+    1. **Layout não recalcula quando se navega entre telas** (App
+       Router: layouts não re-renderizam em navegação client-side). O
+       badge é calculado no layout logado, então congelava no número de
+       quando o app foi aberto. Corrigido com `<AutoRefresh />` no
+       layout (20s). **Se for colocar qualquer coisa dinâmica num
+       layout, lembrar disto — a página atualiza, o layout não.** Bônus:
+       como `router.refresh()` recarrega a rota inteira, mensagem nova
+       passou a aparecer sozinha na conversa aberta.
+    2. Boa parte do "não apareceu" era **falso alarme**, e só os dados
+       mostraram: o teste do Rodrigo às 17:04 foi 8 min ANTES do deploy
+       das 17:13, e o aparelho do fundador já tinha lido tudo antes do
+       recurso existir (badge 0 correto). **Lição de diagnóstico: cruzar
+       o horário do commit com o horário do dado antes de sair
+       consertando** — os dois celulares da conta casal estavam em
+       estados diferentes (um com 0, outro com 3 não-lidas), o que só
+       apareceu calculando o badge por aparelho.
+  - **Mensagem duplicada (bug real, achado de raspão no diagnóstico)**:
+    3 mensagens gravaram 2x, 1-3s de diferença. Não era duplo-envio do
+    servidor — o formulário não dava retorno nenhum ao clicar, a pessoa
+    achava que não tinha ido e clicava de novo. O fundador pediu "deixar
+    mais rápido"; **velocidade não resolveria — por menor que fosse a
+    espera, a janela pra clicar duas vezes continuaria existindo.**
+    Corrigido com `MessageComposer` (botão trava e vira "Enviando…" no
+    primeiro clique, mesmo padrão `busy` do `ImageUploadForm`; guarda
+    também contra Enter repetido, que não passa pelo botão). Campo só
+    limpa depois do sucesso, pra um erro não levar junto o que foi
+    escrito.
+  - `PendingAccessPoller` virou **`AutoRefresh`** — sempre foi genérico
+    (`router.refresh()` num intervalo) e o nome específico mentiria no
+    layout principal.
   - **Pendências desta rodada**: não existe tela pra ler
     `deleted_message_contents` — a prova fica gravada mas só via banco;
-    o natural é plugar em `/admin/denuncias`. E o badge só atualiza na
-    navegação (componente de servidor), não em tempo real — pra avisar
-    com o app fechado seria preciso push de PWA, que é outra empreitada.
+    o natural é plugar em `/admin/denuncias`. E o aviso só existe com o
+    app aberto — pra avisar com o app fechado seria preciso push de PWA,
+    outra empreitada. Nada disto foi testado na tela: o chat exige o
+    login do fundador, e o Claude não usa a senha dele.
 
 ## Correção de segurança crítica (2026-07-12)
 Durante a implementação do status de leitura de mensagens, percebi que

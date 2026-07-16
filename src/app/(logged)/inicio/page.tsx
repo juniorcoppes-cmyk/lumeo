@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
 import { ExperienceBadge } from "@/components/ExperienceBadge";
 import { PlatformInviteLink } from "@/components/PlatformInviteLink";
-import { PendingAccessPoller } from "@/components/PendingAccessPoller";
+import { AutoRefresh } from "@/components/AutoRefresh";
 import { AccessExpiryWarning } from "@/components/AccessExpiryWarning";
 import { computeAccessExpiry } from "@/lib/access-expiry";
 import { formatarDataHora } from "@/lib/datas";
@@ -179,7 +179,7 @@ export default async function InicioPage({
           {sponsorName ?? "seu padrinho"} aceitar seu apadrinhamento, a comunidade, o chat e o resto
           do Lumeo abrem pra você — automaticamente, sem precisar recarregar. Por enquanto, dá uma
           olhada no “Comece por aqui” e nos próximos eventos abaixo.
-          <PendingAccessPoller />
+          <AutoRefresh />
         </div>
       )}
 
