@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { formatarDataHora } from "@/lib/datas";
 import { aceitarConvite } from "./actions";
 
 export default async function ConvitePage({
@@ -44,7 +45,7 @@ export default async function ConvitePage({
         {preview.inviter_name} indicou o evento <strong className="text-foreground">{preview.event_title}</strong>
       </p>
       <p className="mt-2 text-sm text-muted">
-        {new Date(preview.event_date).toLocaleString("pt-BR")} · {preview.location}
+        {formatarDataHora(preview.event_date)} · {preview.location}
       </p>
 
       {error && <p className="mt-4 text-sm text-red-400">{error}</p>}

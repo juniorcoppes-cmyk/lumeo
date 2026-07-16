@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { effectiveSubscriptionStatus } from "@/lib/subscription";
+import { formatarDataHora, paraDatetimeLocal } from "@/lib/datas";
 import { CompressingForm } from "@/components/CompressingForm";
 import { EditableImageInput } from "@/components/EditableImageInput";
 import {
@@ -16,12 +17,6 @@ function isPlusActive(
   if (!subscription || subscription.plan !== "plus") return false;
   const status = effectiveSubscriptionStatus(subscription.status, subscription.overdue_since);
   return status === "active" || status === "overdue";
-}
-
-function toDatetimeLocal(iso: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 export default async function AdminEventosPage() {
@@ -122,7 +117,7 @@ export default async function AdminEventosPage() {
                 <input
                   type="datetime-local"
                   name="event_date"
-                  defaultValue={toDatetimeLocal(event.event_date)}
+                  defaultValue={paraDatetimeLocal(event.event_date)}
                   required
                   className="input"
                 />
@@ -183,7 +178,7 @@ export default async function AdminEventosPage() {
             </details>
 
             <p className="mt-2 text-sm text-muted">
-              {new Date(event.event_date).toLocaleString("pt-BR")} · {event.location} ·
+              {formatarDataHora(event.event_date)} · {event.location} ·
               {" "}capacidade {event.capacity} · R$ {Number(event.price).toFixed(2)}
               {event.plus_price !== null && (
                 <> · Plus: R$ {Number(event.plus_price).toFixed(2)}</>

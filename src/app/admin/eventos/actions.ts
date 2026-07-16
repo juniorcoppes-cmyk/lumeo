@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { saoPauloParaUtc } from "@/lib/datas";
 
 async function uploadEventPhoto(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -38,7 +39,7 @@ export async function createEvent(formData: FormData) {
     .from("events")
     .insert({
       title,
-      event_date: new Date(eventDate).toISOString(),
+      event_date: saoPauloParaUtc(eventDate),
       location,
       address,
       capacity,
@@ -116,7 +117,7 @@ export async function updateEvent(formData: FormData) {
     .from("events")
     .update({
       title,
-      event_date: new Date(eventDate).toISOString(),
+      event_date: saoPauloParaUtc(eventDate),
       location,
       address,
       capacity,

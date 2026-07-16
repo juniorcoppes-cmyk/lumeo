@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { PhotoGallery } from "@/components/PhotoGallery";
+import { formatarDataHora } from "@/lib/datas";
 import { finalizeMembership } from "./actions";
 
 const MIN_TOTAL_PHOTOS = 6;
@@ -73,7 +74,7 @@ export default async function AdminVerificacoesPage() {
                 </div>
                 {p.deadline && (
                   <span className={`tag ${overdue ? "!bg-red-900/40 !text-red-300" : ""}`}>
-                    {overdue ? "Prazo vencido" : "Prazo"}: {p.deadline.toLocaleString("pt-BR")}
+                    {overdue ? "Prazo vencido" : "Prazo"}: {formatarDataHora(p.deadline)}
                   </span>
                 )}
               </div>

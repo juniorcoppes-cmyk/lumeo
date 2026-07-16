@@ -1,4 +1,5 @@
 import { CalendarIcon, ClockIcon, MapIcon, MapPinIcon } from "@/components/icons";
+import { FUSO } from "@/lib/datas";
 
 // Infos do evento com ícone ao lado (data, horário, local e endereço), cada
 // uma na sua linha pra facilitar a leitura. Reutilizado na home, na lista de
@@ -15,12 +16,18 @@ export function EventMeta({
   className?: string;
 }) {
   const d = new Date(eventDate);
+  // timeZone explícito: sem ele isto sai no fuso do servidor (UTC na Vercel).
   const data = d.toLocaleDateString("pt-BR", {
+    timeZone: FUSO,
     weekday: "short",
     day: "2-digit",
     month: "long",
   });
-  const horario = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  const horario = d.toLocaleTimeString("pt-BR", {
+    timeZone: FUSO,
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   return (
     <div className={`flex flex-col gap-1.5 text-sm text-muted ${className ?? ""}`}>

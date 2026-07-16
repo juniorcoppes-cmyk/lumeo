@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { formatarDataHora } from "@/lib/datas";
 import { markReportReviewed } from "./actions";
 
 const REASON_LABELS: Record<string, string> = {
@@ -46,7 +47,7 @@ export default async function AdminDenunciasPage() {
                   {reported?.name}
                 </Link>{" "}
                 · <strong className="text-foreground">{REASON_LABELS[r.reason] ?? r.reason}</strong> ·{" "}
-                {new Date(r.created_at).toLocaleString("pt-BR")}
+                {formatarDataHora(r.created_at)}
               </p>
               {r.description && <p className="mt-1 text-muted">{r.description}</p>}
 

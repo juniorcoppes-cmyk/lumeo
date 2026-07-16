@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
+import { formatarDataHora } from "@/lib/datas";
 import { sendMessage } from "./actions";
 
 export default async function ChatConversaPage({
@@ -129,7 +130,7 @@ export default async function ChatConversaPage({
               <span
                 className={`text-xs ${isMine ? "text-on-accent/70" : "text-muted"} font-normal`}
               >
-                {new Date(m.sent_at).toLocaleString("pt-BR")}
+                {formatarDataHora(m.sent_at)}
               </span>
             </li>
           );

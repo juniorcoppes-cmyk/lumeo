@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
+import { formatarDataHora } from "@/lib/datas";
 
 export default async function NotificacoesPage() {
   const supabase = await createClient();
@@ -42,7 +43,7 @@ export default async function NotificacoesPage() {
               <span>{n.content}</span>
             )}
             <span className="ml-2 text-xs font-normal text-muted">
-              {new Date(n.created_at).toLocaleString("pt-BR")}
+              {formatarDataHora(n.created_at)}
             </span>
           </li>
         ))}
