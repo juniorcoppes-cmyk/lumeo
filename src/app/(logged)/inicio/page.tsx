@@ -5,6 +5,8 @@ import { getUser } from "@/lib/supabase/get-user";
 import { ExperienceBadge } from "@/components/ExperienceBadge";
 import { PlatformInviteLink } from "@/components/PlatformInviteLink";
 import { PendingAccessPoller } from "@/components/PendingAccessPoller";
+import { AccessExpiryWarning } from "@/components/AccessExpiryWarning";
+import { computeAccessExpiry } from "@/lib/access-expiry";
 import { EventMeta } from "@/components/EventMeta";
 import { CheckCircleIcon } from "@/components/icons";
 import { createTextPost, deleteTextPost, generatePlatformInvite, respondInvite } from "./actions";
@@ -38,10 +40,15 @@ export default async function InicioPage({
   } = await getUser();
   if (!user) redirect("/login");
 
-  // As 4 consultas abaixo são independentes — rodar em paralelo em vez de
+  // As 5 consultas abaixo são independentes — rodar em paralelo em vez de
   // sequencial reduz o tempo de resposta da página.
-  const [{ data: eventsRaw }, { data: invites }, { data: viewerProfile }, { data: platformInvites }] =
-    await Promise.all([
+  const [
+    { data: eventsRaw },
+    { data: invites },
+    { data: viewerProfile },
+    { data: platformInvites },
+    { data: subscription },
+  ] = await Promise.all([
       supabase
         .from("events")
         .select("id, title, event_date, location, address, photo_landscape_path")
@@ -56,7 +63,9 @@ export default async function InicioPage({
         .order("created_at", { ascending: false }),
       supabase
         .from("users")
-        .select("verification_badge_id, is_admin, is_support_channel, membership_status, hidden, sponsor:referred_by(name)")
+        .select(
+          "verification_badge_id, is_admin, is_support_channel, membership_status, hidden, member_since, subscription_exempt, subscription_exempt_until, sponsor:referred_by(name)",
+        )
         .eq("id", user.id)
         .single(),
       supabase
@@ -64,6 +73,11 @@ export default async function InicioPage({
         .select("id, invite_code, used_at, users:used_by(name)")
         .eq("inviter_id", user.id)
         .order("created_at", { ascending: false }),
+      supabase
+        .from("subscriptions")
+        .select("status, renewed_at, overdue_since")
+        .eq("user_id", user.id)
+        .maybeSingle(),
     ]);
 
   const events = await Promise.all(
@@ -86,6 +100,22 @@ export default async function InicioPage({
     ? viewerProfile?.sponsor[0]
     : viewerProfile?.sponsor;
   const sponsorName = (sponsor as { name: string } | null | undefined)?.name;
+
+  // Aviso de vencimento (fim do teste ou mensalidade), só quando faltam 0 a 3
+  // dias. Admin/suporte e isentos de assinatura não recebem.
+  const exemptUntil = viewerProfile?.subscription_exempt_until as string | null | undefined;
+  const accessExpiry = computeAccessExpiry({
+    memberSince: viewerProfile?.member_since as string | null | undefined,
+    subscription: subscription as
+      | { status: string; renewed_at: string | null; overdue_since: string | null }
+      | null
+      | undefined,
+    exempt:
+      !!viewerProfile?.is_admin ||
+      !!viewerProfile?.is_support_channel ||
+      (!!viewerProfile?.subscription_exempt &&
+        (!exemptUntil || new Date(exemptUntil) > new Date())),
+  });
 
   let timelineRows: (TimelineRow & { photoUrl?: string; avatarUrl?: string })[] = [];
 
@@ -123,6 +153,10 @@ export default async function InicioPage({
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-2xl">Início</h1>
+
+      {accessExpiry && (
+        <AccessExpiryWarning kind={accessExpiry.kind} daysLeft={accessExpiry.daysLeft} />
+      )}
 
       {viewerProfile?.hidden && (
         <div className="mt-4 rounded-2xl border border-on-accent-soft/40 bg-on-accent-soft/10 p-4 text-sm text-foreground/90">
