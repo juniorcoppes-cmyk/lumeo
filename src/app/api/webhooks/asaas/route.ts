@@ -21,6 +21,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "invalid token" }, { status: 401 });
   }
 
+  // DIAGNÓSTICO TEMPORÁRIO (remover depois): mostra quais env vars a função
+  // enxerga em runtime — só nomes e tamanhos, nunca valores. Protegido pelo
+  // token acima. Serve pra achar por que SUPABASE_SERVICE_ROLE_KEY chega
+  // undefined apesar de estar no dashboard da Vercel.
+  if (new URL(request.url).searchParams.get("diag") === "env") {
+    const info = (v?: string) => ({ defined: v !== undefined && v !== "", len: (v ?? "").length });
+    return NextResponse.json({
+      matchingKeys: Object.keys(process.env).filter((k) => /SUPABASE|ASAAS/.test(k)).sort(),
+      SUPABASE_SERVICE_ROLE_KEY: info(process.env.SUPABASE_SERVICE_ROLE_KEY),
+      NEXT_PUBLIC_SUPABASE_URL: info(process.env.NEXT_PUBLIC_SUPABASE_URL),
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: info(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
+      ASAAS_WEBHOOK_TOKEN: info(process.env.ASAAS_WEBHOOK_TOKEN),
+    });
+  }
+
   const payload = (await request.json()) as AsaasWebhookPayload;
   const supabase = createServiceClient();
 
