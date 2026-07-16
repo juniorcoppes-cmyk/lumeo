@@ -23,9 +23,16 @@ export async function sendMessage(formData: FormData) {
   });
 
   if (error) {
+    // A RLS de insert não propaga o texto do erro, então perguntamos ao banco
+    // qual é o motivo real do bloqueio. Se não for bloqueio de contato (motivo
+    // null), o problema é outro — antes o código culpava o fim do teste em
+    // QUALQUER falha, o que mentia pra quem só esbarrou noutro erro.
+    const { data: motivo } = await supabase.rpc("contact_block_reason", {
+      p_user_id: user.id,
+    });
     redirect(
       `/chat/${conversationId}?error=${encodeURIComponent(
-        "Seu período de teste gratuito acabou — assine um plano para continuar entrando em contato com outros perfis.",
+        (motivo as string | null) ?? "Não consegui enviar sua mensagem. Tente de novo.",
       )}`,
     );
   }
