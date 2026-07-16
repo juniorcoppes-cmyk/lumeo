@@ -234,14 +234,27 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
   esbarrou no rate limit de e-mail do Supabase (a mesma razão que me levou a
   criar uma conta alternativa via service role naquela hora, sem saber que a
   original já existia). Consolidado: a conta real (`admlumeo@gmail.com`)
-  foi confirmada via `email_confirm: true`, ganhou a senha `Adm1812#` e o
-  flag `is_support_channel`/`discreet_mode`; a duplicata (`amdlumeo@gmail.com`)
+  foi confirmada via `email_confirm: true`, teve a senha definida pelo
+  fundador e recebeu o flag `is_support_channel`/`discreet_mode`; a
+  duplicata (`amdlumeo@gmail.com`)
   foi apagada (checado antes: 0 posts/conversas/mensagens vinculadas, sem
   perda de dados). Login e `get_timeline()` confirmados via script
   (`signInWithPassword` com anon key, mesma chamada que a UI faz) depois da
   consolidação. **Se um cadastro novo "sumir" (parece não ter sido criado)
   no futuro, checar `auth.users` antes de recriar** — pode ser rate limit de
   e-mail deixando uma conta órfã não confirmada, não ausência real.
+  **Atualização (2026-07-16) — a conta `admlumeo` NÃO EXISTE MAIS.** O
+  fundador consolidou tudo numa conta só: a `junior.coppes@gmail.com`
+  (perfil "Casalrssp", `profile_type = casal`, dele e da esposa) passou a
+  ser **admin E canal de suporte** (`is_support_channel = true`), e a
+  `admlumeo` foi apagada. Motivo direto: **a senha dela estava em texto
+  puro aqui neste arquivo, num repositório público** — ou seja, qualquer
+  um podia entrar como admin. Apagar a conta anulou a exposição (a senha
+  foi removida deste arquivo, mas **continua no histórico do git**; o que
+  resolveu de fato foi a conta deixar de existir). **Lição: nunca
+  documentar senha/segredo aqui — este repositório é público.** Nota:
+  `contact_admin()` usa `where is_support_channel = true limit 1`, então
+  precisa existir **exatamente um** canal de suporte.
 - Acesso do ADM à linha do tempo (2026-07-13): primeira tentativa foi um
   bypass específico dentro de `get_timeline()` (`20260713000000_...sql`),
   pra não mudar `is_verified()` globalmente. **Superado ainda no mesmo dia**:
