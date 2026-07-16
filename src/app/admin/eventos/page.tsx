@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { effectiveSubscriptionStatus } from "@/lib/subscription";
+import { CompressingForm } from "@/components/CompressingForm";
 import {
   createEvent,
   deleteEvent,
@@ -36,7 +37,11 @@ export default async function AdminEventosPage() {
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-2xl">Eventos (admin)</h1>
 
-      <form action={createEvent} className="mt-6 flex flex-col gap-3 card">
+      <CompressingForm
+        action={createEvent}
+        imageFields={["story_photo", "landscape_photo"]}
+        className="mt-6 flex flex-col gap-3 card"
+      >
         <h2 className="text-lg">Criar evento</h2>
         <input type="text" name="title" placeholder="Título" required className="input" />
         <input type="datetime-local" name="event_date" required className="input" />
@@ -86,7 +91,7 @@ export default async function AdminEventosPage() {
         <button type="submit" className="btn-primary self-start">
           Criar
         </button>
-      </form>
+      </CompressingForm>
 
       <ul className="mt-8 flex flex-col gap-6">
         {events?.map((event) => (
@@ -178,7 +183,11 @@ export default async function AdminEventosPage() {
               <p className="mt-1 text-sm text-muted">{event.description}</p>
             )}
 
-            <form action={updateEventPhotos} className="mt-3 flex flex-wrap items-end gap-3 text-sm">
+            <CompressingForm
+              action={updateEventPhotos}
+              imageFields={["story_photo", "landscape_photo"]}
+              className="mt-3 flex flex-wrap items-end gap-3 text-sm"
+            >
               <input type="hidden" name="event_id" value={event.id} />
               <label className="flex flex-col gap-1 text-muted">
                 {event.photo_story_path ? "Trocar foto story" : "Foto story"}
@@ -191,7 +200,7 @@ export default async function AdminEventosPage() {
               <button type="submit" className="btn-secondary">
                 Salvar fotos
               </button>
-            </form>
+            </CompressingForm>
 
             <ul className="mt-3 flex flex-col gap-2">
               {[...(event.event_registrations ?? [])]

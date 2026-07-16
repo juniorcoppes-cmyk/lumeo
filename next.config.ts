@@ -1,7 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    serverActions: {
+      // Default do Next é 1MB. As fotos já são comprimidas no cliente (~900KB
+      // cada), mas o form de criar evento sobe duas juntas (story + paisagem),
+      // que somadas passam de 1MB — daí a folga.
+      bodySizeLimit: "10mb",
+    },
+  },
 };
 
 export default nextConfig;
