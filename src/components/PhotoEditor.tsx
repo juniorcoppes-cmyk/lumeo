@@ -90,33 +90,64 @@ export function PhotoEditor({
   const [rects, setRects] = useState<Rect[]>([]);
   const [drawing, setDrawing] = useState<Rect | null>(null);
   const [busy, setBusy] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   // Ponto onde o dedo encostou. Precisa ficar fora do state do retângulo: o
   // retângulo é normalizado (vira min/abs) a cada movimento, então ele mesmo
   // não serve de âncora — senão arrastar pra cima/esquerda dá caixa errada.
   const anchorRef = useRef<{ x: number; y: number } | null>(null);
 
+  // NÃO revogar as object URLs em cleanup de useEffect: em modo estrito o
+  // React roda o cleanup num remount simulado, matando a srcUrl ainda em uso
+  // (o decode() rejeitava e o editor travava em "Processando…"). Revogamos ao
+  // fechar o editor — que é quando de fato acabou.
+  const urlsRef = useRef<string[]>([]);
   useEffect(() => {
-    return () => {
-      URL.revokeObjectURL(srcUrl);
-      if (croppedUrl) URL.revokeObjectURL(croppedUrl);
-    };
-  }, [srcUrl, croppedUrl]);
+    urlsRef.current.push(srcUrl);
+  }, [srcUrl]);
+
+  function revokeAll() {
+    for (const u of urlsRef.current) URL.revokeObjectURL(u);
+    urlsRef.current = [];
+  }
 
   const onCropComplete = useCallback((_: Area, px: Area) => setArea(px), []);
 
   async function goToBlur() {
-    if (!area) return;
     setBusy(true);
-    setCroppedUrl(await cropToUrl(srcUrl, area));
-    setStep("blur");
-    setBusy(false);
+    setErro(null);
+    try {
+      // Sem área calculada (ex.: a pessoa não encostou na foto), segue com a
+      // imagem inteira — botão que não faz nada é pior que botão óbvio.
+      const url = area ? await cropToUrl(srcUrl, area) : srcUrl;
+      if (url !== srcUrl) urlsRef.current.push(url);
+      setCroppedUrl(url);
+      setStep("blur");
+    } catch {
+      setErro("Não consegui preparar a foto. Tente escolher de novo.");
+    } finally {
+      // finally é o que garante que o botão nunca fica preso em "Processando…"
+      setBusy(false);
+    }
   }
 
   async function confirm() {
     if (!croppedUrl) return;
     setBusy(true);
-    onConfirm(await burnBlurs(croppedUrl, rects, file.name));
+    setErro(null);
+    try {
+      const out = await burnBlurs(croppedUrl, rects, file.name);
+      revokeAll();
+      onConfirm(out);
+    } catch {
+      setErro("Não consegui aplicar as edições. Tente de novo.");
+      setBusy(false);
+    }
+  }
+
+  function handleCancel() {
+    revokeAll();
+    onCancel();
   }
 
   // Converte coordenada do dedo/mouse pra pixel da imagem cortada.
@@ -131,22 +162,18 @@ export function PhotoEditor({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black/95">
-      <div className="flex items-center justify-between gap-3 p-4 text-sm">
-        <button type="button" onClick={onCancel} className="text-muted">
+    // h-[100dvh] em vez de inset-0 puro: no celular (iOS principalmente) a
+    // barra do navegador cobre o topo/rodapé de um overlay fixo, escondendo
+    // justamente os botões. Somado ao safe-area, garante que a barra apareça.
+    <div className="fixed inset-0 z-50 flex h-[100dvh] flex-col bg-black/95">
+      <div className="flex items-center justify-between gap-3 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] text-sm">
+        <button type="button" onClick={handleCancel} className="text-muted">
           Cancelar
         </button>
         <span className="font-medium text-white">
           {step === "crop" ? "Enquadre a foto" : "Marque o que quer borrar"}
         </span>
-        <button
-          type="button"
-          disabled={busy || (step === "crop" && !area)}
-          onClick={step === "crop" ? goToBlur : confirm}
-          className="font-medium text-accent disabled:opacity-40"
-        >
-          {busy ? "…" : step === "crop" ? "Avançar" : "Confirmar"}
-        </button>
+        <span className="w-14" aria-hidden />
       </div>
 
       <div className="relative flex-1 overflow-hidden">
@@ -171,7 +198,13 @@ export function PhotoEditor({
                 className="max-h-[60vh] w-auto select-none"
                 draggable={false}
                 onPointerDown={(e) => {
-                  (e.target as HTMLElement).setPointerCapture(e.pointerId);
+                  // setPointerCapture lança se o pointerId não for de um
+                  // ponteiro ativo — não pode derrubar o início do arraste.
+                  try {
+                    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+                  } catch {
+                    /* segue sem captura */
+                  }
                   const p = toImageCoords(e);
                   anchorRef.current = p;
                   setDrawing({ x: p.x, y: p.y, w: 0, h: 0 });
@@ -213,48 +246,66 @@ export function PhotoEditor({
         )}
       </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-2 p-4 text-xs">
-        {step === "crop" ? (
-          <>
-            {!aspect &&
-              PRESETS.map((p) => (
-                <button
-                  key={p.label}
-                  type="button"
-                  onClick={() => setRatio(p.value)}
-                  className={`rounded-full border px-3 py-1.5 ${
-                    ratio === p.value ? "border-accent text-accent" : "border-line text-muted"
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
-            <span className="w-full text-center text-muted">Arraste e use dois dedos pra dar zoom.</span>
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={() => setRects((r) => r.slice(0, -1))}
-              disabled={rects.length === 0}
-              className="rounded-full border border-line px-3 py-1.5 text-muted disabled:opacity-40"
-            >
-              Desfazer
-            </button>
-            <button
-              type="button"
-              onClick={() => setRects([])}
-              disabled={rects.length === 0}
-              className="rounded-full border border-line px-3 py-1.5 text-muted disabled:opacity-40"
-            >
-              Limpar
-            </button>
-            <span className="w-full text-center text-muted">
-              Arraste sobre o que quer esconder. Pode marcar vários. Se não quiser borrar nada, é só
-              confirmar.
-            </span>
-          </>
-        )}
+      <div className="px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+        <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
+          {step === "crop" ? (
+            <>
+              {!aspect &&
+                PRESETS.map((p) => (
+                  <button
+                    key={p.label}
+                    type="button"
+                    onClick={() => setRatio(p.value)}
+                    className={`rounded-full border px-3 py-1.5 ${
+                      ratio === p.value ? "border-accent text-accent" : "border-line text-muted"
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              <span className="w-full text-center text-muted">
+                Arraste e use dois dedos pra dar zoom.
+              </span>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => setRects((r) => r.slice(0, -1))}
+                disabled={rects.length === 0}
+                className="rounded-full border border-line px-3 py-1.5 text-muted disabled:opacity-40"
+              >
+                Desfazer
+              </button>
+              <button
+                type="button"
+                onClick={() => setRects([])}
+                disabled={rects.length === 0}
+                className="rounded-full border border-line px-3 py-1.5 text-muted disabled:opacity-40"
+              >
+                Limpar
+              </button>
+              <span className="w-full text-center text-muted">
+                Arraste sobre o que quer esconder. Pode marcar vários. Se não quiser borrar nada, é
+                só confirmar.
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* Ação principal: botão cheio, no rodapé (polegar alcança) e sempre
+            habilitado — antes ficava só como texto no topo e desabilitado até
+            o corte ser calculado, e o usuário simplesmente não achava. */}
+        {erro && <p className="mt-2 text-center text-xs text-red-400">{erro}</p>}
+
+        <button
+          type="button"
+          disabled={busy}
+          onClick={step === "crop" ? goToBlur : confirm}
+          className="btn-primary mt-3 w-full disabled:opacity-60"
+        >
+          {busy ? "Processando…" : step === "crop" ? "Avançar" : "Confirmar e usar esta foto"}
+        </button>
       </div>
     </div>
   );
