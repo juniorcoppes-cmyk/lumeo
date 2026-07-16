@@ -13,14 +13,20 @@ import {
 } from "@/lib/profile-options";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { PinSettings } from "@/components/PinSettings";
+import { InstallAppButton } from "@/components/InstallAppButton";
+import { BirthDateInput } from "@/components/BirthDateInput";
+import { ImageUploadForm } from "@/components/ImageUploadForm";
 import { LocationShareButton } from "./LocationShareButton";
 import {
   clearLocation,
   deletePhoto,
+  deleteProfile,
+  hideProfile,
   removeAvatar,
   respondPhotoRequest,
   toggleCoupleSingleDevice,
   toggleDiscreetMode,
+  unhideProfile,
   updateAvatar,
   updateExperienceLevel,
   updateProfileDetails,
@@ -51,7 +57,7 @@ export default async function PerfilPage({
     supabase
       .from("users")
       .select(
-        "name, email, profile_type, verification_badge_id, discreet_mode, couple_single_device, experience_level, location_updated_at, bio, birth_date, gender, sexual_orientation, looking_for, partner_birth_date, partner_gender, partner_sexual_orientation, avatar_path",
+        "name, email, profile_type, verification_badge_id, discreet_mode, hidden, couple_single_device, experience_level, location_updated_at, bio, birth_date, gender, sexual_orientation, looking_for, partner_birth_date, partner_gender, partner_sexual_orientation, avatar_path",
       )
       .eq("id", user.id)
       .single(),
@@ -137,6 +143,14 @@ export default async function PerfilPage({
 
       {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 
+      {profile?.hidden && (
+        <div className="mt-4 rounded-2xl border border-on-accent-soft/40 bg-on-accent-soft/10 p-4 text-sm text-foreground/90">
+          <strong className="text-foreground">Seu perfil está oculto.</strong> Você não aparece na
+          Comunidade, na linha do tempo nem pelo link pra ninguém. Dá pra reativar em “Sua conta”,
+          no fim da página.
+        </div>
+      )}
+
       <div className="mt-4 flex flex-wrap items-center gap-4">
         {avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -151,12 +165,11 @@ export default async function PerfilPage({
           </div>
         )}
         <div className="flex min-w-0 max-w-full flex-1 flex-col gap-2">
-          <form action={updateAvatar} className="flex flex-wrap items-center gap-2">
-            <input type="file" name="avatar" accept="image/*" required className="min-w-0 max-w-full text-sm" />
-            <button type="submit" className="btn-secondary shrink-0">
-              {avatarUrl ? "Trocar" : "Adicionar"}
-            </button>
-          </form>
+          <ImageUploadForm
+            action={updateAvatar}
+            fieldName="avatar"
+            label={avatarUrl ? "Trocar" : "Adicionar"}
+          />
           {avatarUrl && (
             <form action={removeAvatar}>
               <button type="submit" className="text-xs text-red-400 no-underline hover:underline">
@@ -233,6 +246,8 @@ export default async function PerfilPage({
         </div>
       )}
 
+      <InstallAppButton />
+
       <PinSettings />
 
       <form action={updateExperienceLevel} className="mt-4 flex items-center gap-2">
@@ -297,15 +312,7 @@ export default async function PerfilPage({
 
           <label className="flex flex-col gap-1">
             {profile?.profile_type === "casal" ? "Data de nascimento (1)" : "Data de nascimento"}
-            <input
-              type="text"
-              inputMode="numeric"
-              name="birth_date"
-              placeholder="DD/MM/AAAA"
-              pattern="\d{2}/\d{2}/\d{4}"
-              defaultValue={formatBirthDateForInput(profile?.birth_date)}
-              className="input"
-            />
+            <BirthDateInput name="birth_date" defaultValue={formatBirthDateForInput(profile?.birth_date)} />
           </label>
 
           <label className="flex flex-col gap-1">
@@ -344,15 +351,7 @@ export default async function PerfilPage({
             <>
               <label className="flex flex-col gap-1">
                 Data de nascimento (2)
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  name="partner_birth_date"
-                  placeholder="DD/MM/AAAA"
-                  pattern="\d{2}/\d{2}/\d{4}"
-                  defaultValue={formatBirthDateForInput(profile?.partner_birth_date)}
-                  className="input"
-                />
+                <BirthDateInput name="partner_birth_date" defaultValue={formatBirthDateForInput(profile?.partner_birth_date)} />
               </label>
 
               <label className="flex flex-col gap-1">
@@ -464,13 +463,7 @@ export default async function PerfilPage({
             deletePhotoAction={deletePhoto}
           />
         </div>
-        <form action={uploadPhoto} className="mt-3 flex flex-wrap items-center gap-2">
-          <input type="hidden" name="category" value="rosto" />
-          <input type="file" name="photo" accept="image/*" required className="min-w-0 max-w-full" />
-          <button type="submit" className="btn-secondary shrink-0">
-            Adicionar
-          </button>
-        </form>
+        <ImageUploadForm action={uploadPhoto} fieldName="photo" label="Adicionar" hidden={{ category: "rosto" }} />
       </section>
 
       <section className="mt-8">
@@ -489,13 +482,68 @@ export default async function PerfilPage({
             deletePhotoAction={deletePhoto}
           />
         </div>
-        <form action={uploadPhoto} className="mt-3 flex flex-wrap items-center gap-2">
-          <input type="hidden" name="category" value="corpo" />
-          <input type="file" name="photo" accept="image/*" required className="min-w-0 max-w-full" />
-          <button type="submit" className="btn-secondary shrink-0">
-            Adicionar
-          </button>
-        </form>
+        <ImageUploadForm action={uploadPhoto} fieldName="photo" label="Adicionar" hidden={{ category: "corpo" }} />
+      </section>
+
+      <section className="mt-10 border-t border-line pt-6">
+        <h2 className="text-lg">Sua conta</h2>
+        {profile?.hidden ? (
+          <div className="mt-3">
+            <p className="text-sm text-muted">
+              Seu perfil está oculto — invisível pra todo mundo. Reative pra voltar a aparecer.
+            </p>
+            <form action={unhideProfile} className="mt-3">
+              <button type="submit" className="btn-primary">
+                Reativar meu perfil
+              </button>
+            </form>
+          </div>
+        ) : (
+          <div className="mt-3 flex flex-col gap-5">
+            <div>
+              <form action={hideProfile}>
+                <button type="submit" className="btn-secondary">
+                  Ocultar meu perfil
+                </button>
+              </form>
+              <p className="mt-1 text-xs text-muted">
+                Você some da Comunidade, da linha do tempo e do perfil por link — como se
+                tivesse saído — mas pode reativar quando quiser, sem perder nada.
+              </p>
+            </div>
+
+            <details>
+              <summary className="cursor-pointer text-sm text-red-400">Excluir meu perfil</summary>
+              <div className="mt-3 rounded-2xl border border-red-800/40 bg-red-900/10 p-4">
+                <p className="text-sm text-foreground/90">
+                  Antes de excluir: que tal só <strong>ocultar</strong>? Você fica invisível pra
+                  todo mundo, mas pode voltar depois sem perder nada.
+                </p>
+                <form action={hideProfile} className="mt-3">
+                  <button type="submit" className="btn-secondary">
+                    Prefiro ocultar
+                  </button>
+                </form>
+                <form action={deleteProfile} className="mt-4 flex flex-col gap-2">
+                  <label className="flex items-start gap-2 text-xs text-muted">
+                    <input type="checkbox" name="confirm" className="mt-0.5" />
+                    <span>
+                      Entendo que a exclusão é{" "}
+                      <strong className="text-foreground">definitiva e irreversível</strong> — apaga
+                      minha conta, fotos e todos os dados.
+                    </span>
+                  </label>
+                  <button
+                    type="submit"
+                    className="self-start rounded-full border border-red-500 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10"
+                  >
+                    Excluir definitivamente
+                  </button>
+                </form>
+              </div>
+            </details>
+          </div>
+        )}
       </section>
     </main>
   );

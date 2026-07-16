@@ -45,8 +45,8 @@ export default async function ChatListPage({
 
   const [{ data: otherUsersRaw }, { data: events }] = await Promise.all([
     otherUserIds.length
-      ? supabase.from("users").select("id, name, avatar_path").in("id", otherUserIds)
-      : Promise.resolve({ data: [] as { id: string; name: string; avatar_path: string | null }[] }),
+      ? supabase.from("users").select("id, name, avatar_path, hidden").in("id", otherUserIds)
+      : Promise.resolve({ data: [] as { id: string; name: string; avatar_path: string | null; hidden: boolean }[] }),
     eventIds.length
       ? supabase.from("events").select("id, title").in("id", eventIds)
       : Promise.resolve({ data: [] as { id: string; title: string }[] }),
@@ -118,6 +118,8 @@ export default async function ChatListPage({
         {conversations?.map((c) => {
           const otherId = c.user_a_id === user.id ? c.user_b_id : c.user_a_id;
           const other = otherUsers?.find((u) => u.id === otherId);
+          // Quem ocultou o perfil some até das conversas já existentes.
+          if (other?.hidden) return null;
           const event = events?.find((e) => e.id === c.event_id);
           return (
             <li key={c.id} className="card flex items-center gap-3">

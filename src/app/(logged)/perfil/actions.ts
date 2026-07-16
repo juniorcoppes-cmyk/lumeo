@@ -249,6 +249,75 @@ export async function deletePhoto(formData: FormData) {
   revalidatePath("/perfil");
 }
 
+export async function hideProfile() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  // `hidden` é preferência do próprio dono (não está no guard) — a policy
+  // "users update own" já garante que só mexe na própria linha.
+  await supabase.from("users").update({ hidden: true }).eq("id", user.id);
+
+  revalidatePath("/perfil");
+  revalidatePath("/inicio");
+}
+
+export async function unhideProfile() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  await supabase.from("users").update({ hidden: false }).eq("id", user.id);
+
+  revalidatePath("/perfil");
+  revalidatePath("/inicio");
+}
+
+export async function deleteProfile(formData: FormData) {
+  const confirmed = formData.get("confirm") === "on";
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  if (!confirmed) {
+    redirect(
+      `/perfil?error=${encodeURIComponent("Marque a confirmação para excluir definitivamente.")}`,
+    );
+  }
+
+  // Apaga os arquivos do Storage do próprio usuário (o cascade do banco não
+  // alcança o Storage). O usuário tem permissão de remover os próprios
+  // arquivos pela policy existente de profile-photos.
+  const [{ data: photos }, { data: me }] = await Promise.all([
+    supabase.from("profile_photos").select("storage_path").eq("user_id", user.id),
+    supabase.from("users").select("avatar_path").eq("id", user.id).single(),
+  ]);
+  const paths = [
+    ...(photos ?? []).map((p) => p.storage_path as string),
+    ...(me?.avatar_path ? [me.avatar_path as string] : []),
+  ];
+  if (paths.length > 0) {
+    await supabase.storage.from("profile-photos").remove(paths);
+  }
+
+  // Apaga a conta: delete_own_account() remove a linha em auth.users, que
+  // cascateia public.users e todos os dados. Só apaga a conta de quem chama.
+  await supabase.rpc("delete_own_account");
+
+  try {
+    await supabase.auth.signOut();
+  } catch {
+    // sessão já inválida (conta apagada) — segue pro redirect mesmo assim.
+  }
+  redirect("/?excluido=1");
+}
+
 export async function respondPhotoRequest(formData: FormData) {
   const requestId = formData.get("request_id") as string;
   const decision = formData.get("decision") as string;

@@ -55,7 +55,7 @@ export default async function InicioPage({
         .order("created_at", { ascending: false }),
       supabase
         .from("users")
-        .select("verification_badge_id, is_admin, is_support_channel, membership_status, sponsor:referred_by(name)")
+        .select("verification_badge_id, is_admin, is_support_channel, membership_status, hidden, sponsor:referred_by(name)")
         .eq("id", user.id)
         .single(),
       supabase
@@ -122,6 +122,17 @@ export default async function InicioPage({
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-2xl">Início</h1>
+
+      {viewerProfile?.hidden && (
+        <div className="mt-4 rounded-2xl border border-on-accent-soft/40 bg-on-accent-soft/10 p-4 text-sm text-foreground/90">
+          <strong className="text-foreground">Seu perfil está oculto.</strong> Você não aparece pra
+          ninguém. Pra voltar a aparecer, reative em{" "}
+          <Link href="/perfil" className="text-accent">
+            Perfil → Sua conta
+          </Link>
+          .
+        </div>
+      )}
 
       {apadrinhado && (
         <div className="mt-4 rounded-2xl border border-green-700/50 bg-green-900/25 p-4 text-sm text-green-200">
