@@ -169,6 +169,7 @@ export default async function PerfilPage({
             action={updateAvatar}
             fieldName="avatar"
             label={avatarUrl ? "Trocar" : "Adicionar"}
+            aspect={1}
           />
           {avatarUrl && (
             <form action={removeAvatar}>

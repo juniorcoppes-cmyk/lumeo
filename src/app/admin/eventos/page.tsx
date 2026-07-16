@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { effectiveSubscriptionStatus } from "@/lib/subscription";
 import { CompressingForm } from "@/components/CompressingForm";
+import { EditableImageInput } from "@/components/EditableImageInput";
 import {
   createEvent,
   deleteEvent,
@@ -83,11 +84,11 @@ export default async function AdminEventosPage() {
         />
         <label className="flex flex-col gap-1 text-sm text-muted">
           Foto formato story (celular, vertical)
-          <input type="file" name="story_photo" accept="image/*" className="text-sm" />
+          <EditableImageInput name="story_photo" aspect={9 / 16} className="text-sm" />
         </label>
         <label className="flex flex-col gap-1 text-sm text-muted">
           Foto formato paisagem (computador, horizontal)
-          <input type="file" name="landscape_photo" accept="image/*" className="text-sm" />
+          <EditableImageInput name="landscape_photo" aspect={16 / 9} className="text-sm" />
         </label>
         <button type="submit" className="btn-primary self-start">
           Criar
@@ -200,11 +201,11 @@ export default async function AdminEventosPage() {
               <input type="hidden" name="event_id" value={event.id} />
               <label className="flex flex-col gap-1 text-muted">
                 {event.photo_story_path ? "Trocar foto story" : "Foto story"}
-                <input type="file" name="story_photo" accept="image/*" className="text-sm" />
+                <EditableImageInput name="story_photo" aspect={9 / 16} className="text-sm" />
               </label>
               <label className="flex flex-col gap-1 text-muted">
                 {event.photo_landscape_path ? "Trocar foto paisagem" : "Foto paisagem"}
-                <input type="file" name="landscape_photo" accept="image/*" className="text-sm" />
+                <EditableImageInput name="landscape_photo" aspect={16 / 9} className="text-sm" />
               </label>
               <button type="submit" className="btn-secondary">
                 Salvar fotos

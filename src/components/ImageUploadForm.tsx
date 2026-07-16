@@ -2,17 +2,21 @@
 
 import { useState } from "react";
 import { compressImage } from "@/lib/compress-image";
+import { EditableImageInput } from "@/components/EditableImageInput";
 
 export function ImageUploadForm({
   action,
   fieldName,
   label,
   hidden = {},
+  aspect,
 }: {
   action: (formData: FormData) => Promise<void>;
   fieldName: string;
   label: string;
   hidden?: Record<string, string>;
+  /** Proporção travada no editor (ex.: 1 pro avatar). Sem isso, a pessoa escolhe. */
+  aspect?: number;
 }) {
   const [busy, setBusy] = useState(false);
 
@@ -36,10 +40,9 @@ export function ImageUploadForm({
       {Object.entries(hidden).map(([k, v]) => (
         <input key={k} type="hidden" name={k} value={v} />
       ))}
-      <input
-        type="file"
+      <EditableImageInput
         name={fieldName}
-        accept="image/*"
+        aspect={aspect}
         required
         disabled={busy}
         className="min-w-0 max-w-full text-sm"
