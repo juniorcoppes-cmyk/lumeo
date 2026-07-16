@@ -7,8 +7,8 @@ import { PlatformInviteLink } from "@/components/PlatformInviteLink";
 import { PendingAccessPoller } from "@/components/PendingAccessPoller";
 import { AccessExpiryWarning } from "@/components/AccessExpiryWarning";
 import { computeAccessExpiry } from "@/lib/access-expiry";
+import { formatarDataHora } from "@/lib/datas";
 import { EventMeta } from "@/components/EventMeta";
-import { CheckCircleIcon } from "@/components/icons";
 import { createTextPost, deleteTextPost, generatePlatformInvite, respondInvite } from "./actions";
 
 type TimelineRow = {
@@ -70,7 +70,7 @@ export default async function InicioPage({
         .single(),
       supabase
         .from("platform_invites")
-        .select("id, invite_code, used_at, users:used_by(name)")
+        .select("id, invite_code, used_at")
         .eq("inviter_id", user.id)
         .order("created_at", { ascending: false }),
       supabase
@@ -143,10 +143,9 @@ export default async function InicioPage({
   }
 
   // Só o convite pendente mais recente vira link copiável (platformInvites já
-  // vem ordenado por created_at desc), pra página não acumular links. Os já
-  // usados viram histórico ("Usado por X").
+  // vem ordenado por created_at desc). Convite já usado não aparece de forma
+  // nenhuma — o histórico "Usado por X" só acumulava lixo no card.
   const pendingInvite = platformInvites?.find((invite) => !invite.used_at);
-  const usedInvites = (platformInvites ?? []).filter((invite) => invite.used_at);
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
@@ -240,22 +239,6 @@ export default async function InicioPage({
           </form>
 
           {pendingInvite && <PlatformInviteLink code={pendingInvite.invite_code} />}
-
-          {usedInvites.length > 0 && (
-            <ul className="mt-4 flex flex-col gap-2 text-sm">
-              {usedInvites.map((invite) => {
-                const usedByUser = Array.isArray(invite.users) ? invite.users[0] : invite.users;
-                return (
-                  <li key={invite.id} className="flex flex-wrap items-center gap-2">
-                    <CheckCircleIcon className="h-4 w-4 shrink-0 text-green-400" />
-                    <span className="text-muted">
-                      Usado por <span className="text-foreground">{usedByUser?.name}</span>
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
         </section>
       )}
 
@@ -312,7 +295,7 @@ export default async function InicioPage({
                     <span className="font-medium text-foreground">{event?.title}</span>
                     <span className="text-sm text-muted">
                       {" "}
-                      · {event && new Date(event.event_date).toLocaleString("pt-BR")}
+                      · {event && formatarDataHora(event.event_date)}
                     </span>
                   </Link>
                   {!isAccepted && (
@@ -385,7 +368,7 @@ export default async function InicioPage({
                       <ExperienceBadge level={post.author_experience_level} />
                     </div>
                     <span className="text-xs text-muted">
-                      {new Date(post.created_at).toLocaleString("pt-BR")}
+                      {formatarDataHora(post.created_at)}
                     </span>
                   </div>
 
