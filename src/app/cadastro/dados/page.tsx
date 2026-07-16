@@ -49,6 +49,10 @@ export default async function CadastroDadosPage({
           required
           className="input"
         />
+        <p className="-mt-2 text-xs text-muted">
+          É o nome que vai aparecer no seu perfil pros outros usuários — use como
+          você quer ser reconhecido(a) pela comunidade.
+        </p>
         <input
           type="email"
           name="email"
