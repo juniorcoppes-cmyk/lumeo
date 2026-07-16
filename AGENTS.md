@@ -922,6 +922,66 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
     de que a conta é uma só e como entrar no segundo aparelho
     (`ad2d5ff`); máscara de barra automática na data de nascimento;
     `InstallAppButton` (PWA).
+- Décima oitava rodada (2026-07-16): aviso de mensagem não lida +
+  editar/excluir a própria mensagem. Ver
+  `20260716000004_editar_excluir_mensagem_e_aviso_de_nao_lida.sql`.
+  - **Motivo real**: o fundador não ficou sabendo quando o primeiro
+    testador de verdade (Rodrigo) mandou mensagem. Investigando, o
+    buraco era maior que o pedido dele ("colocar aviso no ícone"): **não
+    existia indicador de não-lida em lugar nenhum do app**. O negrito que
+    já existia em `/chat/[id]` é **recibo de leitura PRO REMETENTE**
+    (`isMine && distinctReaders < requiredReaders`), não aviso pro
+    destinatário — fácil de confundir lendo o código rápido. `/chat`
+    também não mostrava nada.
+  - **Badge**: `unread_message_count(p_device_id)` +
+    `unread_messages_by_conversation(p_device_id)`, ambas `security
+    invoker` (RLS de `messages` já limita o que a pessoa enxerga).
+    Contagem é **por aparelho**, reaproveitando `message_reads` — mesma
+    fonte do negrito, então casal em dois celulares tem um badge por
+    celular. `p_device_id` nulo devolve 0 de propósito: sem cookie não dá
+    pra saber o que foi lido, e marcar tudo como não-lido seria pior que
+    não avisar. **`PrimaryNav` já tinha suporte a `badge?: number` e
+    já desenhava a bolinha desde sempre — ninguém nunca passava o valor.**
+  - **Editar/excluir**: exigiu abrir o guard-rail
+    `protect_message_content()` (que vem da correção de segurança de
+    2026-07-12 e bloqueava alteração de `content` pra todo mundo). Porta
+    estreita: só o autor, só a própria mensagem, só o texto. Detalhe que
+    engana: a policy antiga `"messages update participant marks read"` tem
+    `with check (sender_id <> auth.uid())`, ou seja, **proíbe justamente
+    o autor** — foi preciso uma policy nova (`"messages update own
+    author"`); as duas convivem porque RLS é OR, e quem controla COLUNA
+    continua sendo o trigger, nunca a policy.
+  - **Exclusão é real, não de fachada**: só marcar `deleted_at` e
+    esconder na UI deixaria o texto legível pelo outro participante via
+    API (mesma classe do hardening de `hidden` da rodada 17). O trigger
+    tira o texto da linha (`new.content := ''`) e arquiva em
+    `deleted_message_contents`, que **só admin lê** — prova pra denúncia,
+    já que `user_reports` aceita 'mensagem_ofensiva'/'assedio' mas só
+    guarda texto livre, sem cópia da mensagem. Decisão do fundador,
+    escolhida entre 3 opções. `edited_at` é carimbado pelo banco, nunca
+    pelo cliente (senão dava pra editar escondido mandando `edited_at =
+    null` pela API).
+  - **26 asserções testadas ao vivo contra a produção** (script
+    descartável com `try/finally`, dois usuários zerados depois,
+    conferido que não sobrou órfão): editar/excluir alheio, apagar o
+    carimbo de edição, falsificar a hora, editar+ditar carimbo na mesma
+    tacada, desfazer exclusão, editar excluída, ler texto excluído pela
+    API, ler o arquivo de prova sem ser admin, contador por aparelho.
+    **Lição do processo: um teste "falhou" e era falso positivo — mandava
+    `edited_at = null` numa mensagem que já tinha `edited_at` null, um
+    no-op que passa trivialmente. Teste que passa por no-op não testa
+    nada.** O ataque de verdade (editar e depois apagar o rastro) só foi
+    coberto depois, num teste escrito de propósito pra ele.
+  - Migração escrita **idempotente** (`if not exists` / `drop policy if
+    exists`): não existe CLI do Supabase configurado neste projeto (só a
+    pasta `migrations`), então migração é colada à mão no SQL Editor e
+    rodar duas vezes por engano é risco real. Aplicada em produção dentro
+    de `begin;/commit;`.
+  - **Pendências desta rodada**: não existe tela pra ler
+    `deleted_message_contents` — a prova fica gravada mas só via banco;
+    o natural é plugar em `/admin/denuncias`. E o badge só atualiza na
+    navegação (componente de servidor), não em tempo real — pra avisar
+    com o app fechado seria preciso push de PWA, que é outra empreitada.
 
 ## Correção de segurança crítica (2026-07-12)
 Durante a implementação do status de leitura de mensagens, percebi que

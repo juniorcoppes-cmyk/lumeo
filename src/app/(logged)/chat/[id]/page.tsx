@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
-import { formatarDataHora } from "@/lib/datas";
+import { MessageBubble } from "@/components/MessageBubble";
 import { sendMessage } from "./actions";
 
 export default async function ChatConversaPage({
@@ -61,7 +61,7 @@ export default async function ChatConversaPage({
 
   const { data: messages } = await supabase
     .from("messages")
-    .select("id, sender_id, content, sent_at, message_reads(device_id)")
+    .select("id, sender_id, content, sent_at, edited_at, deleted_at, message_reads(device_id)")
     .eq("conversation_id", id)
     .order("sent_at", { ascending: true });
 
@@ -116,23 +116,14 @@ export default async function ChatConversaPage({
           const distinctReaders = new Set(
             (m.message_reads as { device_id: string }[]).map((r) => r.device_id),
           ).size;
-          const unread = isMine && distinctReaders < requiredReaders;
           return (
-            <li
+            <MessageBubble
               key={m.id}
-              className={`flex max-w-[75%] flex-col gap-1 rounded-[18px] px-3 py-2 text-sm ${
-                isMine
-                  ? "self-end bg-accent text-on-accent"
-                  : "self-start border border-line bg-surface text-foreground"
-              } ${unread ? "font-bold" : "font-normal"}`}
-            >
-              <span>{m.content}</span>
-              <span
-                className={`text-xs ${isMine ? "text-on-accent/70" : "text-muted"} font-normal`}
-              >
-                {formatarDataHora(m.sent_at)}
-              </span>
-            </li>
+              message={m}
+              conversationId={id}
+              isMine={isMine}
+              unread={isMine && distinctReaders < requiredReaders}
+            />
           );
         })}
         {messages?.length === 0 && <p className="text-muted">Nenhuma mensagem ainda.</p>}

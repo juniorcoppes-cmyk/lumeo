@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
@@ -31,6 +32,19 @@ export default async function ChatListPage({
     .from("conversations")
     .select("id, event_id, user_a_id, user_b_id")
     .order("created_at", { ascending: false });
+
+  // Quantas mensagens novas em cada conversa, pra este aparelho — o badge do
+  // ícone de Chat diz que chegou algo, aqui diz de quem.
+  const deviceId = (await cookies()).get("lumeo_device_id")?.value;
+  const { data: unreadRows } = await supabase.rpc("unread_messages_by_conversation", {
+    p_device_id: deviceId ?? null,
+  });
+  const unreadByConversation = new Map(
+    ((unreadRows as { conversation_id: string; unread: number }[] | null) ?? []).map((r) => [
+      r.conversation_id,
+      r.unread,
+    ]),
+  );
 
   const otherUserIds = (conversations ?? []).map((c) =>
     c.user_a_id === user.id ? c.user_b_id : c.user_a_id,
@@ -121,6 +135,7 @@ export default async function ChatListPage({
           // Quem ocultou o perfil some até das conversas já existentes.
           if (other?.hidden) return null;
           const event = events?.find((e) => e.id === c.event_id);
+          const unread = unreadByConversation.get(c.id) ?? 0;
           return (
             <li key={c.id} className="card flex items-center gap-3">
               {other?.avatarUrl ? (
@@ -136,9 +151,19 @@ export default async function ChatListPage({
                 </div>
               )}
               <div>
-                <Link href={`/perfil/${otherId}`} className="font-medium no-underline text-foreground hover:text-accent">
+                <Link
+                  href={`/perfil/${otherId}`}
+                  className={`no-underline text-foreground hover:text-accent ${
+                    unread ? "font-bold" : "font-medium"
+                  }`}
+                >
                   {other?.name}
                 </Link>
+                {!!unread && (
+                  <span className="ml-2 rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold text-on-accent">
+                    {unread}
+                  </span>
+                )}
                 {event && (
                   <span className="text-sm text-muted"> · {event.title}</span>
                 )}

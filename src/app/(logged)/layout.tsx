@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
@@ -55,11 +56,25 @@ export default async function LoggedLayout({
     .eq("user_id", user.id)
     .is("read_at", null);
 
+  // Aviso de mensagem nova no ícone de Chat. "Não lida" é por APARELHO, não
+  // por conta: casal usa o mesmo login em dois celulares, então cada um vê o
+  // seu próprio aviso. Sem cookie de aparelho o RPC devolve 0 — melhor não
+  // avisar do que avisar errado.
+  const deviceId = (await cookies()).get("lumeo_device_id")?.value;
+  const { data: unreadMessages } = await supabase.rpc("unread_message_count", {
+    p_device_id: deviceId ?? null,
+  });
+
   const primaryItems = [
     { href: "/inicio", label: "Início", icon: <HomeIcon /> },
     { href: "/eventos", label: "Eventos", icon: <CalendarIcon /> },
     { href: "/comunidade", label: "Comunidade", icon: <UsersIcon /> },
-    { href: "/chat", label: "Chat", icon: <MessageIcon /> },
+    {
+      href: "/chat",
+      label: "Chat",
+      icon: <MessageIcon />,
+      badge: (unreadMessages as number | null) ?? 0,
+    },
     { href: "/perfil", label: "Perfil", icon: <UserIcon /> },
   ];
 
