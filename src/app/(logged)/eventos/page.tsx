@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { EventMeta } from "@/components/EventMeta";
 
 type EventRow = {
   id: string;
   title: string;
   event_date: string;
   location: string;
+  address: string | null;
   capacity: number;
   price: number;
   description: string | null;
@@ -49,14 +51,14 @@ export default async function EventosPage() {
                 <Link href={`/eventos/${event.id}`} className="text-lg font-medium">
                   {event.title}
                 </Link>
-                <p className="text-sm text-muted">
-                  {new Date(event.event_date).toLocaleString("pt-BR")} · {event.location} ·{" "}
-                  {Number(event.price) > 0 ? `R$ ${Number(event.price).toFixed(2)}` : "Gratuito"}
-                </p>
-                {event.description && (
-                  <p className="mt-1 line-clamp-2 text-sm text-muted">{event.description}</p>
-                )}
-                <p className="mt-1 text-sm text-muted">
+                <EventMeta
+                  eventDate={event.event_date}
+                  location={event.location}
+                  address={event.address}
+                  className="mt-2"
+                />
+                <p className="mt-2 text-sm text-muted">
+                  {Number(event.price) > 0 ? `R$ ${Number(event.price).toFixed(2)}` : "Gratuito"} ·{" "}
                   {vagasRestantes > 0 ? `${vagasRestantes} vagas restantes` : "Esgotado"}
                 </p>
               </div>

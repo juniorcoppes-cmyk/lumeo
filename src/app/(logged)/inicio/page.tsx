@@ -5,7 +5,8 @@ import { getUser } from "@/lib/supabase/get-user";
 import { ExperienceBadge } from "@/components/ExperienceBadge";
 import { PlatformInviteLink } from "@/components/PlatformInviteLink";
 import { PendingAccessPoller } from "@/components/PendingAccessPoller";
-import { CalendarIcon, CheckCircleIcon } from "@/components/icons";
+import { EventMeta } from "@/components/EventMeta";
+import { CheckCircleIcon } from "@/components/icons";
 import { createTextPost, deleteTextPost, generatePlatformInvite, respondInvite } from "./actions";
 
 type TimelineRow = {
@@ -43,7 +44,7 @@ export default async function InicioPage({
     await Promise.all([
       supabase
         .from("events")
-        .select("id, title, event_date, location, description, photo_landscape_path")
+        .select("id, title, event_date, location, address, photo_landscape_path")
         .gte("event_date", new Date().toISOString())
         .order("event_date", { ascending: true })
         .limit(5),
@@ -244,16 +245,13 @@ export default async function InicioPage({
                   />
                 )}
                 <div className="p-4">
-                  <div className="flex items-center gap-2">
-                    <CalendarIcon className="h-4 w-4 shrink-0 text-accent" />
-                    <span className="font-medium text-foreground">{event.title}</span>
-                  </div>
-                  <span className="text-sm text-muted">
-                    {new Date(event.event_date).toLocaleString("pt-BR")} · {event.location}
-                  </span>
-                  {event.description && (
-                    <p className="mt-1 line-clamp-2 text-sm text-muted">{event.description}</p>
-                  )}
+                  <span className="block font-medium text-foreground">{event.title}</span>
+                  <EventMeta
+                    eventDate={event.event_date}
+                    location={event.location}
+                    address={event.address}
+                    className="mt-2"
+                  />
                 </div>
               </Link>
             </li>

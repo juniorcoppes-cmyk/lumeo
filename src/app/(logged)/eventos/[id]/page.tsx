@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ExperienceBadge } from "@/components/ExperienceBadge";
 import { CopyLinkButton } from "@/components/CopyLinkButton";
+import { EventMeta } from "@/components/EventMeta";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
 import { effectiveSubscriptionStatus } from "@/lib/subscription";
@@ -26,7 +27,7 @@ export default async function EventoDetalhePage({
   const { data: event } = await supabase
     .from("events")
     .select(
-      "id, title, event_date, location, capacity, price, plus_price, description, photo_story_path, photo_landscape_path",
+      "id, title, event_date, location, address, capacity, price, plus_price, description, photo_story_path, photo_landscape_path",
     )
     .eq("id", id)
     .single();
@@ -128,8 +129,13 @@ export default async function EventoDetalhePage({
       )}
 
       <h1 className="mt-4 text-2xl">{event.title}</h1>
-      <p className="mt-2 text-muted">
-        {new Date(event.event_date).toLocaleString("pt-BR")} · {event.location} ·{" "}
+      <EventMeta
+        eventDate={event.event_date}
+        location={event.location}
+        address={event.address}
+        className="mt-3"
+      />
+      <p className="mt-2 text-sm text-muted">
         {Number(event.price) > 0 ? `R$ ${Number(event.price).toFixed(2)}` : "Gratuito"}
       </p>
       {event.plus_price !== null && (

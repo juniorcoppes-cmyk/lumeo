@@ -24,6 +24,7 @@ export async function createEvent(formData: FormData) {
   const title = formData.get("title") as string;
   const eventDate = formData.get("event_date") as string;
   const location = formData.get("location") as string;
+  const address = (formData.get("address") as string)?.trim() || null;
   const capacity = Number(formData.get("capacity"));
   const price = Number(formData.get("price"));
   const description = (formData.get("description") as string)?.trim() || null;
@@ -39,6 +40,7 @@ export async function createEvent(formData: FormData) {
       title,
       event_date: new Date(eventDate).toISOString(),
       location,
+      address,
       capacity,
       price,
       description,
@@ -102,6 +104,7 @@ export async function updateEvent(formData: FormData) {
   const title = formData.get("title") as string;
   const eventDate = formData.get("event_date") as string;
   const location = formData.get("location") as string;
+  const address = (formData.get("address") as string)?.trim() || null;
   const capacity = Number(formData.get("capacity"));
   const price = Number(formData.get("price"));
   const description = (formData.get("description") as string)?.trim() || null;
@@ -115,6 +118,7 @@ export async function updateEvent(formData: FormData) {
       title,
       event_date: new Date(eventDate).toISOString(),
       location,
+      address,
       capacity,
       price,
       description,

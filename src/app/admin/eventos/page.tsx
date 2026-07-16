@@ -29,7 +29,7 @@ export default async function AdminEventosPage() {
   const { data: events } = await supabase
     .from("events")
     .select(
-      "id, title, event_date, location, capacity, price, plus_price, description, photo_story_path, photo_landscape_path, event_registrations(id, status, users(name, email, subscriptions(plan, status, overdue_since)))",
+      "id, title, event_date, location, address, capacity, price, plus_price, description, photo_story_path, photo_landscape_path, event_registrations(id, status, users(name, email, subscriptions(plan, status, overdue_since)))",
     )
     .order("event_date", { ascending: true });
 
@@ -45,7 +45,8 @@ export default async function AdminEventosPage() {
         <h2 className="text-lg">Criar evento</h2>
         <input type="text" name="title" placeholder="Título" required className="input" />
         <input type="datetime-local" name="event_date" required className="input" />
-        <input type="text" name="location" placeholder="Local" required className="input" />
+        <input type="text" name="location" placeholder="Local (nome do lugar)" required className="input" />
+        <input type="text" name="address" placeholder="Endereço (rua, número, bairro, cidade)" className="input" />
         <input
           type="number"
           name="capacity"
@@ -128,7 +129,15 @@ export default async function AdminEventosPage() {
                   type="text"
                   name="location"
                   defaultValue={event.location}
+                  placeholder="Local (nome do lugar)"
                   required
+                  className="input"
+                />
+                <input
+                  type="text"
+                  name="address"
+                  defaultValue={event.address ?? ""}
+                  placeholder="Endereço (rua, número, bairro, cidade)"
                   className="input"
                 />
                 <input
