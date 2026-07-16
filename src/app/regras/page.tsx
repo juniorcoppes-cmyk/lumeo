@@ -30,9 +30,11 @@ export default function RegrasPage() {
           <p className="mt-2">
             Use fotos e informações reais. Perfis falsos, fotos de
             terceiros ou identidade forjada resultam em banimento. É
-            proibido menor de idade na plataforma — a verificação existe
-            justamente pra isso, e tentar burlar é motivo de banimento
-            imediato.
+            proibido menor de idade na plataforma. Aqui ninguém entra sozinho:
+            quem te convidou responde por você, e apadrinhar alguém é assumir
+            essa responsabilidade — convide só quem você conhece de verdade.
+            Tentar burlar é motivo de banimento imediato, para quem entrou e
+            para quem apadrinhou.
           </p>
         </section>
 

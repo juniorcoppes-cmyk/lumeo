@@ -1016,6 +1016,36 @@ Segue o sitemap da especificação: público (`/`, `/como-funciona`, `/planos`,
     app aberto — pra avisar com o app fechado seria preciso push de PWA,
     outra empreitada. Nada disto foi testado na tela: o chat exige o
     login do fundador, e o Claude não usa a senha dele.
+- Décima nona rodada (2026-07-16): posicionamento do texto que diferencia
+  o Lumeo + limpeza dos textos públicos que ainda prometiam verificação
+  por documento.
+  - **O problema, na palavra do fundador**: o texto do "Comece por aqui"
+    é o maior diferencial do produto, e vivia **recolhido dentro de um
+    `<details>` no `/inicio`, atrás do login** — só via quem já tinha
+    entrado. Quem recebia um convite caía **direto no formulário** de
+    nome/e-mail/senha, sem uma linha explicando o que é o app.
+  - Texto extraído pro componente `SobreOLumeo` (fonte única) e colocado
+    em 4 lugares: home pública (que antes vendia o app com uma linha
+    genérica), `/cadastro/dados?code=` acima do formulário e **aberto**,
+    a tela de "Convite necessário" (link vencido — quem vai pedir outro
+    merece saber o que está pedindo) e o `/inicio` de sempre. **O texto é
+    do fundador; foi reposicionado, não reescrito.**
+  - `/como-funciona` era um **placeholder** ("Explicação da verificação de
+    identidade, do sistema de padrinho e da curadoria de eventos") —
+    página pública, linkada na home, que nunca foi escrita. Agora explica
+    o fluxo real.
+  - **Textos legais alinhados à realidade** — ver "Postura de compliance"
+    abaixo, é onde está o registro completo. Resumo: Termos e Privacidade
+    prometiam documento/vídeo que o app não pede desde 15/07.
+  - **Armadilha de diagnóstico, vale registrar**: o navegador embutido do
+    Claude devolve geometria zerada pra `/cadastro/dados` (2 `<main>` por
+    causa do `loading.tsx`, altura 0, "não rolável"). Parece bug grave e
+    **não é** — a produção que comprovadamente funciona (Rodrigo e Casal
+    Bagunça se cadastraram por ela) devolve os mesmos números. **Sempre
+    medir uma página de controle antes de acreditar em medição de
+    layout.** Mesma classe da armadilha do `curl` (ver "Produção": o
+    antivírus local intercepta TLS e faz o `curl` falhar contra um site
+    que está no ar).
 
 ## Correção de segurança crítica (2026-07-12)
 Durante a implementação do status de leitura de mensagens, percebi que
@@ -1127,6 +1157,24 @@ confirmou que era a decisão pretendida — não foi um descuido. Se a validade
 jurídica dessa abordagem (verificação sem documento, pra um app já tratado
 como sujeito à ECA Digital) precisar ser reavaliada, é uma conversa a se
 retomar antes de tráfego real de lançamento, não algo já resolvido aqui.
+
+**Atualização (2026-07-16, décima nona rodada) — os TEXTOS PÚBLICOS foram
+alinhados à realidade.** Entre 15/07 e 16/07 o código já não pedia
+documento, mas `/termos`, `/privacidade`, `/regras` e `/como-funciona`
+continuavam **prometendo** verificação por documento e vídeo — inclusive a
+Política de Privacidade prometendo "o documento e o vídeo são apagados
+automaticamente", sobre arquivos que ninguém mais envia. Eram documentos
+legais, públicos e aceitos no cadastro, descrevendo um processo que não
+existe. Corrigido: os Termos passam a descrever convite + padrinho +
+revisão de perfil e dizem explicitamente **"não conferimos documento de
+identidade"**; a Privacidade idem, com a seção 2 virando "Entrada por
+convite (não pedimos documento)"; as Regras trocam "a verificação existe
+justamente pra isso" (sobre barrar menor de idade) pela responsabilidade do
+padrinho. **Lição: quando uma decisão de produto reverte um fluxo, os
+textos legais não se atualizam sozinhos — e um texto legal que promete o
+que o sistema não faz é pior que não ter texto.** Continua valendo o
+parágrafo acima: a validade jurídica da curadoria sem documento segue não
+revisada por advogado.
 
 ## Pontos sensíveis
 - `verifications.document_url` / `video_url` guardam paths no bucket privado

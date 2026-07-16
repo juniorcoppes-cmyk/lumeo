@@ -5,6 +5,7 @@ import { getUser } from "@/lib/supabase/get-user";
 import { ExperienceBadge } from "@/components/ExperienceBadge";
 import { PlatformInviteLink } from "@/components/PlatformInviteLink";
 import { AutoRefresh } from "@/components/AutoRefresh";
+import { SobreOLumeo } from "@/components/SobreOLumeo";
 import { AccessExpiryWarning } from "@/components/AccessExpiryWarning";
 import { computeAccessExpiry } from "@/lib/access-expiry";
 import { formatarDataHora } from "@/lib/datas";
@@ -202,25 +203,7 @@ export default async function InicioPage({
         <summary className="cursor-pointer text-sm font-medium text-accent no-underline">
           Comece por aqui
         </summary>
-        <div className="mt-3 flex flex-col gap-3 text-sm text-foreground/90">
-          <p className="font-medium text-foreground">
-            Lumeo é sobre conexão, não pressa.
-          </p>
-          <p>
-            Você já sentiu que, nas baladas liberais ou apps de
-            relacionamento comuns, o contato social de verdade fica em
-            segundo plano? Que toda aproximação já vem com a expectativa —
-            ou o receio — de que o objetivo seja uma interação íntima
-            imediata?
-          </p>
-          <p>
-            Foi pensando nessa lacuna que o Lumeo existe: um espaço de
-            curadoria social pro meio liberal, pensado pra conhecer gente,
-            ter boas conversas e se divertir sem a pressão de que algo mais
-            precise acontecer. Se a sintonia rolar, ótimo — mas o encontro
-            já vale pela companhia.
-          </p>
-        </div>
+        <SobreOLumeo className="mt-3" />
       </details>
 
       {canSeeTimeline && (

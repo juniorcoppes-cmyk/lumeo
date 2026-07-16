@@ -12,25 +12,31 @@ export default function TermosPage() {
             1. O que é o Lumeo
           </h2>
           <p className="mt-2">
-            O Lumeo é uma plataforma de curadoria e verificação de identidade
-            para eventos presenciais voltados ao público liberal/lifestyle
-            adulto no Brasil. O acesso é restrito a maiores de 18 anos e
-            depende de aprovação de uma verificação de identidade (documento e
-            vídeo) feita no cadastro.
+            O Lumeo é uma plataforma de curadoria para eventos presenciais
+            voltados ao público liberal/lifestyle adulto no Brasil. O acesso é
+            restrito a maiores de 18 anos, não é aberto ao público e só
+            acontece por convite de alguém que já faz parte da comunidade.
           </p>
         </section>
 
         <section>
           <h2 className="text-lg text-foreground">
-            2. Elegibilidade e verificação
+            2. Elegibilidade e entrada na comunidade
           </h2>
           <p className="mt-2">
-            Ao se cadastrar, você declara ter 18 anos ou mais e concorda em
-            enviar um documento de identificação e um vídeo de verificação.
-            Sua conta só é liberada para uso após aprovação por um
-            administrador. Cadastros com documentos inválidos, incompletos ou
-            que indiquem menoridade são reprovados e não têm acesso à
-            plataforma.
+            Ao se cadastrar, você declara ter 18 anos ou mais. O cadastro só é
+            possível através de um link de convite enviado por um usuário já
+            verificado, que passa a ser seu padrinho — é ele quem aceita ou
+            recusa apadrinhar seu perfil, e a recusa impede o acesso. Depois do
+            aceite, a administração revisa seu perfil e suas fotos e dá a
+            confirmação definitiva, podendo revogar o acesso.
+          </p>
+          <p className="mt-2">
+            A curadoria do Lumeo é social e baseada na responsabilidade de quem
+            convida — <strong>não conferimos documento de identidade</strong>.
+            Você é responsável pela veracidade do que declara, inclusive sua
+            idade; perfis falsos ou que indiquem menoridade são removidos assim
+            que identificados.
           </p>
         </section>
 
@@ -93,11 +99,12 @@ export default function TermosPage() {
             7. Isenção de responsabilidade
           </h2>
           <p className="mt-2">
-            O Lumeo faz a curadoria e verificação de identidade dos
-            participantes, mas não organiza nem supervisiona diretamente todos
-            os eventos indicados por usuários, nem garante a conduta de outros
-            participantes. O uso da plataforma e a participação em eventos são
-            por sua conta e risco.
+            O Lumeo faz a curadoria social dos participantes — por convite,
+            apadrinhamento e revisão de perfil —, mas <strong>não confere
+            documento de identidade</strong>, não organiza nem supervisiona
+            diretamente todos os eventos indicados por usuários, nem garante a
+            conduta ou a identidade real de outros participantes. O uso da
+            plataforma e a participação em eventos são por sua conta e risco.
           </p>
         </section>
 
@@ -119,8 +126,7 @@ export default function TermosPage() {
           <a href="/privacidade">
             Política de Privacidade
           </a>
-          , sobre como tratamos seus dados, incluindo documentos e vídeo de
-          verificação, e o{" "}
+          , sobre como tratamos seus dados, e o{" "}
           <a href="/regras">
             Manual de Boas Convivências
           </a>

@@ -1,5 +1,6 @@
 import { EXPERIENCE_LEVEL_LABELS, EXPERIENCE_LEVELS } from "@/lib/experience-level";
 import { PasswordInput } from "@/components/PasswordInput";
+import { SobreOLumeo } from "@/components/SobreOLumeo";
 import { createClient } from "@/lib/supabase/server";
 import { getPlans } from "@/lib/plans";
 import { signUp } from "./actions";
@@ -27,6 +28,9 @@ export default async function CadastroDadosPage({
           um link, use-o diretamente — se o link não abrir o formulário, pode
           ter expirado ou já ter sido usado. Peça um novo convite.
         </p>
+        {/* Quem chega aqui com link vencido vai pedir outro — vale saber o
+            que está pedindo. */}
+        <SobreOLumeo className="mt-8 border-t border-line pt-8" />
       </main>
     );
   }
@@ -35,9 +39,23 @@ export default async function CadastroDadosPage({
 
   return (
     <main className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="text-2xl">Seus dados</h1>
-      <p className="mt-2 text-sm text-muted">
-        Você foi convidado por <strong className="text-foreground">{invitePreview.inviter_name}</strong>.
+      <p className="text-sm text-muted">
+        <strong className="text-foreground">{invitePreview.inviter_name}</strong> te convidou
+        para o
+      </p>
+      <h1 className="mt-1 font-display text-4xl text-accent">Lumeo</h1>
+
+      {/* Quem chega por um convite não faz ideia do que é o Lumeo — antes
+          disto caía direto no formulário. O texto vem primeiro, e de propósito
+          aberto: é o que diferencia o app, não pode depender de um clique. */}
+      <SobreOLumeo className="mt-5" />
+
+      <hr className="mt-8 border-line" />
+
+      <h2 className="mt-8 text-2xl">Seus dados</h2>
+      <p className="mt-1 text-sm text-muted">
+        Seu convite é de {invitePreview.inviter_name}, que vira seu padrinho — é quem responde
+        por você aqui dentro.
       </p>
       {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
       <form action={signUp} className="mt-6 flex flex-col gap-4">

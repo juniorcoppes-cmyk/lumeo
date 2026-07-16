@@ -28,21 +28,21 @@ export default function PrivacidadePage() {
 
         <section>
           <h2 className="text-lg text-foreground">
-            2. Documento e vídeo de verificação
+            2. Entrada por convite (não pedimos documento)
           </h2>
           <p className="mt-2">
-            No cadastro, pedimos um documento de identificação e um vídeo
-            curto para confirmar sua identidade e idade — essa verificação é
-            obrigatória para acessar a plataforma. Esses arquivos ficam em
-            armazenamento privado, acessível apenas a você e à administração
-            do Lumeo, e são usados exclusivamente para essa finalidade.
+            <strong>O Lumeo não pede documento de identificação nem vídeo de
+            verificação.</strong> A entrada é por convite: quem te convida vira
+            seu padrinho e responde por você, e a administração revisa seu
+            perfil e suas fotos antes da confirmação definitiva. Registramos
+            quem convidou quem, e a data em que o apadrinhamento foi aceito ou
+            recusado — é isso que sustenta a curadoria.
           </p>
           <p className="mt-2">
-            <strong>Quando sua verificação é aprovada, o documento e o vídeo
-            são apagados automaticamente</strong> do nosso armazenamento — só
-            fica registrado que a verificação foi aprovada (o selo), não os
-            arquivos em si. Se sua verificação for reprovada, os arquivos
-            ficam retidos até você reenviar uma nova verificação.
+            Suas fotos de perfil e de álbum ficam em armazenamento privado, e
+            quem vê cada uma depende do que você definiu no seu perfil e das
+            conexões que você aceitou. A administração do Lumeo também as vê,
+            para a revisão de entrada e para apurar denúncias.
           </p>
         </section>
 
@@ -90,8 +90,8 @@ export default function PrivacidadePage() {
           <p className="mt-2">
             Não vendemos seus dados. Compartilhamos o mínimo necessário com o
             Asaas (para processar pagamentos) e com o Supabase (nosso
-            provedor de banco de dados e armazenamento). Dados de verificação
-            e álbum de fotos só são visíveis a administradores do Lumeo e aos
+            provedor de banco de dados e armazenamento). Seu perfil e seu
+            álbum de fotos só são visíveis a administradores do Lumeo e aos
             usuários que você autorizar.
           </p>
         </section>
