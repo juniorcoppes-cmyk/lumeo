@@ -14,6 +14,13 @@ export default function HomePage() {
         <Link href="/como-funciona" className="btn-secondary">
           Como funciona
         </Link>
+        {/* Link em <a> (não <Link>) de propósito: /guia é HTML estático via
+            rewrite, não uma rota do app — o roteador do Next tentaria buscar
+            payload de rota e falharia. Também dá ao Google um caminho público
+            pra achar e indexar a página. */}
+        <a href="/guia" className="btn-secondary">
+          Guia do meio liberal
+        </a>
         <Link href="/planos" className="btn-secondary">
           Planos
         </Link>

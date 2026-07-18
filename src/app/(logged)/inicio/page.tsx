@@ -206,6 +206,27 @@ export default async function InicioPage({
         <SobreOLumeo className="mt-3" />
       </details>
 
+      {/* Guia do meio liberal — página estática servida de public/guia.html
+          (não é rota do app, por isso <a> e não <Link>). Abre em outra aba
+          pra não derrubar a sessão do app; a própria página tem CTAs de volta
+          pro Lumeo. Visível a todos, inclusive quem ainda aguarda padrinho —
+          é justamente o conteúdo que tira as dúvidas de quem está chegando. */}
+      <a
+        href="/guia"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="card mt-4 flex items-center justify-between gap-4 no-underline transition-colors hover:border-accent"
+      >
+        <div>
+          <h2 className="text-lg text-foreground">Novo no meio liberal?</h2>
+          <p className="mt-1 text-sm text-muted">
+            Swing, casas, etiqueta e primeiros passos — nosso guia explica tudo, sem
+            tabu e sem julgamento.
+          </p>
+        </div>
+        <span className="btn-secondary shrink-0 whitespace-nowrap">Abrir o guia</span>
+      </a>
+
       {canSeeTimeline && (
         <section className="card mt-4">
           <h2 className="text-lg text-green-400">Convidar alguém pra Lumeo</h2>

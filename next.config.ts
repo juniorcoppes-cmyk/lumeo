@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  // O guia do meio liberal é um HTML estático em public/guia.html. A URL
+  // pública dele é /guia (limpa, é a canonical p/ SEO); o rewrite serve o
+  // arquivo sem expor o .html.
+  async rewrites() {
+    return [{ source: "/guia", destination: "/guia.html" }];
+  },
 };
 
 export default nextConfig;
