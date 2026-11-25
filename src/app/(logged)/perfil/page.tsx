@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
@@ -284,6 +285,17 @@ export default async function PerfilPage({
           Salvar
         </button>
       </form>
+
+      <div className="mt-6 rounded-[0.875rem] border border-line p-4">
+        <h2 className="text-lg">Afinidade</h2>
+        <p className="mt-1 text-sm text-muted">
+          Interesses, ritmo e ambiente — é o que mostra quem combina com vocês,
+          por sintonia e não por foto.
+        </p>
+        <Link href="/perfil/afinidade" className="btn-secondary mt-3 inline-block">
+          Preencher afinidade
+        </Link>
+      </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <span className="text-sm text-muted">
