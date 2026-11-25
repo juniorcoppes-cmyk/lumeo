@@ -74,6 +74,10 @@ export default async function ComunidadePage({
         navegação discreta no perfil não aparece aqui.
       </p>
 
+      <Link href="/comunidade/combinam" className="btn-primary mt-4 inline-block">
+        ✨ Quem combina com vocês
+      </Link>
+
       <form method="get" className="card mt-4 flex flex-col gap-3 text-sm">
         <ComunidadeSearch initialQuery={q ?? ""} />
 

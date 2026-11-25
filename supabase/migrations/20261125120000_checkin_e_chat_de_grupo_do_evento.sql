@@ -162,6 +162,15 @@ as $$
    order by m.created_at asc;
 $$;
 
+-- Funções security definer rodam por cima do RLS — só usuário logado chama.
+-- (is_event_member fica de fora: é helper de RLS, avaliado pelo próprio role.)
+revoke execute on function check_in_event(uuid) from public, anon;
+grant execute on function check_in_event(uuid) to authenticated;
+revoke execute on function event_presence_list(uuid) from public, anon;
+grant execute on function event_presence_list(uuid) to authenticated;
+revoke execute on function event_group_messages(uuid) from public, anon;
+grant execute on function event_group_messages(uuid) to authenticated;
+
 commit;
 
 -- Provas rápidas (devem retornar linhas):
