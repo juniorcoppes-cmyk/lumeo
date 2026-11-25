@@ -1,6 +1,6 @@
 import { effectiveSubscriptionStatus } from "@/lib/subscription";
 
-const TRIAL_DAYS = 7;
+const TRIAL_MONTHS = 6; // fase de lançamento: 6 meses grátis por perfil
 const DAY_MS = 24 * 60 * 60 * 1000;
 const WARN_FROM_DAYS = 3; // avisa faltando 3, 2, 1 e no próprio dia
 
@@ -15,8 +15,8 @@ type SubscriptionRow = {
 
 /**
  * Quantos dias faltam pro acesso do usuário vencer. Cobre os três jeitos de
- * ter acesso: isenção com prazo (ex.: testers liberados por 30 dias), teste
- * grátis de 7 dias, e mensalidade. Retorna null quando não é caso de avisar
+ * ter acesso: isenção com prazo (ex.: testers liberados por 30 dias), os 6
+ * meses grátis de lançamento, e mensalidade. Retorna null quando não é caso de avisar
  * (falta muito, já venceu, ou o acesso não expira).
  *
  * Recebe os campos crus de propósito: a decisão de "quem é isento" mora aqui,
@@ -58,7 +58,7 @@ export function computeAccessExpiry(params: {
 
   if (params.memberSince) {
     const end = new Date(params.memberSince);
-    end.setDate(end.getDate() + TRIAL_DAYS);
+    end.setMonth(end.getMonth() + TRIAL_MONTHS);
     return within(end, "trial");
   }
 

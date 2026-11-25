@@ -34,11 +34,13 @@ export default async function AssinaturaPage({
     .eq("id", user.id)
     .single();
 
-  const trialDaysLeft = profile?.member_since
-    ? Math.ceil(
-        7 - (Date.now() - new Date(profile.member_since).getTime()) / (24 * 60 * 60 * 1000),
-      )
-    : null;
+  // Fase de lançamento: 6 meses grátis por perfil, contados de member_since.
+  let trialDaysLeft: number | null = null;
+  if (profile?.member_since) {
+    const end = new Date(profile.member_since);
+    end.setMonth(end.getMonth() + 6);
+    trialDaysLeft = Math.ceil((end.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+  }
 
   const { data: billing } = await supabase
     .from("billing_profiles")
@@ -69,7 +71,7 @@ export default async function AssinaturaPage({
         </p>
       ) : trialDaysLeft !== null && trialDaysLeft > 0 ? (
         <p className="mt-2 text-muted">
-          Você está no período de teste gratuito —{" "}
+          Você está no período gratuito de lançamento (6 meses) —{" "}
           <strong className="text-foreground">
             {trialDaysLeft} {trialDaysLeft === 1 ? "dia restante" : "dias restantes"}
           </strong>{" "}

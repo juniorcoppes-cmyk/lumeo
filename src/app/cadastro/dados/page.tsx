@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { EXPERIENCE_LEVEL_LABELS, EXPERIENCE_LEVELS } from "@/lib/experience-level";
 import { PasswordInput } from "@/components/PasswordInput";
 import { SobreOLumeo } from "@/components/SobreOLumeo";
@@ -26,10 +27,13 @@ export default async function CadastroDadosPage({
           O cadastro no Secret só é possível através de um link de convite
           enviado por alguém que já faz parte da comunidade. Se você recebeu
           um link, use-o diretamente — se o link não abrir o formulário, pode
-          ter expirado ou já ter sido usado. Peça um novo convite.
+          ter expirado ou já ter sido usado.
         </p>
-        {/* Quem chega aqui com link vencido vai pedir outro — vale saber o
-            que está pedindo. */}
+        {/* Em vez de parede, uma porta: quem não tem convite deixa o contato. */}
+        <Link href="/participar" className="btn-primary mt-4 inline-block">
+          Não tenho convite — quero participar
+        </Link>
+        {/* Quem chega aqui sem convite vale saber o que está pedindo. */}
         <SobreOLumeo className="mt-8 border-t border-line pt-8" />
       </main>
     );
@@ -129,7 +133,7 @@ export default async function CadastroDadosPage({
         <label className="flex flex-col gap-1 text-sm">
           Plano
           <select name="preferred_plan" defaultValue="" className="input">
-            <option value="">Período de teste grátis (7 dias após aprovação)</option>
+            <option value="">6 meses grátis (fase de lançamento, após a aprovação)</option>
             {plans.map((plan) => (
               <option key={plan.id} value={plan.id}>
                 {plan.name} — R$ {plan.price.toFixed(2)}/mês

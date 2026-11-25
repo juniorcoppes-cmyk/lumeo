@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/lib/auth-actions";
 import { PinLockGate } from "@/components/PinLockGate";
 import { PrimaryNav } from "@/components/PrimaryNav";
-import { CalendarIcon, FlagIcon, ShieldCheckIcon, UsersIcon } from "@/components/icons";
+import { CalendarIcon, FlagIcon, MessageIcon, ShieldCheckIcon, UsersIcon } from "@/components/icons";
 
 export default async function AdminLayout({
   children,
@@ -26,13 +26,18 @@ export default async function AdminLayout({
 
   if (!profile?.is_admin) redirect("/inicio");
 
-  const [{ count: pendingReports }, { count: pendingVerifications }] = await Promise.all([
-    supabase.from("user_reports").select("id", { count: "exact", head: true }).eq("status", "pending"),
-    supabase
-      .from("users")
-      .select("id", { count: "exact", head: true })
-      .eq("membership_status", "provisional"),
-  ]);
+  const [{ count: pendingReports }, { count: pendingVerifications }, { count: newRequests }] =
+    await Promise.all([
+      supabase.from("user_reports").select("id", { count: "exact", head: true }).eq("status", "pending"),
+      supabase
+        .from("users")
+        .select("id", { count: "exact", head: true })
+        .eq("membership_status", "provisional"),
+      supabase
+        .from("access_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "novo"),
+    ]);
 
   const primaryItems = [
     { href: "/admin/eventos", label: "Eventos", icon: <CalendarIcon /> },
@@ -43,6 +48,12 @@ export default async function AdminLayout({
       badge: pendingVerifications ?? 0,
     },
     { href: "/admin/usuarios", label: "Usuários", icon: <UsersIcon /> },
+    {
+      href: "/admin/solicitacoes",
+      label: "Ingressos",
+      icon: <MessageIcon />,
+      badge: newRequests ?? 0,
+    },
     {
       href: "/admin/denuncias",
       label: "Denúncias",

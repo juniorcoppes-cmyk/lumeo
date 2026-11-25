@@ -24,8 +24,8 @@ export default function HomePage() {
         <Link href="/planos" className="btn-secondary">
           Planos
         </Link>
-        <Link href="/cadastro/dados" className="btn-primary">
-          Criar conta
+        <Link href="/participar" className="btn-primary">
+          Quero participar
         </Link>
         <Link href="/login" className="btn-primary">
           Entrar

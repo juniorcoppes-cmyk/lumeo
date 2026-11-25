@@ -67,8 +67,8 @@ export default function ComoFuncionaPage() {
           <p className="mt-2">
             Os encontros presenciais são curados e aparecem no app com data,
             local e lista de presença confirmada. O acesso à comunidade é por
-            assinatura, com período de teste grátis de 7 dias depois da
-            aprovação — veja os <Link href="/planos">planos</Link>.
+            assinatura — e, na fase de lançamento, os 6 primeiros meses são
+            grátis depois da aprovação. Veja os <Link href="/planos">planos</Link>.
           </p>
         </section>
       </div>
