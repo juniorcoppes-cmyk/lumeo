@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const BASE = "https://www.lumeo.app.br";
+const BASE = "https://www.socialsecret.com.br";
 
 // Só as páginas públicas — o resto do app é logado/por convite e não deve
 // ser indexado. O /guia é o motivo principal deste sitemap existir: é a

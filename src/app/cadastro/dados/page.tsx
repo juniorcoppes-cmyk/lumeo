@@ -111,7 +111,7 @@ export default async function CadastroDadosPage({
           dois entram com este mesmo e-mail e senha, cada um no seu celular — e podem usar
           ao mesmo tempo. O link de convite vale só para este cadastro, agora; no segundo
           aparelho é só abrir{" "}
-          <strong className="text-foreground">www.lumeo.app.br</strong> e clicar em “Entrar”,
+          <strong className="text-foreground">www.socialsecret.com.br</strong> e clicar em “Entrar”,
           sem precisar de link.
         </p>
         <select

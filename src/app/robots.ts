@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const BASE = "https://www.lumeo.app.br";
+const BASE = "https://www.socialsecret.com.br";
 
 // Deixa o Google indexar as páginas públicas e o /guia, mas mantém fora do
 // índice o que é logado, por convite ou administrativo — nada disso deveria

@@ -228,7 +228,7 @@ export default async function PerfilPage({
           <p className="mb-2 text-xs text-muted">
             <strong className="text-foreground">Vocês dois usam esta mesma conta.</strong> Pra
             entrar no outro celular, é só abrir{" "}
-            <strong className="text-foreground">www.lumeo.app.br</strong>, clicar em “Entrar” e
+            <strong className="text-foreground">www.socialsecret.com.br</strong>, clicar em “Entrar” e
             usar este mesmo e-mail e senha — não precisa de link de convite nem de um segundo
             cadastro. Os dois podem ficar logados ao mesmo tempo. Cada aparelho instala o
             ícone e cria o seu próprio PIN — dá pra fazer os dois logo abaixo, em “Instalar o

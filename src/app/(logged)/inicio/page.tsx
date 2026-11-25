@@ -170,7 +170,7 @@ export default async function InicioPage({
       {apadrinhado && (
         <div className="mt-4 rounded-2xl border border-green-700/50 bg-green-900/25 p-4 text-sm text-green-200">
           Você aceitou <strong className="text-green-100">{apadrinhado}</strong>! Avise que já pode
-          acessar o Secret — é só entrar em www.lumeo.app.br.
+          acessar o Secret — é só entrar em www.socialsecret.com.br.
         </div>
       )}
 
