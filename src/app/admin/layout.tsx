@@ -55,7 +55,7 @@ export default async function AdminLayout({
     <PinLockGate>
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-3xl flex-col items-center gap-2 px-3 py-3">
-          <span className="font-display text-lg text-accent">Lumeo</span>
+          <span className="font-display text-lg text-accent">Secret</span>
           <PrimaryNav items={primaryItems} />
         </div>
       </header>

@@ -12,7 +12,7 @@ export default function ComoFuncionaPage() {
         <section>
           <h2 className="text-lg text-foreground">Só se entra por convite</h2>
           <p className="mt-2">
-            Não existe cadastro aberto no Lumeo. Para entrar, é preciso um link
+            Não existe cadastro aberto no Secret. Para entrar, é preciso um link
             de convite enviado por alguém que já faz parte da comunidade. Cada
             link funciona uma única vez, para uma única pessoa.
           </p>

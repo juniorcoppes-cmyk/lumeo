@@ -9,10 +9,10 @@ export default function TermosPage() {
       <div className="mt-8 flex flex-col gap-6 text-foreground/90">
         <section>
           <h2 className="text-lg text-foreground">
-            1. O que é o Lumeo
+            1. O que é o Secret
           </h2>
           <p className="mt-2">
-            O Lumeo é uma plataforma de curadoria para eventos presenciais
+            O Secret é uma plataforma de curadoria para eventos presenciais
             voltados ao público liberal/lifestyle adulto no Brasil. O acesso é
             restrito a maiores de 18 anos, não é aberto ao público e só
             acontece por convite de alguém que já faz parte da comunidade.
@@ -32,7 +32,7 @@ export default function TermosPage() {
             confirmação definitiva, podendo revogar o acesso.
           </p>
           <p className="mt-2">
-            A curadoria do Lumeo é social e baseada na responsabilidade de quem
+            A curadoria do Secret é social e baseada na responsabilidade de quem
             convida — <strong>não conferimos documento de identidade</strong>.
             Você é responsável pela veracidade do que declara, inclusive sua
             idade; perfis falsos ou que indiquem menoridade são removidos assim
@@ -47,7 +47,7 @@ export default function TermosPage() {
           <p className="mt-2">
             Discrição é uma regra central: não é permitido divulgar, fora da
             plataforma, informações que identifiquem outros usuários,
-            participantes ou eventos. O Lumeo pode suspender ou encerrar
+            participantes ou eventos. O Secret pode suspender ou encerrar
             contas que violem esta regra, assediem outros usuários, forneçam
             informações falsas ou usem a plataforma para fins diferentes de
             sua proposta (curadoria de encontros e eventos entre adultos).
@@ -87,7 +87,7 @@ export default function TermosPage() {
             6. Moderação e encerramento de conta
           </h2>
           <p className="mt-2">
-            Administradores do Lumeo podem reprovar verificações, cancelar
+            Administradores do Secret podem reprovar verificações, cancelar
             inscrições em eventos e suspender contas que violem estes termos.
             Você pode encerrar sua conta a qualquer momento entrando em
             contato pelo e-mail abaixo.
@@ -99,7 +99,7 @@ export default function TermosPage() {
             7. Isenção de responsabilidade
           </h2>
           <p className="mt-2">
-            O Lumeo faz a curadoria social dos participantes — por convite,
+            O Secret faz a curadoria social dos participantes — por convite,
             apadrinhamento e revisão de perfil —, mas <strong>não confere
             documento de identidade</strong>, não organiza nem supervisiona
             diretamente todos os eventos indicados por usuários, nem garante a

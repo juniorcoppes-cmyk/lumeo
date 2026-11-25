@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lumeo",
+  title: "Secret",
   description:
     "Curadoria e verificação para encontros presenciais de baixa pressão.",
   manifest: "/manifest.json",
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "Lumeo",
+    title: "Secret",
     statusBarStyle: "black-translucent",
   },
 };

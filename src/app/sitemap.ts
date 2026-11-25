@@ -5,7 +5,7 @@ const BASE = "https://www.lumeo.app.br";
 // Só as páginas públicas — o resto do app é logado/por convite e não deve
 // ser indexado. O /guia é o motivo principal deste sitemap existir: é a
 // porta de entrada de SEO (quem pesquisa "meio liberal", "casa de swing"
-// etc. acha o Lumeo por ela).
+// etc. acha o Secret por ela).
 export default function sitemap(): MetadataRoute.Sitemap {
   const paginas = [
     { path: "/", priority: 1 },

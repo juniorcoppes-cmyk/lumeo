@@ -6,7 +6,7 @@ export default function RegrasPage() {
       <p className="mt-2 text-sm text-muted">Última atualização: julho de 2026</p>
 
       <p className="mt-6 text-foreground/90">
-        O Lumeo existe para aproximar pessoas do meio liberal com leveza e
+        O Secret existe para aproximar pessoas do meio liberal com leveza e
         respeito. Estas regras existem para que todo mundo se sinta seguro
         pra usar o app — e valem tanto aqui dentro quanto nos encontros
         presenciais que ele viabiliza.
@@ -56,8 +56,8 @@ export default function RegrasPage() {
             4. Discrição é regra, não favor
           </h2>
           <p className="mt-2">
-            O que acontece no Lumeo (perfis, fotos, conversas, quem você
-            conheceu) fica no Lumeo. Compartilhar informação ou foto de
+            O que acontece no Secret (perfis, fotos, conversas, quem você
+            conheceu) fica no Secret. Compartilhar informação ou foto de
             outro usuário fora da plataforma, sem autorização, é violação
             grave. Respeite o modo discreto de quem ativou — não exponha,
             marque ou comente sobre a presença de alguém que optou por

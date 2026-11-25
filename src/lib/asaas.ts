@@ -5,7 +5,7 @@ async function asaasFetch<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
     headers: {
       "Content-Type": "application/json",
-      "User-Agent": "Lumeo",
+      "User-Agent": "Secret",
       access_token: process.env.ASAAS_API_KEY!,
       ...init?.headers,
     },

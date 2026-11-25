@@ -1,6 +1,6 @@
 {
-  "name": "Lumeo",
-  "short_name": "Lumeo",
+  "name": "Secret",
+  "short_name": "Secret",
   "description": "Curadoria e verificação para encontros presenciais de baixa pressão.",
   "start_url": "/inicio",
   "scope": "/",

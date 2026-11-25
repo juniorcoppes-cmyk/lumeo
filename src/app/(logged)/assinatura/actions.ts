@@ -79,7 +79,7 @@ export async function choosePlan(formData: FormData) {
       value: Number(planRow.price),
       nextDueDate,
       cycle: "MONTHLY",
-      description: `Lumeo — plano ${plan}`,
+      description: `Secret — plano ${plan}`,
       externalReference: user.id,
     });
 

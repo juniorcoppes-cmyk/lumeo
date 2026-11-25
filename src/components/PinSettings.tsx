@@ -43,7 +43,7 @@ export function PinSettings() {
       <h2 className="text-lg">PIN de acesso rápido</h2>
       <p className="mt-1 text-sm text-muted">
         Fica salvo só neste aparelho — pede esse PIN toda vez que você abre o
-        Lumeo pelo ícone instalado na tela inicial, antes de mostrar sua
+        Secret pelo ícone instalado na tela inicial, antes de mostrar sua
         conta. Não substitui a senha da conta.
       </p>
 

@@ -81,7 +81,7 @@ export async function inscrever(formData: FormData) {
         billingType: "UNDEFINED",
         value: chargedPrice,
         dueDate: new Date().toISOString().slice(0, 10),
-        description: `Lumeo — inscrição em ${event!.title}`,
+        description: `Secret — inscrição em ${event!.title}`,
         externalReference: `${eventId}:${user.id}`,
       });
       asaasPaymentId = payment.id;

@@ -11,7 +11,7 @@
 // era em UTC e os dois erros se anulavam — mas o filtro de "próximos eventos"
 // usa o instante de verdade, então o evento sumia da home 3h antes de começar.
 //
-// Todo evento do Lumeo é presencial no Brasil, então o fuso é fixo de propósito:
+// Todo evento do Secret é presencial no Brasil, então o fuso é fixo de propósito:
 // quem administra digita horário de Brasília e quem lê vê horário de Brasília,
 // esteja o servidor onde estiver.
 export const FUSO = "America/Sao_Paulo";

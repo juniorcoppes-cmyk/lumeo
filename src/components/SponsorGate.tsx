@@ -8,8 +8,8 @@ export function SponsorGate({ items }: { items: PendingSponsorship[] }) {
       <h1 className="text-2xl text-center">Apadrinhamento pendente</h1>
       <p className="text-center text-sm text-muted">
         {items.length === 1
-          ? "Alguém usou seu link de convite pro Lumeo."
-          : `${items.length} pessoas usaram seu link de convite pro Lumeo.`}{" "}
+          ? "Alguém usou seu link de convite pro Secret."
+          : `${items.length} pessoas usaram seu link de convite pro Secret.`}{" "}
         Antes de continuar usando o app, decida se aceita apadrinhar — só depois disso você
         libera seu próprio acesso de novo.
       </p>

@@ -23,7 +23,7 @@ export default async function CadastroDadosPage({
       <main className="mx-auto max-w-sm px-6 py-16">
         <h1 className="text-2xl">Convite necessário</h1>
         <p className="mt-2 text-sm text-muted">
-          O cadastro no Lumeo só é possível através de um link de convite
+          O cadastro no Secret só é possível através de um link de convite
           enviado por alguém que já faz parte da comunidade. Se você recebeu
           um link, use-o diretamente — se o link não abrir o formulário, pode
           ter expirado ou já ter sido usado. Peça um novo convite.
@@ -43,9 +43,9 @@ export default async function CadastroDadosPage({
         <strong className="text-foreground">{invitePreview.inviter_name}</strong> te convidou
         para o
       </p>
-      <h1 className="mt-1 font-display text-4xl text-accent">Lumeo</h1>
+      <h1 className="mt-1 font-display text-4xl text-accent">Secret</h1>
 
-      {/* Quem chega por um convite não faz ideia do que é o Lumeo — antes
+      {/* Quem chega por um convite não faz ideia do que é o Secret — antes
           disto caía direto no formulário. O texto vem primeiro, e de propósito
           aberto: é o que diferencia o app, não pode depender de um clique. */}
       <SobreOLumeo className="mt-5" />

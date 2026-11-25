@@ -9,7 +9,7 @@ export default function PrivacidadePage() {
       <div className="mt-8 flex flex-col gap-6 text-foreground/90">
         <section>
           <p>
-            Esta política descreve quais dados o Lumeo coleta, por que
+            Esta política descreve quais dados o Secret coleta, por que
             coletamos, e como você pode acessá-los, corrigi-los ou pedir sua
             exclusão, em conformidade com a Lei Geral de Proteção de Dados
             (LGPD).
@@ -31,7 +31,7 @@ export default function PrivacidadePage() {
             2. Entrada por convite (não pedimos documento)
           </h2>
           <p className="mt-2">
-            <strong>O Lumeo não pede documento de identificação nem vídeo de
+            <strong>O Secret não pede documento de identificação nem vídeo de
             verificação.</strong> A entrada é por convite: quem te convida vira
             seu padrinho e responde por você, e a administração revisa seu
             perfil e suas fotos antes da confirmação definitiva. Registramos
@@ -41,7 +41,7 @@ export default function PrivacidadePage() {
           <p className="mt-2">
             Suas fotos de perfil e de álbum ficam em armazenamento privado, e
             quem vê cada uma depende do que você definiu no seu perfil e das
-            conexões que você aceitou. A administração do Lumeo também as vê,
+            conexões que você aceitou. A administração do Secret também as vê,
             para a revisão de entrada e para apurar denúncias.
           </p>
         </section>
@@ -54,7 +54,7 @@ export default function PrivacidadePage() {
             Para assinaturas e cobrança de eventos, processamos seus dados de
             cobrança (como CPF/CNPJ) através do Asaas, nosso processador de
             pagamentos, que também armazena os dados do seu cartão ou meio de
-            pagamento — o Lumeo não tem acesso a esses dados diretamente.
+            pagamento — o Secret não tem acesso a esses dados diretamente.
             Seus dados de cobrança são mantidos separados do restante do seu
             perfil e visíveis apenas a você.
           </p>
@@ -91,7 +91,7 @@ export default function PrivacidadePage() {
             Não vendemos seus dados. Compartilhamos o mínimo necessário com o
             Asaas (para processar pagamentos) e com o Supabase (nosso
             provedor de banco de dados e armazenamento). Seu perfil e seu
-            álbum de fotos só são visíveis a administradores do Lumeo e aos
+            álbum de fotos só são visíveis a administradores do Secret e aos
             usuários que você autorizar.
           </p>
         </section>

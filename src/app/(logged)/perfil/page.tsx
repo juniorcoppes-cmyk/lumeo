@@ -232,7 +232,7 @@ export default async function PerfilPage({
             usar este mesmo e-mail e senha — não precisa de link de convite nem de um segundo
             cadastro. Os dois podem ficar logados ao mesmo tempo. Cada aparelho instala o
             ícone e cria o seu próprio PIN — dá pra fazer os dois logo abaixo, em “Instalar o
-            Lumeo no celular” e “PIN de acesso rápido” (o PIN só passa a valer depois que o
+            Secret no celular” e “PIN de acesso rápido” (o PIN só passa a valer depois que o
             app é aberto pelo ícone instalado).
           </p>
           <form action={toggleCoupleSingleDevice} className="flex items-center gap-2">
@@ -243,7 +243,7 @@ export default async function PerfilPage({
               defaultChecked={profile?.couple_single_device ?? false}
             />
             <label htmlFor="couple_single_device" className="text-sm">
-              Vocês dois acessam o Lumeo pelo mesmo celular
+              Vocês dois acessam o Secret pelo mesmo celular
             </label>
             <button type="submit" className="btn-secondary ml-4">
               Salvar

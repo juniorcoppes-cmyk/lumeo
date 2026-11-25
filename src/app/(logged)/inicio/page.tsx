@@ -170,7 +170,7 @@ export default async function InicioPage({
       {apadrinhado && (
         <div className="mt-4 rounded-2xl border border-green-700/50 bg-green-900/25 p-4 text-sm text-green-200">
           Você aceitou <strong className="text-green-100">{apadrinhado}</strong>! Avise que já pode
-          acessar o Lumeo — é só entrar em www.lumeo.app.br.
+          acessar o Secret — é só entrar em www.lumeo.app.br.
         </div>
       )}
 
@@ -178,7 +178,7 @@ export default async function InicioPage({
         <div className="mt-4 rounded-2xl border border-on-accent-soft/40 bg-on-accent-soft/10 p-4 text-sm text-foreground/90">
           <strong className="text-foreground">Seu cadastro foi enviado!</strong> Assim que{" "}
           {sponsorName ?? "seu padrinho"} aceitar seu apadrinhamento, a comunidade, o chat e o resto
-          do Lumeo abrem pra você — automaticamente, sem precisar recarregar. Por enquanto, dá uma
+          do Secret abrem pra você — automaticamente, sem precisar recarregar. Por enquanto, dá uma
           olhada no “Comece por aqui” e nos próximos eventos abaixo.
           <AutoRefresh />
         </div>
@@ -209,7 +209,7 @@ export default async function InicioPage({
       {/* Guia do meio liberal — página estática servida de public/guia.html
           (não é rota do app, por isso <a> e não <Link>). Abre em outra aba
           pra não derrubar a sessão do app; a própria página tem CTAs de volta
-          pro Lumeo. Visível a todos, inclusive quem ainda aguarda padrinho —
+          pro Secret. Visível a todos, inclusive quem ainda aguarda padrinho —
           é justamente o conteúdo que tira as dúvidas de quem está chegando. */}
       <a
         href="/guia"
@@ -229,7 +229,7 @@ export default async function InicioPage({
 
       {canSeeTimeline && (
         <section className="card mt-4">
-          <h2 className="text-lg text-green-400">Convidar alguém pra Lumeo</h2>
+          <h2 className="text-lg text-green-400">Convidar alguém pra Secret</h2>
           <p className="text-sm text-muted">
             O cadastro só acontece através de convite — ao gerar um link, você vira o padrinho
             de quem se cadastrar por ele, e vai precisar aceitar ou recusar apadrinhar antes de

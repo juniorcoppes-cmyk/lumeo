@@ -44,7 +44,7 @@ export function InstallAppButton() {
       <section className="mt-8">
         <h2 className="text-lg">App instalado</h2>
         <p className="mt-1 text-sm text-muted">
-          O Lumeo já está na sua tela inicial. Configure o PIN abaixo pra travar o acesso.
+          O Secret já está na sua tela inicial. Configure o PIN abaixo pra travar o acesso.
         </p>
       </section>
     );
@@ -52,9 +52,9 @@ export function InstallAppButton() {
 
   return (
     <section className="mt-8">
-      <h2 className="text-lg">Instalar o Lumeo no celular</h2>
+      <h2 className="text-lg">Instalar o Secret no celular</h2>
       <p className="mt-1 text-sm text-muted">
-        Deixe o Lumeo como um ícone na tela inicial pra abrir rápido — é também o que
+        Deixe o Secret como um ícone na tela inicial pra abrir rápido — é também o que
         habilita o PIN de acesso rápido (logo abaixo).
       </p>
 
