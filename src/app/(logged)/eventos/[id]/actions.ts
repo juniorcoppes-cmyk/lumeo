@@ -109,6 +109,25 @@ export async function inscrever(formData: FormData) {
   revalidatePath(`/eventos/${eventId}`);
 }
 
+export async function fazerCheckin(formData: FormData) {
+  const eventId = formData.get("event_id") as string;
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  // A função no banco confere a janela (só no dia) e que a pessoa está inscrita.
+  const { error } = await supabase.rpc("check_in_event", { p_event_id: eventId });
+
+  if (error) {
+    redirect(`/eventos/${eventId}?error=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath(`/eventos/${eventId}`);
+}
+
 export async function convidarPorSelo(formData: FormData) {
   const eventId = formData.get("event_id") as string;
   const badgeId = (formData.get("badge_id") as string)?.trim();

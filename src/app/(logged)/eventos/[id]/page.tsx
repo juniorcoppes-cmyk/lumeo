@@ -6,7 +6,7 @@ import { EventMeta } from "@/components/EventMeta";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
 import { effectiveSubscriptionStatus } from "@/lib/subscription";
-import { convidarPorSelo, gerarLinkConvite, inscrever } from "./actions";
+import { convidarPorSelo, fazerCheckin, gerarLinkConvite, inscrever } from "./actions";
 
 export default async function EventoDetalhePage({
   params,
@@ -59,6 +59,7 @@ export default async function EventoDetalhePage({
     { count: confirmedCount },
     { data: subscription },
     { data: myInvites },
+    { count: invitedCount },
   ] = await Promise.all([
     supabase
       .from("users")
@@ -68,7 +69,7 @@ export default async function EventoDetalhePage({
     supabase.from("billing_profiles").select("cpf_cnpj").eq("user_id", user.id).maybeSingle(),
     supabase
       .from("event_registrations")
-      .select("status, payment_status, payment_url")
+      .select("status, payment_status, payment_url, checked_in_at")
       .eq("event_id", id)
       .eq("user_id", user.id)
       .maybeSingle(),
@@ -88,6 +89,11 @@ export default async function EventoDetalhePage({
       .eq("event_id", id)
       .eq("inviter_id", user.id)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("event_invites")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", id)
+      .eq("invitee_id", user.id),
   ]);
 
   const canRegister =
@@ -100,6 +106,18 @@ export default async function EventoDetalhePage({
     ["active", "overdue"].includes(
       effectiveSubscriptionStatus(subscription.status, subscription.overdue_since),
     );
+
+  // Membro do grupo do evento = inscrito (não cancelado) ou indicado por selo.
+  const isEventMember =
+    (!!registration && registration.status !== "cancelled") || (invitedCount ?? 0) > 0;
+
+  // Check-in só no dia do evento — mesma janela da função no banco
+  // (de 12h antes a 8h depois do início).
+  const eventStartMs = new Date(event.event_date).getTime();
+  const nowMs = Date.now();
+  const checkinOpen =
+    nowMs >= eventStartMs - 12 * 3_600_000 && nowMs <= eventStartMs + 8 * 3_600_000;
+  const canCheckIn = !!registration && registration.status !== "cancelled";
 
   // A RPC já restringe a lista a quem também está confirmado no mesmo
   // evento (ver confirmed_attendees_for_event) — não expõe presença pra
@@ -199,6 +217,42 @@ export default async function EventoDetalhePage({
           Sua verificação de identidade ainda não foi aprovada — isso é
           necessário antes de se inscrever em um evento.
         </p>
+      )}
+
+      {canCheckIn && (
+        <div className="mt-6">
+          {registration!.checked_in_at ? (
+            <p className="text-sm font-medium text-green-400">
+              ✓ Check-in feito — presença confirmada.
+            </p>
+          ) : checkinOpen ? (
+            <form action={fazerCheckin}>
+              <input type="hidden" name="event_id" value={event.id} />
+              <button type="submit" className="btn-primary">
+                Fazer check-in
+              </button>
+            </form>
+          ) : (
+            <p className="text-sm text-muted">
+              O check-in pra confirmar sua presença abre no dia do evento.
+            </p>
+          )}
+        </div>
+      )}
+
+      {(isEventMember || profile?.is_admin) && (
+        <div className="mt-6 flex flex-wrap items-center gap-4">
+          {isEventMember && (
+            <Link href={`/eventos/${event.id}/grupo`} className="btn-secondary inline-block">
+              💬 Chat do grupo
+            </Link>
+          )}
+          {profile?.is_admin && (
+            <Link href={`/eventos/${event.id}/presenca`} className="text-sm">
+              Ver lista de presença
+            </Link>
+          )}
+        </div>
       )}
 
       {attendees && attendees.length > 0 && (
