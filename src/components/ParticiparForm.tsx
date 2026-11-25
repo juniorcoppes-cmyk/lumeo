@@ -68,7 +68,7 @@ export function ParticiparForm() {
             type={contactType === "email" ? "email" : "text"}
             name="contact_value"
             inputMode={contactType === "whatsapp" ? "tel" : "email"}
-            placeholder={contactType === "whatsapp" ? "(DDD) number" : "seu@email.com"}
+            placeholder={contactType === "whatsapp" ? "(DDD) 90000-0000" : "seu@email.com"}
             required
             maxLength={160}
             className="input flex-1"
