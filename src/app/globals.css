@@ -1,19 +1,20 @@
 @import "tailwindcss";
 
-/* Identidade visual "Calor": espresso quente + coral, cantos arredondados.
-   Ver memória project-lumeo-visual-identity para o racional da escolha. */
+/* Identidade visual "Secret": quase-preto quente + dourado champanhe, serifa
+   fina de alto contraste. Extraída das artes do Secret 285 (feed/stories):
+   fundo #0E0B08, dourado #C9A974, marfim #EFE7DA. Sóbrio, fino, pouco negrito. */
 :root {
-  --background: #241512;
-  --surface: #3a2420;
-  --line: #55362d;
-  --foreground: #fbeee5;
-  --muted: #c9a99c;
-  --accent: #d6524f;
-  --on-accent: #fff5ef;
-  --accent-soft: #40241f;
-  --on-accent-soft: #f2a15a;
-  --tag-bg: #4a2f27;
-  --tag-ink: #f2a15a;
+  --background: #0e0b08;
+  --surface: #17120e;
+  --line: #2a2219;
+  --foreground: #efe7da;
+  --muted: #a49b8c;
+  --accent: #c9a974;
+  --on-accent: #1a130b;
+  --accent-soft: #241c12;
+  --on-accent-soft: #d8b57e;
+  --tag-bg: #221b12;
+  --tag-ink: #cbae7c;
 }
 
 @theme inline {
@@ -30,7 +31,7 @@
   --color-tag-ink: var(--tag-ink);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-display: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
+  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
 }
 
 body {
@@ -44,8 +45,8 @@ h2,
 h3,
 .font-display {
   font-family: var(--font-display);
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-weight: 500;
+  letter-spacing: 0.005em;
 }
 
 /* Feedback visual ao clicar em qualquer botão/link — sem isso os cliques
@@ -73,13 +74,13 @@ button:active {
     color: var(--accent);
   }
 
-  /* Título de cada página em destaque. */
+  /* Título de cada página: serifa fina em marfim, sem o bloco de cor.
+     É o que tira o "peso" do visual antigo — agora o título respira,
+     no estilo das artes do Secret. */
   main h1 {
-    display: inline-block;
-    background: var(--accent);
-    color: var(--on-accent);
-    padding: 0.4rem 0.9rem;
-    border-radius: 0.75rem;
+    color: var(--foreground);
+    font-size: 2rem;
+    line-height: 1.15;
   }
 }
 
@@ -87,43 +88,44 @@ button:active {
    do Tailwind (ex.: pr-16, !py-1) continua podendo sobrescrever, como no
    padrão recomendado do próprio Tailwind. */
 @layer components {
-  /* Botão sólido (ação primária): pill coral. */
+  /* Botão sólido (ação primária): dourado discreto, texto escuro, fino. */
   .btn-primary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.375rem;
-    border-radius: 999px;
+    border-radius: 0.625rem;
     background: var(--accent);
     color: var(--on-accent);
-    padding: 0.5rem 1.1rem;
-    font-weight: 600;
+    padding: 0.55rem 1.2rem;
+    font-weight: 500;
     font-size: 0.875rem;
+    letter-spacing: 0.01em;
     border: none;
   }
 
-  /* Botão contornado (ação secundária): pill com borda quente. */
+  /* Botão contornado (ação secundária): borda fininha, sem preenchimento. */
   .btn-secondary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.375rem;
-    border-radius: 999px;
+    border-radius: 0.625rem;
     background: transparent;
     color: var(--foreground);
     border: 1px solid var(--line);
-    padding: 0.5rem 1.1rem;
-    font-weight: 600;
+    padding: 0.55rem 1.2rem;
+    font-weight: 400;
     font-size: 0.875rem;
   }
 
-  /* Cartão: superfície elevada com brilho quente. */
+  /* Cartão: superfície levemente elevada, borda fina, sem brilho colorido. */
   .card {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 1.25rem;
+    border-radius: 0.875rem;
     padding: 1rem;
-    box-shadow: 0 8px 24px -12px rgba(214, 82, 79, 0.25);
+    box-shadow: 0 12px 32px -20px rgba(0, 0, 0, 0.6);
   }
 
   /* Campo de formulário. */
@@ -148,6 +150,7 @@ button:active {
     color: var(--tag-ink);
     padding: 0.15rem 0.6rem;
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 400;
+    letter-spacing: 0.04em;
   }
 }
