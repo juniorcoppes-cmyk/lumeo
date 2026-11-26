@@ -15,20 +15,26 @@ export function PrimaryNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-wrap items-center justify-center gap-1">
+    // UMA LINHA SÓ, inclusive em celular estreito (pedido do dono,
+    // 26/11/2026). Com seis itens o menu quebrava e o Perfil caía sozinho
+    // numa segunda linha, comendo altura e parecendo erro. Em vez de
+    // esconder item atrás de "mais", encolhemos ícone, fonte e respiro: a
+    // leitura continua, e o que o dedo acerta é o bloco inteiro, não a
+    // palavra.
+    <nav className="flex items-center justify-center gap-0.5 sm:gap-1">
       {items.map((item) => {
         const active = pathname === item.href || pathname?.startsWith(`${item.href}/`);
         return (
           <Link
             key={item.href}
             href={item.href}
-            className={`flex flex-col items-center gap-0.5 rounded-2xl px-3 py-1.5 text-xs font-medium no-underline transition-colors ${
+            className={`flex min-w-0 flex-col items-center gap-0.5 rounded-2xl px-1.5 py-1.5 text-[10px] font-medium whitespace-nowrap no-underline transition-colors sm:px-3 sm:text-xs ${
               active
                 ? "bg-accent/85 text-on-accent"
                 : "text-foreground hover:bg-accent-soft"
             }`}
           >
-            <span className="relative">
+            <span className="relative [&>svg]:h-[18px] [&>svg]:w-[18px] sm:[&>svg]:h-5 sm:[&>svg]:w-5">
               {item.icon}
               {!!item.badge && (
                 <span className="absolute -right-2 -top-1.5 rounded-full bg-background px-1 text-[10px] font-bold text-accent">
