@@ -99,6 +99,42 @@ export async function saveRating(formData: FormData) {
   revalidatePath(`/perfil/${targetId}`);
 }
 
+export async function bloquearPerfil(formData: FormData) {
+  const blockedId = formData.get("blocked_id") as string;
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  await supabase
+    .from("user_blocks")
+    .upsert({ blocker_id: user.id, blocked_id: blockedId }, { onConflict: "blocker_id,blocked_id" });
+
+  revalidatePath(`/perfil/${blockedId}`);
+  revalidatePath("/perfil/bloqueados");
+}
+
+export async function desbloquearPerfil(formData: FormData) {
+  const blockedId = formData.get("blocked_id") as string;
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  await supabase
+    .from("user_blocks")
+    .delete()
+    .eq("blocker_id", user.id)
+    .eq("blocked_id", blockedId);
+
+  revalidatePath(`/perfil/${blockedId}`);
+  revalidatePath("/perfil/bloqueados");
+}
+
 export async function reportUser(formData: FormData) {
   const reportedId = formData.get("reported_id") as string;
   const reason = formData.get("reason") as string;

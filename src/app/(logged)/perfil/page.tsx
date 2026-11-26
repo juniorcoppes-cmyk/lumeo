@@ -328,6 +328,15 @@ export default async function PerfilPage({
         </Link>
       </div>
 
+      <div className="mt-4">
+        <Link
+          href="/perfil/bloqueados"
+          className="text-sm text-muted no-underline hover:text-foreground"
+        >
+          Perfis bloqueados
+        </Link>
+      </div>
+
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <span className="text-sm text-muted">
           {profile?.location_updated_at

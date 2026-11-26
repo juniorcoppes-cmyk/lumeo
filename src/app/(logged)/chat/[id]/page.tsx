@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
 import { MessageBubble } from "@/components/MessageBubble";
 import { MessageComposer } from "@/components/MessageComposer";
+import { personaLabel, personaLabels } from "@/lib/persona";
 
 export default async function ChatConversaPage({
   params,
@@ -30,18 +31,29 @@ export default async function ChatConversaPage({
     .eq("id", id)
     .single();
 
+  // Meu próprio perfil: se for casal, preciso do tipo e dos dois gêneros pra
+  // montar o seletor "quem está falando" e rotular minhas mensagens.
+  const { data: myProfile } = await supabase
+    .from("users")
+    .select("profile_type, gender, partner_gender")
+    .eq("id", user.id)
+    .single();
+  const iAmCouple = myProfile?.profile_type === "casal";
+
   let other: {
     id: string;
     name: string;
     avatarUrl?: string;
     profileType: string;
     coupleSingleDevice: boolean;
+    gender: string | null;
+    partnerGender: string | null;
   } | null = null;
   if (conversation) {
     const otherId = conversation.user_a_id === user.id ? conversation.user_b_id : conversation.user_a_id;
     const { data: otherProfile } = await supabase
       .from("users")
-      .select("id, name, avatar_path, profile_type, couple_single_device")
+      .select("id, name, avatar_path, profile_type, couple_single_device, gender, partner_gender")
       .eq("id", otherId)
       .single();
     if (otherProfile) {
@@ -55,13 +67,17 @@ export default async function ChatConversaPage({
         avatarUrl,
         profileType: otherProfile.profile_type,
         coupleSingleDevice: otherProfile.couple_single_device,
+        gender: otherProfile.gender,
+        partnerGender: otherProfile.partner_gender,
       };
     }
   }
 
   const { data: messages } = await supabase
     .from("messages")
-    .select("id, sender_id, content, sent_at, edited_at, deleted_at, message_reads(device_id)")
+    .select(
+      "id, sender_id, content, sent_at, edited_at, deleted_at, sender_persona, message_reads(device_id)",
+    )
     .eq("conversation_id", id)
     .order("sent_at", { ascending: true });
 
@@ -116,6 +132,11 @@ export default async function ChatConversaPage({
           const distinctReaders = new Set(
             (m.message_reads as { device_id: string }[]).map((r) => r.device_id),
           ).size;
+          // Rótulo "quem falou": usa os gêneros de quem enviou (eu, se for
+          // minha; o outro, se recebida).
+          const label = isMine
+            ? personaLabel(myProfile?.gender, myProfile?.partner_gender, m.sender_persona)
+            : personaLabel(other?.gender, other?.partnerGender, m.sender_persona);
           return (
             <MessageBubble
               key={m.id}
@@ -123,6 +144,7 @@ export default async function ChatConversaPage({
               conversationId={id}
               isMine={isMine}
               unread={isMine && distinctReaders < requiredReaders}
+              personaLabel={label}
             />
           );
         })}
@@ -131,7 +153,15 @@ export default async function ChatConversaPage({
 
       {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 
-      <MessageComposer conversationId={id} />
+      <MessageComposer
+        conversationId={id}
+        isCouple={iAmCouple}
+        personaOptions={
+          iAmCouple
+            ? personaLabels(myProfile?.gender, myProfile?.partner_gender)
+            : undefined
+        }
+      />
     </main>
   );
 }

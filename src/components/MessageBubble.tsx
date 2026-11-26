@@ -17,12 +17,15 @@ export function MessageBubble({
   conversationId,
   isMine,
   unread,
+  personaLabel,
 }: {
   message: ChatMessage;
   conversationId: string;
   isMine: boolean;
   /** Recibo de leitura: mensagem MINHA que o destinatário ainda não leu. */
   unread: boolean;
+  /** "Quem falou" num perfil de casal (Ele/Ela/Pessoa 1/2). Null = individual. */
+  personaLabel?: string | null;
 }) {
   const [editing, setEditing] = useState(false);
   const deleted = !!message.deleted_at;
@@ -42,6 +45,9 @@ export function MessageBubble({
           isMine ? "self-end" : "self-start"
         } border border-line bg-surface/50 italic text-muted`}
       >
+        {personaLabel && (
+          <span className="text-xs font-semibold not-italic text-muted">{personaLabel}</span>
+        )}
         <span>Mensagem apagada</span>
         <span className="text-xs not-italic text-muted">
           {formatarDataHora(message.sent_at)}
@@ -87,6 +93,9 @@ export function MessageBubble({
 
   return (
     <li className={`${base} ${side} ${unread ? "font-bold" : "font-normal"}`}>
+      {personaLabel && (
+        <span className={`text-xs font-semibold ${metaColor}`}>{personaLabel}</span>
+      )}
       <span>{message.content}</span>
       <span className={`flex items-center gap-2 text-xs font-normal ${metaColor}`}>
         {formatarDataHora(message.sent_at)}

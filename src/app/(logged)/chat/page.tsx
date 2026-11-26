@@ -33,6 +33,13 @@ export default async function ChatListPage({
     .select("id, event_id, user_a_id, user_b_id")
     .order("created_at", { ascending: false });
 
+  // Quem eu bloqueei some das conversas (existentes e das sugestões de evento).
+  const { data: myBlocks } = await supabase
+    .from("user_blocks")
+    .select("blocked_id")
+    .eq("blocker_id", user.id);
+  const blockedIds = new Set((myBlocks ?? []).map((b) => b.blocked_id));
+
   // Quantas mensagens novas em cada conversa, pra este aparelho — o badge do
   // ícone de Chat diz que chegou algo, aqui diz de quem.
   const deviceId = (await cookies()).get("lumeo_device_id")?.value;
@@ -92,7 +99,8 @@ export default async function ChatListPage({
       });
       const event = Array.isArray(reg.events) ? reg.events[0] : reg.events;
       const newAttendees = (attendees ?? []).filter(
-        (a: { id: string }) => !existingPairs.has(`${reg.event_id}:${a.id}`),
+        (a: { id: string }) =>
+          !existingPairs.has(`${reg.event_id}:${a.id}`) && !blockedIds.has(a.id),
       );
       const withAvatars = await Promise.all(
         newAttendees.map(async (a: { avatar_path: string | null }) => {
@@ -134,6 +142,8 @@ export default async function ChatListPage({
           const other = otherUsers?.find((u) => u.id === otherId);
           // Quem ocultou o perfil some até das conversas já existentes.
           if (other?.hidden) return null;
+          // Quem eu bloqueei também some da lista.
+          if (blockedIds.has(otherId)) return null;
           const event = events?.find((e) => e.id === c.event_id);
           const unread = unreadByConversation.get(c.id) ?? 0;
           return (

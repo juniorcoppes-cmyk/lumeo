@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
@@ -17,6 +18,8 @@ import {
   type Orientation,
 } from "@/lib/profile-options";
 import {
+  bloquearPerfil,
+  desbloquearPerfil,
   proposeConnection,
   reportUser,
   requestPhotoAccess,
@@ -72,6 +75,40 @@ export default async function OutroPerfilPage({
           Sua verificação de identidade ainda não foi aprovada — isso é
           necessário para ver o perfil de outros usuários.
         </p>
+      </main>
+    );
+  }
+
+  // Se EU bloqueei este perfil, mostro o estado de bloqueio (com desbloquear)
+  // em vez de "perfil não disponível" — a função get_verified_profile já
+  // devolve vazio quando há bloqueio em qualquer direção.
+  const { data: iBlocked } = await supabase
+    .from("user_blocks")
+    .select("blocked_id")
+    .eq("blocker_id", user.id)
+    .eq("blocked_id", id)
+    .maybeSingle();
+
+  if (iBlocked) {
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-16">
+        <h1 className="text-2xl">Perfil bloqueado</h1>
+        <p className="mt-2 text-muted">
+          Você bloqueou este perfil. Ele não aparece pra você na comunidade, no
+          feed nem nos matches, e vocês não trocam mensagens.
+        </p>
+        <form action={desbloquearPerfil} className="mt-4">
+          <input type="hidden" name="blocked_id" value={id} />
+          <button type="submit" className="btn-secondary">
+            Desbloquear
+          </button>
+        </form>
+        <Link
+          href="/perfil/bloqueados"
+          className="mt-4 inline-block text-sm text-muted no-underline hover:text-accent"
+        >
+          Ver todos os perfis bloqueados
+        </Link>
       </main>
     );
   }
@@ -439,6 +476,25 @@ export default async function OutroPerfilPage({
       </section>
 
       <section className="mt-10 border-t border-line pt-6">
+        <details>
+          <summary className="cursor-pointer text-sm text-muted no-underline hover:text-foreground">
+            Bloquear este perfil
+          </summary>
+          <p className="mt-3 text-sm text-muted">
+            Vocês somem um pro outro — comunidade, feed, matches — e param de
+            trocar mensagens. Dá pra desfazer depois em{" "}
+            <span className="text-foreground">Perfil → Perfis bloqueados</span>.
+          </p>
+          <form action={bloquearPerfil} className="mt-3">
+            <input type="hidden" name="blocked_id" value={id} />
+            <button type="submit" className="btn-secondary">
+              Bloquear
+            </button>
+          </form>
+        </details>
+      </section>
+
+      <section className="mt-8 border-t border-line pt-6">
         <details>
           <summary className="cursor-pointer text-sm text-red-400 no-underline hover:underline">
             Denunciar este perfil

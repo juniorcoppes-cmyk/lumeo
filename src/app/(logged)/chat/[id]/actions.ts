@@ -7,6 +7,9 @@ import { createClient } from "@/lib/supabase/server";
 export async function sendMessage(formData: FormData) {
   const conversationId = formData.get("conversation_id") as string;
   const content = (formData.get("content") as string)?.trim();
+  const personaRaw = formData.get("persona") as string | null;
+  // Só 'p1'/'p2' valem; qualquer outra coisa vira null (conta individual).
+  const persona = personaRaw === "p1" || personaRaw === "p2" ? personaRaw : null;
 
   if (!content) return;
 
@@ -20,6 +23,7 @@ export async function sendMessage(formData: FormData) {
     conversation_id: conversationId,
     sender_id: user.id,
     content,
+    sender_persona: persona,
   });
 
   if (error) {
