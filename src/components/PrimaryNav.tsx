@@ -20,8 +20,10 @@ export function PrimaryNav({ items }: { items: NavItem[] }) {
     // numa segunda linha, comendo altura e parecendo erro. Em vez de
     // esconder item atrás de "mais", encolhemos ícone, fonte e respiro: a
     // leitura continua, e o que o dedo acerta é o bloco inteiro, não a
-    // palavra.
-    <nav className="flex items-center justify-center gap-0.5 sm:gap-1">
+    // palavra. No celular eles se espalham pela largura toda (justify-between):
+  // agrupados no meio sobrava faixa morta dos dois lados e o alvo do dedo
+  // ficava menor do que precisava.
+    <nav className="flex w-full items-center justify-between gap-0 sm:w-auto sm:justify-center sm:gap-1">
       {items.map((item) => {
         const active = pathname === item.href || pathname?.startsWith(`${item.href}/`);
         return (
