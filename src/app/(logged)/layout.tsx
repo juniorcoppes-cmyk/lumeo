@@ -8,7 +8,14 @@ import { AutoRefresh } from "@/components/AutoRefresh";
 import { PinLockGate } from "@/components/PinLockGate";
 import { SponsorGate } from "@/components/SponsorGate";
 import { PrimaryNav } from "@/components/PrimaryNav";
-import { CalendarIcon, HomeIcon, MessageIcon, UserIcon, UsersIcon } from "@/components/icons";
+import {
+  CalendarIcon,
+  FeedIcon,
+  HomeIcon,
+  MessageIcon,
+  UserIcon,
+  UsersIcon,
+} from "@/components/icons";
 
 export default async function LoggedLayout({
   children,
@@ -68,6 +75,7 @@ export default async function LoggedLayout({
 
   const primaryItems = [
     { href: "/inicio", label: "Início", icon: <HomeIcon /> },
+    { href: "/feed", label: "Feed", icon: <FeedIcon /> },
     { href: "/eventos", label: "Eventos", icon: <CalendarIcon /> },
     { href: "/comunidade", label: "Comunidade", icon: <UsersIcon /> },
     {

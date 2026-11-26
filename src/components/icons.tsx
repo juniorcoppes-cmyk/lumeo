@@ -26,6 +26,17 @@ export function HomeIcon(props: IconProps) {
   );
 }
 
+export function FeedIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3" y="4" width="18" height="16" rx="2.5" />
+      <path d="M3 15.5 8 11l4.5 4" />
+      <path d="M14 13.5 16.5 11l4.5 4.5" />
+      <circle cx="15.5" cy="8" r="1.2" />
+    </Svg>
+  );
+}
+
 export function CalendarIcon(props: IconProps) {
   return (
     <Svg {...props}>

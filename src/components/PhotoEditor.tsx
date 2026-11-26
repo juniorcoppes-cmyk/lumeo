@@ -77,7 +77,9 @@ export function PhotoEditor({
   file: File;
   /** Proporção travada (ex.: 1 pro avatar, 9/16 pro story). Sem isso, a pessoa escolhe. */
   aspect?: number;
-  onConfirm: (edited: File) => void;
+  /// `borroes` é quantas áreas a pessoa marcou. O feed usa isso pra exigir
+  /// o borrão do rosto; quem não liga, ignora o segundo argumento.
+  onConfirm: (edited: File, borroes: number) => void;
   onCancel: () => void;
 }) {
   const [srcUrl] = useState(() => URL.createObjectURL(file));
@@ -138,7 +140,7 @@ export function PhotoEditor({
     try {
       const out = await burnBlurs(croppedUrl, rects, file.name);
       revokeAll();
-      onConfirm(out);
+      onConfirm(out, rects.length);
     } catch {
       setErro("Não consegui aplicar as edições. Tente de novo.");
       setBusy(false);

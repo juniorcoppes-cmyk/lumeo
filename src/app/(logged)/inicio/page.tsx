@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
-import { ExperienceBadge } from "@/components/ExperienceBadge";
 import { PlatformInviteLink } from "@/components/PlatformInviteLink";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { SobreOLumeo } from "@/components/SobreOLumeo";
@@ -12,24 +11,8 @@ import { faltam, primeirosPassos } from "@/lib/primeiros-passos";
 import { computeAccessExpiry } from "@/lib/access-expiry";
 import { formatarDataHora } from "@/lib/datas";
 import { EventMeta } from "@/components/EventMeta";
-import { createTextPost, deleteTextPost, generatePlatformInvite, respondInvite } from "./actions";
+import { generatePlatformInvite, respondInvite } from "./actions";
 
-type TimelineRow = {
-  id: string;
-  user_id: string;
-  author_name: string;
-  author_experience_level: string | null;
-  author_avatar_path: string | null;
-  type: "text" | "photo_corpo" | "photo_rosto" | "event_confirmed";
-  content: string | null;
-  created_at: string;
-  photo_id: string | null;
-  photo_category: "rosto" | "corpo" | null;
-  photo_storage_path: string | null;
-  can_view_photo: boolean | null;
-  event_id: string | null;
-  event_title: string | null;
-};
 
 export default async function InicioPage({
   searchParams,
@@ -152,33 +135,6 @@ export default async function InicioPage({
       | null
       | undefined,
   });
-
-  let timelineRows: (TimelineRow & { photoUrl?: string; avatarUrl?: string })[] = [];
-
-  if (canSeeTimeline) {
-    const { data: posts } = await supabase.rpc("get_timeline");
-    const rows = (posts ?? []) as TimelineRow[];
-
-    timelineRows = await Promise.all(
-      rows.map(async (post) => {
-        const avatarUrl = post.author_avatar_path
-          ? (
-              await supabase.storage
-                .from("profile-photos")
-                .createSignedUrl(post.author_avatar_path, 300)
-            ).data?.signedUrl
-          : undefined;
-
-        if (post.photo_storage_path && post.can_view_photo) {
-          const { data } = await supabase.storage
-            .from("profile-photos")
-            .createSignedUrl(post.photo_storage_path, 300);
-          return { ...post, photoUrl: data?.signedUrl, avatarUrl };
-        }
-        return { ...post, photoUrl: undefined, avatarUrl };
-      }),
-    );
-  }
 
   // Só o convite pendente mais recente vira link copiável (platformInvites já
   // vem ordenado por created_at desc). Convite já usado não aparece de forma
@@ -368,113 +324,28 @@ export default async function InicioPage({
         </section>
       )}
 
+      {/* A linha do tempo saiu daqui e virou a página /feed. O Início ficou
+          sendo o painel — primeiros passos, eventos, convites — e o feed, o
+          lugar de voltar todo dia. Misturados, o feed nascia escondido no
+          rodapé e empurrava o resto pra baixo à medida que crescesse. */}
       <section className="mt-10 border-t border-line pt-8">
-        <h2 className="text-lg">Linha do tempo</h2>
-
+        <h2 className="text-lg">Feed</h2>
         {!canSeeTimeline ? (
           <p className="mt-2 text-muted">
-            A linha do tempo abre assim que seu padrinho aceitar seu apadrinhamento.
+            O feed abre assim que seu padrinho aceitar seu apadrinhamento.
           </p>
         ) : (
           <>
-            <form action={createTextPost} className="mt-4 flex flex-col gap-2">
-              <textarea
-                name="content"
-                placeholder="Compartilhe algo"
-                required
-                rows={3}
-                className="input text-sm"
-              />
-              <button type="submit" className="btn-primary self-end">
-                Publicar
-              </button>
-            </form>
-
-            <ul className="mt-6 flex flex-col gap-4">
-              {timelineRows.map((post) => (
-                <li key={post.id} className="card">
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      {post.avatarUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={post.avatarUrl}
-                          alt=""
-                          className="h-8 w-8 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-[9px] text-muted">
-                          —
-                        </div>
-                      )}
-                      <Link href={`/perfil/${post.user_id}`} className="font-medium no-underline text-foreground hover:text-accent">
-                        {post.author_name}
-                      </Link>
-                      <ExperienceBadge level={post.author_experience_level} />
-                    </div>
-                    <span className="text-xs text-muted">
-                      {formatarDataHora(post.created_at)}
-                    </span>
-                  </div>
-
-                  {post.type === "text" && (
-                    <div className="mt-2 flex items-start justify-between gap-2">
-                      <p className="text-sm">{post.content}</p>
-                      {post.user_id === user.id && (
-                        <form action={deleteTextPost}>
-                          <input type="hidden" name="post_id" value={post.id} />
-                          <button
-                            type="submit"
-                            className="shrink-0 text-xs text-red-400 no-underline hover:underline"
-                          >
-                            Remover
-                          </button>
-                        </form>
-                      )}
-                    </div>
-                  )}
-
-                  {post.type === "event_confirmed" && (
-                    <p className="mt-2 text-sm text-foreground/90">
-                      Confirmou presença em{" "}
-                      <Link href={`/eventos/${post.event_id}`}>
-                        {post.event_title}
-                      </Link>
-                      .
-                    </p>
-                  )}
-
-                  {(post.type === "photo_corpo" || post.type === "photo_rosto") &&
-                    (post.photoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={post.photoUrl}
-                        alt=""
-                        className="mt-2 h-32 w-32 rounded-xl object-cover"
-                      />
-                    ) : (
-                      <div className="mt-2 flex items-center gap-2 rounded-xl border border-dashed border-line p-3 text-sm text-muted">
-                        <span>
-                          Postou uma foto no álbum de rosto — privada, visível só
-                          mediante aprovação.
-                        </span>
-                        <Link
-                          href={`/perfil/${post.user_id}`}
-                          className="shrink-0"
-                        >
-                          Solicitar acesso
-                        </Link>
-                      </div>
-                    ))}
-                </li>
-              ))}
-              {timelineRows.length === 0 && (
-                <p className="text-muted">Nenhuma novidade ainda.</p>
-              )}
-            </ul>
+            <p className="mt-1 text-sm text-muted">
+              O que a comunidade anda vivendo — fotos com rosto borrado e recados.
+            </p>
+            <Link href="/feed" className="btn-primary mt-3 inline-block no-underline">
+              Abrir o feed
+            </Link>
           </>
         )}
       </section>
+
     </main>
   );
 }

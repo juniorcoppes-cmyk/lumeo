@@ -1,5 +1,14 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { Passo } from "@/lib/primeiros-passos";
+
+// Quem já se vira sozinho dispensa a trilha e ela não volta. Fica no
+// localStorage, no mesmo padrão do aviso de vencimento (AccessExpiryWarning):
+// é preferência de quem está olhando a tela, não dado de conta — e assim não
+// precisa de coluna nova nem de migração pra uma caixinha de "não mostrar".
+const DISPENSADA = "secret_trilha_dispensada";
 
 // O cartão da trilha. Sem estado próprio: o que está feito vem do banco (ver
 // lib/primeiros-passos.ts), então ele nunca mente sobre o perfil.
@@ -15,12 +24,43 @@ export function PrimeirosPassos({
 }) {
   const feitos = passos.filter((p) => p.feito).length;
 
+  // Começa escondida e só aparece depois de conferir o localStorage: o
+  // contrário faria o cartão piscar na tela de quem já dispensou.
+  const [mostrar, setMostrar] = useState(false);
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(DISPENSADA) !== "1") setMostrar(true);
+    } catch {
+      setMostrar(true); // navegador sem storage: melhor mostrar do que sumir
+    }
+  }, []);
+
+  function dispensar() {
+    try {
+      localStorage.setItem(DISPENSADA, "1");
+    } catch {
+      /* não poder lembrar não impede de fechar agora */
+    }
+    setMostrar(false);
+  }
+
+  if (!mostrar) return null;
+
   return (
     <section className="card mt-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-lg text-foreground">Seus primeiros passos</h2>
-        <span className="text-sm text-muted tabular-nums">
-          {feitos} de {passos.length}
+        <span className="flex items-center gap-3">
+          <span className="text-sm text-muted tabular-nums">
+            {feitos} de {passos.length}
+          </span>
+          <button
+            type="button"
+            onClick={dispensar}
+            className="text-sm text-muted underline-offset-2 hover:text-foreground hover:underline"
+          >
+            Dispensar
+          </button>
         </span>
       </div>
       <p className="mt-1 text-sm text-muted">
