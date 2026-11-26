@@ -26,6 +26,7 @@ import {
   removeAvatar,
   respondPhotoRequest,
   toggleCoupleSingleDevice,
+  definirQuemPodeMeChamar,
   toggleDiscreetMode,
   unhideProfile,
   updateAvatar,
@@ -58,7 +59,7 @@ export default async function PerfilPage({
     supabase
       .from("users")
       .select(
-        "name, email, profile_type, verification_badge_id, discreet_mode, hidden, couple_single_device, experience_level, location_updated_at, bio, birth_date, gender, sexual_orientation, looking_for, partner_birth_date, partner_gender, partner_sexual_orientation, avatar_path",
+        "name, email, profile_type, verification_badge_id, discreet_mode, quem_pode_me_chamar, hidden, couple_single_device, experience_level, location_updated_at, bio, birth_date, gender, sexual_orientation, looking_for, partner_birth_date, partner_gender, partner_sexual_orientation, avatar_path",
       )
       .eq("id", user.id)
       .single(),
@@ -208,6 +209,36 @@ export default async function PerfilPage({
           <dd>{subscription ? `${subscription.plan} (${subscription.status})` : "Nenhum plano ativo"}</dd>
         </div>
       </dl>
+
+      {/* Quem pode puxar conversa. São TRÊS respostas, não duas: "só eu
+          começo" para todo mundo impediria casal de chamar casal, que é o
+          uso principal do app. Null no banco quer dizer "nunca escolhi" e
+          vale o padrão do tipo de perfil — casal nasce em "só casais". */}
+      <div className="mt-8 rounded-[0.875rem] border border-line p-4">
+        <h2 className="text-lg">Quem pode te chamar</h2>
+        <form action={definirQuemPodeMeChamar} className="mt-3 flex flex-wrap items-center gap-2">
+          <select
+            name="quem_pode_me_chamar"
+            defaultValue={
+              (profile?.quem_pode_me_chamar as string | null) ??
+              (profile?.profile_type === "casal" ? "casais" : "todos")
+            }
+            className="input !py-1 text-sm"
+          >
+            <option value="todos">Qualquer pessoa pode me chamar</option>
+            <option value="casais">Só casais podem me chamar</option>
+            <option value="ninguem">Ninguém — o primeiro oi é meu</option>
+          </select>
+          <button type="submit" className="btn-secondary">
+            Salvar
+          </button>
+        </form>
+        <p className="mt-2 text-sm text-muted">
+          Vale só para conversa nova: quem já fala com você continua falando.
+          Casais começam em “só casais” — é o que evita a abordagem que
+          ninguém pediu, sem travar casal com casal.
+        </p>
+      </div>
 
       <form action={toggleDiscreetMode} className="mt-8 flex items-center gap-2">
         <input

@@ -141,7 +141,17 @@ export default async function ComunidadePage({
         </p>
       )}
 
-      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+      {/* Recusa de conversa não é erro de sistema: quando o outro perfil só
+          fala com quem ele chamou, a mensagem é informação, não falha — e em
+          vermelho pareceria que o app quebrou. */}
+      {error &&
+        (error.startsWith("Esse perfil") ? (
+          <p className="mt-4 rounded-xl border border-on-accent-soft/40 bg-on-accent-soft/10 p-3 text-sm text-foreground/90">
+            {error}
+          </p>
+        ) : (
+          <p className="mt-4 text-sm text-red-400">{error}</p>
+        ))}
 
       <ul className="mt-6 flex flex-col gap-2">
         {peopleWithAvatars.map(

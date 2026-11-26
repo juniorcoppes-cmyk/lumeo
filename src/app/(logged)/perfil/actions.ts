@@ -22,6 +22,24 @@ export async function toggleDiscreetMode(formData: FormData) {
   revalidatePath("/perfil");
 }
 
+/// Quem pode puxar conversa comigo: todos, só casais, ou ninguém. Grava o
+/// valor explícito — a partir daqui o padrão do tipo de perfil (casal nasce
+/// em "só casais") não manda mais nesta conta, porque a pessoa decidiu.
+export async function definirQuemPodeMeChamar(formData: FormData) {
+  const escolha = String(formData.get("quem_pode_me_chamar") ?? "");
+  if (!["todos", "casais", "ninguem"].includes(escolha)) return;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  await supabase.from("users").update({ quem_pode_me_chamar: escolha }).eq("id", user.id);
+
+  revalidatePath("/perfil");
+}
+
 export async function toggleCoupleSingleDevice(formData: FormData) {
   const singleDevice = formData.get("couple_single_device") === "on";
   const supabase = await createClient();
