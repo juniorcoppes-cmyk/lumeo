@@ -54,3 +54,23 @@ export function formatarDataHora(iso: string | Date): string {
 function relogioLocal(d: Date): string {
   return d.toLocaleString("sv-SE", { timeZone: FUSO }).replace(" ", "T");
 }
+
+/// A noite termina às 6 da manhã. Um baile que começa 23h ainda é "próximo"
+/// às 2h da madrugada seguinte — quem está lá dentro não considera que o
+/// evento já passou. É a mesma régua que o link público do evento usa pra
+/// decidir quando fechar.
+const AMANHECER = 6;
+
+/**
+ * O evento já acabou? Compara pelo relógio de parede de São Paulo dos dois
+ * lados — o servidor roda em UTC, e comparar instante com instante faria o
+ * evento "passar" 3 horas antes.
+ */
+export function eventoJaPassou(iso: string | Date, agora: Date = new Date()): boolean {
+  const diaDoEvento = relogioLocal(new Date(iso)).slice(0, 10);
+  const fimDaNoite = new Date(`${diaDoEvento}T00:00:00Z`);
+  fimDaNoite.setUTCDate(fimDaNoite.getUTCDate() + 1);
+  fimDaNoite.setUTCHours(AMANHECER);
+  const agoraEmSp = new Date(`${relogioLocal(agora)}Z`);
+  return agoraEmSp.getTime() > fimDaNoite.getTime();
+}
