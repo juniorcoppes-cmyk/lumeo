@@ -35,8 +35,7 @@ export default async function InicioPage({
     { data: platformInvites },
     { data: subscription },
     { data: afinidade },
-    { count: conexoes },
-    { count: inscricoes },
+    { count: fotosNoAlbum },
   ] = await Promise.all([
       supabase
         .from("events")
@@ -77,11 +76,7 @@ export default async function InicioPage({
         .eq("user_id", user.id)
         .maybeSingle(),
       supabase
-        .from("user_connections")
-        .select("id", { count: "exact", head: true })
-        .or(`requester_id.eq.${user.id},target_id.eq.${user.id}`),
-      supabase
-        .from("event_registrations")
+        .from("profile_photos")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id),
     ]);
@@ -106,11 +101,9 @@ export default async function InicioPage({
   // TRILHA DE PRIMEIROS PASSOS. Quem foi recusado não vê: a tela dele já diz
   // que o acesso não saiu, e oferecer tarefas ali seria crueldade.
   const passos = primeirosPassos({
-    temFoto: !!viewerProfile?.avatar_path,
+    temFoto: !!viewerProfile?.avatar_path || (fotosNoAlbum ?? 0) > 0,
     temBio: !!(viewerProfile?.bio as string | null)?.trim(),
     temAfinidade: ((afinidade?.interests as string[] | null) ?? []).length > 0,
-    temConexao: (conexoes ?? 0) > 0,
-    temEvento: (inscricoes ?? 0) > 0,
     aguardandoAcesso: !canSeeTimeline,
   });
   const mostrarTrilha =

@@ -4,27 +4,33 @@
 // liberal intimidante. Essa pessoa entra, olha a tela e não sabe o que fazer
 // primeiro — e sair sem fazer nada é o jeito mais comum de nunca voltar.
 //
-// A trilha é um cartão com cinco passos que se marcam SOZINHOS, lidos do que
+// A trilha é um cartão com três passos que se marcam SOZINHOS, lidos do que
 // já existe no banco: não tem "marcar como lido", não tem tabela nova, não
 // tem como ficar dessincronizado do estado real do perfil.
+//
+// SÃO TRÊS, E NÃO CINCO (26/11/2026). A primeira versão pedia também "dê o
+// primeiro oi" e "escolha um encontro". Os dois não dependiam só de quem
+// está preenchendo: o encontro exige que exista evento marcado, e sem evento
+// na agenda a trilha ficava IMPOSSÍVEL de terminar — ela nunca sumia da tela
+// de quem já tinha feito a parte dele. Trilha é para deixar o perfil pronto;
+// conhecer gente e ir a evento já têm o Comunidade e o Eventos no menu.
 //
 // Ela não bloqueia nada e some quando acaba. Isso é de propósito: o lema é
 // "conexão, não pressa", e uma parede na porta de entrada espanta justamente
 // quem a gente quer acolher.
 
 export type EstadoDosPassos = {
-  /// Tem foto de perfil (avatar) ou pelo menos uma foto no álbum.
+  /// Tem foto de perfil (avatar) OU pelo menos uma foto no álbum — quem já
+  /// pôs foto no álbum fez o que o passo pede, e o passo não pode continuar
+  /// aberto por causa de onde a foto foi parar.
   temFoto: boolean;
   /// Escreveu alguma coisa no "sobre".
   temBio: boolean;
   /// Respondeu interesses/ritmo/ambiente em profile_affinity.
   temAfinidade: boolean;
-  /// Já pediu ou recebeu conexão de alguém.
-  temConexao: boolean;
-  /// Já confirmou presença em algum evento.
-  temEvento: boolean;
-  /// Ainda esperando o padrinho: metade do app não abre, então a trilha
-  /// mostra só o que ele CONSEGUE fazer enquanto espera.
+  /// Ainda esperando o padrinho. Não muda a lista — os três passos são de
+  /// perfil e todos funcionam na espera; muda só o texto do cartão, que
+  /// convida a usar esse tempo em vez de ficar olhando a tela.
   aguardandoAcesso: boolean;
 };
 
@@ -66,31 +72,9 @@ export function primeirosPassos(e: EstadoDosPassos): Passo[] {
       botao: "Responder",
       feito: e.temAfinidade,
     },
-    {
-      chave: "conexao",
-      titulo: "Dê o primeiro oi",
-      descricao:
-        "A lista de quem combina com vocês já está pronta, com o porquê de cada combinação. Olhar não avisa ninguém.",
-      href: "/comunidade/combinam",
-      botao: "Ver quem combina",
-      feito: e.temConexao,
-    },
-    {
-      chave: "evento",
-      titulo: "Escolha um encontro",
-      descricao:
-        "Num evento dá pra conhecer gente sem ter que puxar assunto do nada — e você já chega sabendo quem vai.",
-      href: "/eventos",
-      botao: "Ver a agenda",
-      feito: e.temEvento,
-    },
   ];
 
-  // Esperando o padrinho: conexão e evento ainda estão trancados, e oferecer
-  // um botão que leva a uma porta fechada é pior do que não oferecer.
-  return e.aguardandoAcesso
-    ? passos.filter((p) => ["foto", "bio", "afinidade"].includes(p.chave))
-    : passos;
+  return passos;
 }
 
 /// Quantos faltam. Zero = a trilha sai da tela.

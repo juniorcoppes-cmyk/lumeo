@@ -1,5 +1,7 @@
 {
-  "regions": ["gru1"],
+  "regions": [
+    "gru1"
+  ],
   "crons": [
     {
       "path": "/api/cron/purge-verifications",
@@ -8,6 +10,10 @@
     {
       "path": "/api/cron/keep-alive",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/limpar-stories",
+      "schedule": "30 6 * * *"
     }
   ]
 }

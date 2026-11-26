@@ -5,7 +5,9 @@ import { getUser } from "@/lib/supabase/get-user";
 import { ExperienceBadge } from "@/components/ExperienceBadge";
 import { FeedComposer } from "@/components/FeedComposer";
 import { formatarDataHora } from "@/lib/datas";
+import { Stories, type Story } from "@/components/Stories";
 import { publicarNoFeed, apagarDoFeed } from "./actions";
+import { publicarStory, apagarStory } from "./stories-actions";
 
 export const metadata = { title: "Feed — Secret" };
 
@@ -62,8 +64,39 @@ export default async function FeedPage({
     );
   }
 
-  const { data } = await supabase.rpc("get_timeline");
-  const linhas = (data ?? []) as Linha[];
+  const [{ data }, { data: storiesRaw }] = await Promise.all([
+    supabase.rpc("get_timeline"),
+    supabase.rpc("get_stories"),
+  ]);
+  // SÓ POSTAGEM (pedido do dono, 26/11/2026). O get_timeline também devolve
+  // movimento automático — foto que alguém pôs no álbum do perfil e presença
+  // confirmada em evento. Isso enchia o feed de cards que são retrato de
+  // perfil, e o feed parecia uma lista de gente em vez do que a comunidade
+  // escreveu. Aqui ficam só texto e foto publicados no próprio feed.
+  const linhas = ((data ?? []) as Linha[]).filter(
+    (l) => l.type === "text" || l.type === "photo",
+  );
+
+  // Os stories vêm com o caminho do arquivo; a URL assinada é de 5 min, como
+  // no resto do app — endereço de imagem que vaze num print não serve depois.
+  const stories: Story[] = await Promise.all(
+    ((storiesRaw ?? []) as Story[]).map(async (s) => ({
+      ...s,
+      url: (
+        await supabase.storage.from("profile-photos").createSignedUrl(s.photo_path, 300)
+      ).data?.signedUrl,
+      avatarUrl: (s as Story & { author_avatar_path?: string | null }).author_avatar_path
+        ? (
+            await supabase.storage
+              .from("profile-photos")
+              .createSignedUrl(
+                (s as Story & { author_avatar_path: string }).author_avatar_path,
+                300,
+              )
+          ).data?.signedUrl
+        : undefined,
+    })),
+  );
 
   // Uma URL assinada por foto. São de 5 minutos: o bucket é privado, então
   // nenhum endereço de imagem daqui continua valendo se vazar de um print.
@@ -101,6 +134,15 @@ export default async function FeedPage({
       )}
 
       <div className="mt-5">
+        <Stories
+          stories={stories}
+          meuId={user.id}
+          publicar={publicarStory}
+          apagar={apagarStory}
+        />
+      </div>
+
+      <div className="mt-6">
         <FeedComposer action={publicarNoFeed} />
       </div>
 
