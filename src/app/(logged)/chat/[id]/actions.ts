@@ -185,9 +185,11 @@ export async function revelarFotoUnica(messageId: string): Promise<string | null
     return null;
   }
 
+  // Link curto (60s) de propósito: a URL é gerada antes de marcar vista, então
+  // é a única janela em que a foto poderia ser reaberta — quanto menor, melhor.
   const { data: signed } = await supabase.storage
     .from("profile-photos")
-    .createSignedUrl(msg.photo_path, 300);
+    .createSignedUrl(msg.photo_path, 60);
   if (!signed?.signedUrl) return null;
 
   await supabase.rpc("marcar_foto_unica_vista", { p_message_id: messageId });
