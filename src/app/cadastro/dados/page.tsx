@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { EXPERIENCE_LEVEL_LABELS, EXPERIENCE_LEVELS } from "@/lib/experience-level";
+import {
+  EXPERIENCE_LEVEL_HINTS,
+  EXPERIENCE_LEVEL_LABELS,
+  EXPERIENCE_LEVELS,
+} from "@/lib/experience-level";
 import { PasswordInput } from "@/components/PasswordInput";
 import { SobreOLumeo } from "@/components/SobreOLumeo";
 import { createClient } from "@/lib/supabase/server";
@@ -123,9 +127,12 @@ export default async function CadastroDadosPage({
           <option value="" disabled>
             Sua experiência no meio liberal
           </option>
+          {/* No cadastro vai a explicação junto: é a primeira vez que a
+              pessoa escolhe, e "até 6 meses" sozinho não diz se conta desde
+              a primeira festa ou desde a primeira conversa. */}
           {EXPERIENCE_LEVELS.map((level) => (
             <option key={level} value={level}>
-              {EXPERIENCE_LEVEL_LABELS[level]}
+              {EXPERIENCE_LEVEL_LABELS[level]} — {EXPERIENCE_LEVEL_HINTS[level]}
             </option>
           ))}
         </select>
