@@ -8,6 +8,8 @@ import { formatarDataHora } from "@/lib/datas";
 import { Stories, type Story } from "@/components/Stories";
 import { publicarNoFeed, apagarDoFeed } from "./actions";
 import { publicarStory, apagarStory } from "./stories-actions";
+import { InteracoesDoPost, type Comentario } from "@/components/InteracoesDoPost";
+import { alternarCurtida, comentarNoPost, apagarComentario } from "./interacoes-actions";
 
 export const metadata = { title: "Feed — Secret" };
 
@@ -120,6 +122,47 @@ export default async function FeedPage({
     }),
   );
 
+  // Curtidas e comentários de todos os posts da tela em duas consultas, não
+  // duas por post: com 50 posts seriam 100 idas ao banco.
+  const ids = posts.map((p) => p.id);
+  const [{ data: curtidasRaw }, { data: comentariosRaw }] = await Promise.all([
+    ids.length
+      ? supabase.from("post_likes").select("post_id, user_id").in("post_id", ids)
+      : Promise.resolve({ data: [] as { post_id: string; user_id: string }[] }),
+    ids.length
+      ? supabase
+          .from("post_comments")
+          .select("id, post_id, author_id, content, reply_to, created_at, autor:users(name)")
+          .in("post_id", ids)
+          .order("created_at", { ascending: true })
+      : Promise.resolve({ data: [] as unknown[] }),
+  ]);
+
+  const curtidas = new Map<string, { total: number; eu: boolean }>();
+  for (const l of (curtidasRaw ?? []) as { post_id: string; user_id: string }[]) {
+    const atual = curtidas.get(l.post_id) ?? { total: 0, eu: false };
+    curtidas.set(l.post_id, {
+      total: atual.total + 1,
+      eu: atual.eu || l.user_id === user.id,
+    });
+  }
+
+  const comentarios = new Map<string, Comentario[]>();
+  for (const linha of (comentariosRaw ?? []) as Record<string, unknown>[]) {
+    const autor = Array.isArray(linha.autor) ? linha.autor[0] : linha.autor;
+    const c: Comentario = {
+      id: linha.id as string,
+      author_id: linha.author_id as string,
+      author_name: ((autor as { name?: string } | null)?.name ?? "Alguém") as string,
+      content: linha.content as string,
+      reply_to: (linha.reply_to as string | null) ?? null,
+      created_at: linha.created_at as string,
+    };
+    const lista = comentarios.get(linha.post_id as string);
+    if (lista) lista.push(c);
+    else comentarios.set(linha.post_id as string, [c]);
+  }
+
   return (
     <main className="mx-auto max-w-2xl px-6 py-10">
       <h1 className="text-2xl">Feed</h1>
@@ -206,6 +249,18 @@ export default async function FeedPage({
                   </button>
                 </form>
               )}
+
+              <InteracoesDoPost
+                postId={post.id}
+                donoDoPostId={post.user_id}
+                meuId={user.id}
+                curtidas={curtidas.get(post.id)?.total ?? 0}
+                curtiEu={curtidas.get(post.id)?.eu ?? false}
+                comentarios={comentarios.get(post.id) ?? []}
+                curtir={alternarCurtida}
+                comentar={comentarNoPost}
+                apagar={apagarComentario}
+              />
             </li>
           ))}
         </ul>
