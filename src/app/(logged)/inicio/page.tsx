@@ -7,6 +7,8 @@ import { PlatformInviteLink } from "@/components/PlatformInviteLink";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { SobreOLumeo } from "@/components/SobreOLumeo";
 import { AccessExpiryWarning } from "@/components/AccessExpiryWarning";
+import { PrimeirosPassos } from "@/components/PrimeirosPassos";
+import { faltam, primeirosPassos } from "@/lib/primeiros-passos";
 import { computeAccessExpiry } from "@/lib/access-expiry";
 import { formatarDataHora } from "@/lib/datas";
 import { EventMeta } from "@/components/EventMeta";
@@ -49,6 +51,9 @@ export default async function InicioPage({
     { data: viewerProfile },
     { data: platformInvites },
     { data: subscription },
+    { data: afinidade },
+    { count: conexoes },
+    { count: inscricoes },
   ] = await Promise.all([
       supabase
         .from("events")
@@ -65,7 +70,7 @@ export default async function InicioPage({
       supabase
         .from("users")
         .select(
-          "verification_badge_id, is_admin, is_support_channel, membership_status, hidden, member_since, subscription_exempt, subscription_exempt_until, sponsor:referred_by(name)",
+          "verification_badge_id, is_admin, is_support_channel, membership_status, hidden, member_since, subscription_exempt, subscription_exempt_until, avatar_path, bio, sponsor:referred_by(name)",
         )
         .eq("id", user.id)
         .single(),
@@ -79,6 +84,23 @@ export default async function InicioPage({
         .select("status, renewed_at, overdue_since")
         .eq("user_id", user.id)
         .maybeSingle(),
+      // As três abaixo alimentam a trilha de primeiros passos. São contagens
+      // (head: true) de propósito: a trilha só precisa saber SE existe, e
+      // trazer as linhas seria peso sem uso numa página que já faz 5
+      // consultas.
+      supabase
+        .from("profile_affinity")
+        .select("interests")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("user_connections")
+        .select("id", { count: "exact", head: true })
+        .or(`requester_id.eq.${user.id},target_id.eq.${user.id}`),
+      supabase
+        .from("event_registrations")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id),
     ]);
 
   const events = await Promise.all(
@@ -97,6 +119,21 @@ export default async function InicioPage({
     !!viewerProfile?.is_support_channel;
 
   const membershipStatus = viewerProfile?.membership_status;
+
+  // TRILHA DE PRIMEIROS PASSOS. Quem foi recusado não vê: a tela dele já diz
+  // que o acesso não saiu, e oferecer tarefas ali seria crueldade.
+  const passos = primeirosPassos({
+    temFoto: !!viewerProfile?.avatar_path,
+    temBio: !!(viewerProfile?.bio as string | null)?.trim(),
+    temAfinidade: ((afinidade?.interests as string[] | null) ?? []).length > 0,
+    temConexao: (conexoes ?? 0) > 0,
+    temEvento: (inscricoes ?? 0) > 0,
+    aguardandoAcesso: !canSeeTimeline,
+  });
+  const mostrarTrilha =
+    faltam(passos) > 0 &&
+    membershipStatus !== "rejected_by_sponsor" &&
+    membershipStatus !== "rejected_by_admin";
   const sponsor = Array.isArray(viewerProfile?.sponsor)
     ? viewerProfile?.sponsor[0]
     : viewerProfile?.sponsor;
@@ -197,6 +234,10 @@ export default async function InicioPage({
           Seu perfil não foi confirmado pela administração. Fale com o suporte se quiser entender o
           motivo.
         </div>
+      )}
+
+      {mostrarTrilha && (
+        <PrimeirosPassos passos={passos} aguardandoAcesso={!canSeeTimeline} />
       )}
 
       <details className="card mt-4">
