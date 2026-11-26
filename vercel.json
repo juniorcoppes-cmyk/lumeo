@@ -14,6 +14,10 @@
     {
       "path": "/api/cron/limpar-stories",
       "schedule": "30 6 * * *"
+    },
+    {
+      "path": "/api/cron/limpar-fotos-chat",
+      "schedule": "0 7 * * *"
     }
   ]
 }

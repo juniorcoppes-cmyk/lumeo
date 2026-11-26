@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
-import { MessageBubble } from "@/components/MessageBubble";
+import { MessageBubble, type ChatPhoto } from "@/components/MessageBubble";
 import { MessageComposer } from "@/components/MessageComposer";
 import { personaLabel, personaLabels } from "@/lib/persona";
 
@@ -76,7 +76,7 @@ export default async function ChatConversaPage({
   const { data: messages } = await supabase
     .from("messages")
     .select(
-      "id, sender_id, content, sent_at, edited_at, deleted_at, sender_persona, message_reads(device_id)",
+      "id, sender_id, content, sent_at, edited_at, deleted_at, sender_persona, photo_path, photo_mode, photo_expires_at, photo_viewed_at, message_reads(device_id)",
     )
     .eq("conversation_id", id)
     .order("sent_at", { ascending: true });
@@ -107,6 +107,39 @@ export default async function ChatConversaPage({
   // em /perfil também basta 1, senão nunca sairia do negrito.
   const requiredReaders =
     other?.profileType === "casal" && !other.coupleSingleDevice ? 2 : 1;
+
+  // Resolve o estado da foto de cada mensagem. Gera a URL assinada só quando
+  // pode mostrar — nunca pra uma "visualização única" ainda não vista (gerar
+  // já consumiria; quem gera é o botão de revelar, sob demanda).
+  const agora = new Date();
+  const photoEntries = await Promise.all(
+    (messages ?? []).map(async (m): Promise<[string, ChatPhoto | null]> => {
+      if (!m.photo_path || m.deleted_at) return [m.id, null];
+      const isMine = m.sender_id === user.id;
+      const mode = m.photo_mode as "fixa" | "temporaria" | "unica" | null;
+      const expired =
+        mode === "temporaria" &&
+        !!m.photo_expires_at &&
+        new Date(m.photo_expires_at) < agora;
+      const onceGone = mode === "unica" && !!m.photo_viewed_at;
+
+      if (!isMine && mode === "unica") {
+        return [m.id, { kind: onceGone ? "once-gone" : "once-available" }];
+      }
+      if (!isMine && expired) {
+        return [m.id, { kind: "expired" }];
+      }
+
+      const { data: signed } = await supabase.storage
+        .from("profile-photos")
+        .createSignedUrl(m.photo_path, 300);
+      if (!signed?.signedUrl) {
+        return [m.id, onceGone ? { kind: "once-gone" } : null];
+      }
+      return [m.id, { kind: "image", url: signed.signedUrl, mode }];
+    }),
+  );
+  const photoById = new Map(photoEntries);
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col px-6 py-16">
@@ -145,6 +178,7 @@ export default async function ChatConversaPage({
               isMine={isMine}
               unread={isMine && distinctReaders < requiredReaders}
               personaLabel={label}
+              photo={photoById.get(m.id) ?? null}
             />
           );
         })}
