@@ -8,9 +8,10 @@ import { contactSupport, startConversation } from "./actions";
 export default async function ChatListPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; filtro?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, filtro } = await searchParams;
+  const soNaoLidas = filtro === "naolidas";
   const supabase = await createClient();
 
   const {
@@ -115,6 +116,22 @@ export default async function ChatListPage({
     }),
   );
 
+  // Lista visível: tira quem ocultou o perfil e quem eu bloqueei. Em cima
+  // dela, o filtro "só não lidas" (pra achar logo o que falta responder).
+  const baseVisiveis = (conversations ?? []).filter((c) => {
+    const otherId = c.user_a_id === user.id ? c.user_b_id : c.user_a_id;
+    const other = otherUsers.find((u) => u.id === otherId);
+    if (other?.hidden) return false;
+    if (blockedIds.has(otherId)) return false;
+    return true;
+  });
+  const qtdNaoLidas = baseVisiveis.filter(
+    (c) => (unreadByConversation.get(c.id) ?? 0) > 0,
+  ).length;
+  const lista = soNaoLidas
+    ? baseVisiveis.filter((c) => (unreadByConversation.get(c.id) ?? 0) > 0)
+    : baseVisiveis;
+
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-2xl">Conversas</h1>
@@ -136,14 +153,44 @@ export default async function ChatListPage({
         </button>
       </form>
 
-      <ul className="mt-6 flex flex-col gap-2">
-        {conversations?.map((c) => {
+      {baseVisiveis.length > 0 && (
+        <div className="mt-6 flex gap-2">
+          <Link
+            href="/chat"
+            className={`rounded-full px-3 py-1 text-sm no-underline ${
+              soNaoLidas
+                ? "border border-line text-foreground hover:border-accent"
+                : "bg-accent font-medium text-on-accent"
+            }`}
+          >
+            Todas
+          </Link>
+          <Link
+            href="/chat?filtro=naolidas"
+            className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm no-underline ${
+              soNaoLidas
+                ? "bg-accent font-medium text-on-accent"
+                : "border border-line text-foreground hover:border-accent"
+            }`}
+          >
+            Não lidas
+            {qtdNaoLidas > 0 && (
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                  soNaoLidas ? "bg-on-accent/20 text-on-accent" : "bg-accent text-on-accent"
+                }`}
+              >
+                {qtdNaoLidas}
+              </span>
+            )}
+          </Link>
+        </div>
+      )}
+
+      <ul className="mt-4 flex flex-col gap-2">
+        {lista.map((c) => {
           const otherId = c.user_a_id === user.id ? c.user_b_id : c.user_a_id;
-          const other = otherUsers?.find((u) => u.id === otherId);
-          // Quem ocultou o perfil some até das conversas já existentes.
-          if (other?.hidden) return null;
-          // Quem eu bloqueei também some da lista.
-          if (blockedIds.has(otherId)) return null;
+          const other = otherUsers.find((u) => u.id === otherId);
           const event = events?.find((e) => e.id === c.event_id);
           const unread = unreadByConversation.get(c.id) ?? 0;
           return (
@@ -184,8 +231,10 @@ export default async function ChatListPage({
             </li>
           );
         })}
-        {conversations?.length === 0 && (
-          <p className="text-muted">Nenhuma conversa ainda.</p>
+        {lista.length === 0 && (
+          <p className="text-muted">
+            {soNaoLidas ? "Tudo lido por aqui. 🎉" : "Nenhuma conversa ainda."}
+          </p>
         )}
       </ul>
 
