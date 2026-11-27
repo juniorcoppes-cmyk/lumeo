@@ -36,9 +36,9 @@ export function CadastroForm({
         className="input"
       />
       {ehCasal ? (
-        <p className="-mt-2 text-xs text-muted">
+        <p className="-mt-2 text-xs text-green-400">
           É o nome que vai aparecer no perfil de vocês dois. Criem um{" "}
-          <strong className="text-foreground">nome de casal, fictício</strong> — um
+          <strong className="text-green-300">nome de casal, fictício</strong> — um
           apelido só de vocês (ex.: “M&amp;J”, “Os Corujas”). Não usem os nomes
           reais: a graça do Secret é esse anonimato.
         </p>
