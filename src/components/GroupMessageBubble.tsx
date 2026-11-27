@@ -9,20 +9,41 @@ export type GroupMessage = {
   id: string;
   sender_id: string;
   sender_name: string;
+  sender_persona: string | null;
+  sender_gender: string | null;
+  sender_partner_gender: string | null;
   content: string;
   created_at: string;
   edited_at: string | null;
   deleted_at: string | null;
+  photo_path: string | null;
+  photo_mode: "fixa" | "temporaria" | null;
+  photo_expires_at: string | null;
+};
+
+// Como a foto desta mensagem deve aparecer, já resolvido no servidor.
+//  - "image":   mostra a foto (url pronta). Modo dá o rótulo.
+//  - "expired": temporária que passou das 24h.
+export type GroupPhoto = {
+  kind: "image" | "expired";
+  url?: string | null;
+  mode?: "fixa" | "temporaria" | null;
 };
 
 export function GroupMessageBubble({
   message,
   eventId,
   isMine,
+  personaLabel,
+  photo,
 }: {
   message: GroupMessage;
   eventId: string;
   isMine: boolean;
+  /** "Quem falou" num perfil de casal (Ele/Ela/Pessoa 1/2). Null = individual. */
+  personaLabel?: string | null;
+  /** Foto da mensagem, já resolvida no servidor. Null = mensagem só de texto. */
+  photo?: GroupPhoto | null;
 }) {
   const [editing, setEditing] = useState(false);
   const deleted = !!message.deleted_at;
@@ -83,19 +104,48 @@ export function GroupMessageBubble({
     );
   }
 
+  const modeTag = photo?.kind === "image" && photo.mode === "temporaria" ? "some em 24h" : null;
+
   return (
     <li className={`${base} ${side}`}>
       {/* Num grupo, cada mensagem precisa dizer de quem é. Minha mensagem não
-          repete meu nome; a dos outros mostra e leva pro perfil. */}
+          repete meu nome; a dos outros mostra e leva pro perfil. O rótulo de
+          casal (Ele/Ela) acompanha o nome. */}
       {!isMine && (
-        <Link
-          href={`/perfil/${message.sender_id}`}
-          className="text-xs font-medium text-accent no-underline hover:underline"
-        >
-          {message.sender_name}
-        </Link>
+        <span className="flex items-center gap-1 text-xs">
+          <Link
+            href={`/perfil/${message.sender_id}`}
+            className="font-medium text-accent no-underline hover:underline"
+          >
+            {message.sender_name}
+          </Link>
+          {personaLabel && <span className="text-muted">· {personaLabel}</span>}
+        </span>
       )}
-      <span>{message.content}</span>
+      {isMine && personaLabel && (
+        <span className={`text-xs font-semibold ${metaColor}`}>{personaLabel}</span>
+      )}
+
+      {photo && (
+        <>
+          {photo.kind === "image" && photo.url && (
+            <div className="flex flex-col gap-1">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={photo.url}
+                alt=""
+                className="max-h-80 w-full rounded-[12px] object-cover"
+              />
+              {modeTag && <span className={`text-xs ${metaColor}`}>{modeTag}</span>}
+            </div>
+          )}
+          {photo.kind === "expired" && (
+            <span className={`text-sm italic ${metaColor}`}>📷 Foto expirada</span>
+          )}
+        </>
+      )}
+
+      {message.content && <span>{message.content}</span>}
       <span className={`flex items-center gap-2 text-xs font-normal ${metaColor}`}>
         {formatarDataHora(message.created_at)}
         {message.edited_at && <span>· editada</span>}
