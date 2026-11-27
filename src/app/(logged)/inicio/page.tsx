@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
 import { PlatformInviteLink } from "@/components/PlatformInviteLink";
 import { AutoRefresh } from "@/components/AutoRefresh";
+import { AvisoApadrinhou } from "@/components/AvisoApadrinhou";
 import { SobreOLumeo } from "@/components/SobreOLumeo";
 import { AccessExpiryWarning } from "@/components/AccessExpiryWarning";
 import { PrimeirosPassos } from "@/components/PrimeirosPassos";
@@ -153,12 +154,7 @@ export default async function InicioPage({
         </div>
       )}
 
-      {apadrinhado && (
-        <div className="mt-4 rounded-2xl border border-green-700/50 bg-green-900/25 p-4 text-sm text-green-200">
-          Você aceitou <strong className="text-green-100">{apadrinhado}</strong>! Avise que já pode
-          acessar o Secret — é só entrar em www.socialsecret.com.br.
-        </div>
-      )}
+      {apadrinhado && <AvisoApadrinhou nome={apadrinhado} />}
 
       {!canSeeTimeline && membershipStatus === "pending_sponsor" && (
         <div className="mt-4 rounded-2xl border border-on-accent-soft/40 bg-on-accent-soft/10 p-4 text-sm text-foreground/90">
